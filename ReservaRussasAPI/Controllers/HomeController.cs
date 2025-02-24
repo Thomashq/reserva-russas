@@ -1,8 +1,8 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using ReservaRussas.Models;
+using ReservaRussasAPI.Models;
 
-namespace ReservaRussas.Controllers;
+namespace ReservaRussasAPI.Controllers;
 
 public class HomeController : Controller
 {
