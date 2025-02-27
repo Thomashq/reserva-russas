@@ -1,7 +1,7 @@
 using Domain;
 using Infraestructure;
 using Microsoft.EntityFrameworkCore;
-using Npgsql.EntityFrameworkCore.PostgreSQL;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.

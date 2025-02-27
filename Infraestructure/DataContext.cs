@@ -1,8 +1,7 @@
 using Domain.Models;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Relational;
 
-namespace Infraestructureo;
+namespace Infraestructure;
 
 public class DataContext:DbContext
 {
