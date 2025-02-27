@@ -1,10 +1,14 @@
 namespace Domain.Models;
 
-public class Student:Account 
+public class Student:BaseModel
 {
-  public List<long> Reservations {get; set;}  
+    public Guid AccountId { get; set; }
 
-  public List<long> Advisor {get; set;}  
+    public Account Account { get; set; }
+    
+    public List<Guid> Reservations {get; set;}  
 
-  public List<long>? Permissions {get; set;}  
+    public List<Guid> Advisor {get; set;}  
+
+    public List<Guid>? Permissions {get; set;}  
 }  

@@ -6,5 +6,7 @@ public class Rooms:BaseModel
 
     public required int Capacity { get; set; }
 
-    public long ManagerId { get; set; }
+    public Guid ManagerId { get; set; }
+
+    public Manager Manager { get; set; }
 }
