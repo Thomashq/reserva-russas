@@ -1,31 +1,51 @@
-using Domain.Models;
+﻿using Domain.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infraestructure;
 
-public class DataContext:DbContext
+public class DataContext : DbContext
 {
-  public DataContext(DbContextOptions<DataContext> options) : base(options) { }  
+    public DataContext(DbContextOptions<DataContext> options) : base(options) { }
 
-  public DbSet<Account> Account {get;set;}
-  public DbSet<Student> Student {get;set;}
-  public DbSet<Servant> Servant {get;set;}
-  public DbSet<Manager> Manager {get;set;}
-  public DbSet<Reservation> Reservation {get;set;}
-  public DbSet<Rooms> Room {get;set;}
+    public DbSet<Account> Account { get; set; }
+    public DbSet<Student> Student { get; set; }
+    public DbSet<Servant> Servant { get; set; }
+    public DbSet<Manager> Manager { get; set; }
+    public DbSet<Reservation> Reservation { get; set; }
+    public DbSet<Rooms> Room { get; set; }
 
-  protected override void OnModelCreating(ModelBuilder modelBuilder)
-  {
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+{
     base.OnModelCreating(modelBuilder);
 
-    //Configuração automática para todas as classes que herdam de BaseModel
-    foreach (var entityType in modelBuilder.Model.GetEntityTypes())
-    {
-        if (typeof(BaseModel).IsAssignableFrom(entityType.ClrType))
-        {
-            var entity = modelBuilder.Entity(entityType.ClrType);
-            entity.Property<long>("Id").HasColumnName($"{entityType.ClrType.Name}Id");
-        }
+    modelBuilder.Entity<Manager>()
+            .HasOne(m => m.Account)
+            .WithMany()
+            .HasForeignKey(m => m.AccountId)
+            .IsRequired()
+            .OnDelete(DeleteBehavior.Cascade);
+
+    modelBuilder.Entity<Student>()
+            .HasOne(s => s.Account)
+            .WithMany()
+            .HasForeignKey(s => s.AccountId)
+            .IsRequired()
+            .OnDelete(DeleteBehavior.Cascade);
+
+    modelBuilder.Entity<Servant>()
+            .HasOne(s => s.Account)
+            .WithMany()
+            .HasForeignKey(s => s.AccountId)
+            .IsRequired()
+            .OnDelete(DeleteBehavior.Cascade);
+
+    modelBuilder.Entity<Rooms>()
+            .HasOne(s => s.Manager)
+            .WithMany()
+            .HasForeignKey(s => s.ManagerId)
+            .IsRequired()
+            .OnDelete(DeleteBehavior.Cascade);
     }
-  }
+
 }
+

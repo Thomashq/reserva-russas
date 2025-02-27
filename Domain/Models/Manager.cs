@@ -1,6 +1,10 @@
 namespace Domain.Models;
 
-public class Manager:Account 
+public class Manager:BaseModel
 {
-  public List<long> ManagedRooms {get; set;}  
+    public Guid AccountId { get; set; }
+
+    public Account Account { get; set; }
+
+    public List<Guid> ManagedRooms {get; set;}  
 } 

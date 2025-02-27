@@ -1,11 +1,17 @@
-using Domain;
 using Infraestructure;
 using Microsoft.EntityFrameworkCore;
+using RR.Infraestructure.DependencyInjection;
+using RR.ReservaRussasAPI.Docs;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllers();
+
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddSwaggerDocumentation();
+}
 
 builder.Services.AddCors(options =>
 {
@@ -17,6 +23,8 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.AddApplicationServices();
+
 builder.Services.AddDbContext<DataContext>(options => 
 {
   options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));      
@@ -25,11 +33,14 @@ builder.Services.AddDbContext<DataContext>(options =>
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment())
+{
+    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+    app.UseSwaggerConfigurationReservaRussas();
+}
+else
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseHsts();
 }
 
 app.UseCors();
@@ -43,5 +54,13 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapGet("/", async context =>
+    {
+        await context.Response.WriteAsync($"API FUNCIONANDO E INICIADA EM {DateTime.Now}", default);
+    });
+});
 
 app.Run();

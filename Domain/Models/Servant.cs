@@ -1,8 +1,12 @@
 namespace Domain.Models;
 
-public class Servant:Account 
+public class Servant:BaseModel
 {
-  public List<long> Advisee {get; set;}  
+    public Guid AccountId { get; set; }
 
-  public List<long> Reservation {get; set;} = new();  
+    public Account Account { get; set; }
+
+    public List<Guid> Advisee {get; set;}  
+
+    public List<Guid> Reservation {get; set;} = new();  
 } 

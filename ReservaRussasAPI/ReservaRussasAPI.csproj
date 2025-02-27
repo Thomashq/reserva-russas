@@ -23,12 +23,21 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.2" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.3" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL.Design" Version="1.1.0" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="7.2.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="7.3.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="7.3.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="7.3.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="7.3.1" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Domain\Domain.csproj" />
-    <ProjectReference Include="..\Infraestructure\Infraestructure.csproj" />
+    <ProjectReference Include="..\Core\RR.Core.csproj" />
+    <ProjectReference Include="..\Domain\RR.Domain.csproj" />
+    <ProjectReference Include="..\Infraestructure\RR.Infraestructure.csproj" />
+    <ProjectReference Include="..\RR.ReservaRussasAPI.Docs\RR.ReservaRussasAPI.Docs.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Service\" />
   </ItemGroup>
 
 </Project>
