@@ -1,7 +1,26 @@
+using Domain;
+using Infraestructure;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAllOrigins", policy =>
+    {
+        policy.AllowAnyOrigin()    
+              .AllowAnyHeader()   
+              .AllowAnyMethod();  
+    });
+});
+
+builder.Services.AddDbContext<DataContext>(options => 
+{
+  options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));      
+});
 
 var app = builder.Build();
 
@@ -13,6 +32,7 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+app.UseCors();
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
