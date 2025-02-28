@@ -10,6 +10,10 @@ namespace RR.Core.DTOs
     {
         public Guid Id {get;set;}
 
+        public Guid RoomId { get; set; }
+
+        public Guid AccountId { get; set; }
+        
         public AccountDTO Account {get;set;} 
 
         public required DateTime StartTime {get;set;}

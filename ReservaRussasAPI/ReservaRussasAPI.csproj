@@ -36,8 +36,4 @@
     <ProjectReference Include="..\RR.ReservaRussasAPI.Docs\RR.ReservaRussasAPI.Docs.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Service\" />
-  </ItemGroup>
-
 </Project>

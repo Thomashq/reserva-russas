@@ -2,11 +2,6 @@
 using Core.Services;
 using Domain.Models;
 using RR.Core.DTOs;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace RR.Service.Service
 {

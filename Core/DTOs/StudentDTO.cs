@@ -10,12 +10,20 @@ namespace RR.Core.DTOs
     {
         public Guid Id { get; set; }
 
+        public Guid AccountId { get; set; }
+
         public AccountDTO? Account { get; set; }
 
-        public List<ReservationDTO>? Reservation { get; set; }
+        public List<Guid> Reservations { get; set; }
 
-        public List<ServantDTO>? Advisor { get; set; }
+        public List<ReservationDTO>? ReservationList { get; set; }
 
-        public List<RoomDTO>? Permissions { get; set; }
+        public List<Guid> Advisor { get; set; }
+
+        public List<ServantDTO>? AdvisorList { get; set; }
+
+        public List<Guid> Permissions { get; set; }
+
+        public List<RoomDTO>? PermissionsList { get; set; }
     }
 }
