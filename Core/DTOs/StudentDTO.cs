@@ -8,7 +8,7 @@ namespace RR.Core.DTOs
 {
     public class StudentDTO:AccountDTO
     {
-        public Guid Id { get; set; }
+        public Guid? Id { get; set; }
 
         public Guid AccountId { get; set; }
 

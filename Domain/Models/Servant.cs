@@ -6,7 +6,7 @@ public class Servant:BaseModel
 
     public Account Account { get; set; }
 
-    public List<Guid> Advisee {get; set;}  
+    public List<Guid>? Advisee {get; set;}  
 
-    public List<Guid> Reservation {get; set;} = new();  
+    public List<Guid>? Reservation {get; set;} = new();  
 } 

@@ -1,8 +1,13 @@
+using System.ComponentModel;
+
 namespace Domain.Enums;
 
 public enum EAccountPermission
 {
-  Manager,
-  Servant,
-  Student
+    [Description("Manager")]
+    Manager,
+    [Description("Servant")]
+    Servant,
+    [Description("Student")]
+    Student
 }

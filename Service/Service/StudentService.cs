@@ -33,7 +33,7 @@ namespace RR.Service.Service
 
         public async Task<StudentDTO> CreateAsync(StudentDTO dto)
         {
-            var student = new Student { Id = dto.Id, AccountId = dto.AccountId, Reservations = dto.Reservations, Advisor = dto.Advisor, Permissions = dto.Permissions };
+            var student = new Student {AccountId = dto.AccountId, Reservations = dto.Reservations, Advisor = dto.Advisor, Permissions = dto.Permissions };
             await _repository.AddAsync(student);
             return dto;
         }

@@ -27,6 +27,7 @@ namespace RR.Infraestructure.Repositories
 
         public async Task AddAsync(Student entity)
         {
+            entity.CreationDate = DateTime.UtcNow;
             await _context.Set<Student>().AddAsync(entity);
             await _context.SaveChangesAsync();
         }

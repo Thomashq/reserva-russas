@@ -6,5 +6,5 @@ public class Manager:BaseModel
 
     public Account Account { get; set; }
 
-    public List<Guid> ManagedRooms {get; set;}  
+    public List<Guid>? ManagedRooms {get; set;}  
 } 

@@ -29,6 +29,7 @@ namespace RR.Service.Service
         public async Task<AccountDTO> CreateAsync(AccountDTO dto)
         {
             var account = new Account { Id = dto.Id, UserName = dto.UserName, Mail = dto.Email, Phone = dto.Phone, PasswordHash = dto.Password };
+            account.CreationDate = DateTime.UtcNow;
             await _repository.AddAsync(account);
             return dto;
         }

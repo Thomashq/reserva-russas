@@ -6,9 +6,9 @@ public class Student:BaseModel
 
     public Account Account { get; set; }
     
-    public List<Guid> Reservations {get; set;}  
+    public List<Guid>? Reservations {get; set;}  
 
-    public List<Guid> Advisor {get; set;}  
+    public List<Guid>? Advisor {get; set;}  
 
     public List<Guid>? Permissions {get; set;}  
 }  
