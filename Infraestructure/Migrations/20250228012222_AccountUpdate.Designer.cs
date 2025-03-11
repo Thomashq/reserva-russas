@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Infraestructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infraestructure.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20250228012222_AccountUpdate")]
+    partial class AccountUpdate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -77,6 +80,7 @@ namespace Infraestructure.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.PrimitiveCollection<List<Guid>>("ManagedRooms")
+                        .IsRequired()
                         .HasColumnType("uuid[]");
 
                     b.Property<DateTime?>("UpdateDate")
@@ -163,6 +167,7 @@ namespace Infraestructure.Migrations
                         .HasColumnType("uuid");
 
                     b.PrimitiveCollection<List<Guid>>("Advisee")
+                        .IsRequired()
                         .HasColumnType("uuid[]");
 
                     b.Property<DateTime?>("CreationDate")
@@ -172,6 +177,7 @@ namespace Infraestructure.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.PrimitiveCollection<List<Guid>>("Reservation")
+                        .IsRequired()
                         .HasColumnType("uuid[]");
 
                     b.Property<DateTime?>("UpdateDate")
@@ -194,6 +200,7 @@ namespace Infraestructure.Migrations
                         .HasColumnType("uuid");
 
                     b.PrimitiveCollection<List<Guid>>("Advisor")
+                        .IsRequired()
                         .HasColumnType("uuid[]");
 
                     b.Property<DateTime?>("CreationDate")
@@ -206,6 +213,7 @@ namespace Infraestructure.Migrations
                         .HasColumnType("uuid[]");
 
                     b.PrimitiveCollection<List<Guid>>("Reservations")
+                        .IsRequired()
                         .HasColumnType("uuid[]");
 
                     b.Property<DateTime?>("UpdateDate")

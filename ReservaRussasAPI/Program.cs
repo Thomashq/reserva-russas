@@ -1,10 +1,13 @@
 using Infraestructure;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using RR.Infraestructure.DependencyInjection;
 using RR.ReservaRussasAPI.Docs;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
-
+var config = builder.Configuration;
 // Add services to the container.
 builder.Services.AddControllers();
 
@@ -28,6 +31,28 @@ builder.Services.AddApplicationServices();
 builder.Services.AddDbContext<DataContext>(options => 
 {
   options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));      
+});
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = config["Jwt:Issuer"],
+            ValidAudience = config["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Jwt:Key"]))
+        };
+    });
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("ManagerOnly", policy => policy.RequireRole("Manager"));
+    options.AddPolicy("StudentOnly", policy => policy.RequireRole("Student"));
+    options.AddPolicy("ServantOnly", policy => policy.RequireRole("Servant"));
 });
 
 var app = builder.Build();
