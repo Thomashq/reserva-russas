@@ -9,4 +9,6 @@ public class Account : BaseModel
     public string Mail {get; set;}
 
     public string? Phone {get; set;}
+
+    public int AccountPermission { get; set; }
 }

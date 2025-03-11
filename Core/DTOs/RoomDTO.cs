@@ -12,8 +12,10 @@ namespace RR.Core.DTOs
 
         public string? Name { get; set; }
 
-        public int? Capacity { get; set; }
+        public int Capacity { get; set; }
 
         public ManagerDTO Manager { get; set; }
+
+        public Guid ManagerId { get; set; }
     }
 }

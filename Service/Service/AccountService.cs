@@ -2,11 +2,6 @@
 using Core.Services;
 using Domain.Models;
 using RR.Core.DTOs;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace RR.Service.Service
 {
@@ -34,6 +29,7 @@ namespace RR.Service.Service
         public async Task<AccountDTO> CreateAsync(AccountDTO dto)
         {
             var account = new Account { Id = dto.Id, UserName = dto.UserName, Mail = dto.Email, Phone = dto.Phone, PasswordHash = dto.Password };
+            account.CreationDate = DateTime.UtcNow;
             await _repository.AddAsync(account);
             return dto;
         }
