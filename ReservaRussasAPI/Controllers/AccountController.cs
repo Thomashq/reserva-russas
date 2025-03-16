@@ -22,7 +22,6 @@ namespace ReservaRussasAPI.Controllers
             var result = await _accountService.GetAllAsync();
             return Ok(new ApiResponse<IEnumerable<AccountDTO>>(result, true, "Accounts retrieved successfully"));
         }
-
         [HttpGet("{id}")]
         public async Task<ActionResult<ApiResponse<AccountDTO>>> GetById(Guid id)
         {
