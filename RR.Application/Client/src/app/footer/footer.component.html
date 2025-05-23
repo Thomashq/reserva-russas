@@ -1,0 +1,154 @@
+<!-- footer.component.html -->
+<footer class="footer-container">
+  <div class="container-fluid">
+    <div class="row">
+      <!-- Contact Information Section -->
+      <div class="col-lg-4 col-md-6 mb-4">
+        <div class="footer-section">
+          <!-- Address -->
+          <div class="contact-item d-flex align-items-center mb-3">
+            <mat-icon class="contact-icon me-3">place</mat-icon>
+            <div>
+              <h6 class="contact-title mb-1">Endereço Aqui, 465,78</h6>
+              <button mat-button
+                      class="contact-link p-0"
+                      (click)="openMaps()">
+                Ver no mapa
+              </button>
+            </div>
+          </div>
+
+          <!-- Phone Numbers -->
+          <div class="contact-item d-flex align-items-center mb-3">
+            <mat-icon class="contact-icon me-3">phone</mat-icon>
+            <div>
+              <button mat-button
+                      class="contact-link phone-link"
+                      (click)="callPhone('123345456')">
+                123345456
+              </button>
+            </div>
+          </div>
+
+          <div class="contact-item d-flex align-items-center mb-3">
+            <mat-icon class="contact-icon me-3">phone</mat-icon>
+            <div>
+              <button mat-button
+                      class="contact-link phone-link"
+                      (click)="callPhone('123345456')">
+                123345456
+              </button>
+            </div>
+          </div>
+
+          <!-- WhatsApp -->
+          <div class="contact-item d-flex align-items-center mb-3">
+            <mat-icon class="contact-icon me-3">chat</mat-icon>
+            <div>
+              <button mat-button
+                      class="contact-link phone-link"
+                      (click)="openWhatsApp('123345456')">
+                123345456
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Links Section -->
+      <div class="col-lg-4 col-md-6 mb-4">
+        <div class="footer-section">
+          <div class="d-flex align-items-center mb-3">
+            <mat-icon class="section-icon me-2">link</mat-icon>
+            <h5 class="section-title mb-0">Atalhos</h5>
+          </div>
+
+          <ul class="footer-links">
+            <li>
+              <button mat-button
+                      class="footer-link-btn"
+                      (click)="navigateToInfo()">
+                Início
+              </button>
+            </li>
+            <li>
+              <button mat-button
+                      class="footer-link-btn"
+                      (click)="navigateToAbout()">
+                Sobre
+              </button>
+            </li>
+            <li>
+              <button mat-button
+                      class="footer-link-btn"
+                      (click)="navigateToRooms()">
+                Salas
+              </button>
+            </li>
+            <li>
+              <button mat-button
+                      class="footer-link-btn"
+                      (click)="navigateToContact()">
+                Contato
+              </button>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Social Media Section -->
+      <div class="col-lg-4 col-md-12 mb-4">
+        <div class="footer-section">
+          <div class="d-flex align-items-center mb-3">
+            <mat-icon class="section-icon me-2">thumb_up</mat-icon>
+            <h5 class="section-title mb-0">Redes sociais</h5>
+          </div>
+
+          <!-- Social Media Links -->
+          <div class="social-links mb-3">
+            <button mat-icon-button
+                    class="social-btn instagram-btn me-2"
+                    (click)="openInstagram()"
+                    matTooltip="Instagram">
+              <mat-icon>camera_alt</mat-icon>
+              <span class="social-text ms-2">ufc</span>
+            </button>
+          </div>
+
+          <div class="social-links mb-3">
+            <button mat-icon-button
+                    class="social-btn whatsapp-btn me-2"
+                    (click)="openWhatsApp('123345456')"
+                    matTooltip="WhatsApp">
+              <mat-icon>chat</mat-icon>
+              <span class="social-text ms-2">123345456</span>
+            </button>
+          </div>
+
+          <div class="social-links">
+            <button mat-icon-button
+                    class="social-btn twitter-btn me-2"
+                    (click)="openTwitter()"
+                    matTooltip="Twitter">
+              <mat-icon>alternate_email</mat-icon>
+              <span class="social-text ms-2">ufc</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Copyright Section -->
+    <div class="row">
+      <div class="col-12">
+        <hr class="footer-divider">
+        <div class="text-center">
+          <p class="copyright-text mb-0">
+            <mat-icon class="copyright-icon me-1">copyright</mat-icon>
+            {{ currentYear }} - Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>

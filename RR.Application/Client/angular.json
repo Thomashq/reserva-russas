@@ -28,18 +28,14 @@
             ],
             "styles": [
               "@angular/material/prebuilt-themes/azure-blue.css",
+              //"@angular/material/prebuilt-themes/indigo-pink.css",
               "node_modules/bootstrap/scss/bootstrap.scss",
               "node_modules/bootstrap-icons/font/bootstrap-icons.css",
               "src/styles.css"
             ],
             "scripts": [
               "node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"
-            ],
-            "server": "src/main.server.ts",
-            "outputMode": "server",
-            "ssr": {
-              "entry": "src/server.ts"
-            }
+            ]
           },
           "configurations": {
             "production": {
@@ -57,8 +53,8 @@
               ],
               "fileReplacements": [
                 {
-                "replace": "src/environments/environment.dev.ts",
-                "with": "src/environments/environment.prod.ts"
+                  "replace": "src/environments/environment.dev.ts",
+                  "with": "src/environments/environment.prod.ts"
                 }
               ],
               "outputHashing": "all"
