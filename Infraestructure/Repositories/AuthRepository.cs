@@ -24,7 +24,7 @@ namespace RR.Infraestructure.Repositories
 
         public async Task<bool> RegisterUser(Account account)
         {
-            var uniqueAccount = _context.Account.FirstOrDefault(x => x.UserName == account.UserName);
+            var uniqueAccount = _context.Account.FirstOrDefault(x => x.Mail == account.Mail);
 
             if (uniqueAccount != null) 
                 return false;

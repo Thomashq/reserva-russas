@@ -1,0 +1,187 @@
+.footer-container {
+  background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+  padding: 3rem 0 1rem;
+  margin-top: auto;
+}
+
+.footer-section {
+  padding: 1rem;
+}
+
+/* Section Titles */
+.section-title {
+  color: white;
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+}
+
+.section-icon {
+  color: #3498db;
+  font-size: 1.5rem;
+}
+
+/* Contact Information */
+.contact-item {
+  margin-bottom: 1rem;
+}
+
+.contact-icon {
+  color: #3498db;
+  font-size: 1.5rem;
+  min-width: 24px;
+}
+
+.contact-title {
+  color: white;
+  font-weight: 500;
+  font-size: 0.95rem;
+  margin-bottom: 0.25rem;
+}
+
+.contact-link {
+  color: rgba(255, 255, 255, 0.8) !important;
+  font-size: 0.9rem;
+  text-transform: none;
+  padding: 0;
+  min-width: auto;
+  height: auto;
+  line-height: 1.2;
+  justify-content: flex-start;
+}
+
+  .contact-link:hover {
+    color: #3498db !important;
+    background: transparent;
+  }
+
+.phone-link {
+  font-family: monospace;
+  font-weight: 500;
+}
+
+/* Footer Links */
+.footer-links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+  .footer-links li {
+    margin-bottom: 0.5rem;
+  }
+
+.footer-link-btn {
+  color: rgba(255, 255, 255, 0.8) !important;
+  font-size: 0.9rem;
+  text-transform: none;
+  padding: 0.25rem 0;
+  justify-content: flex-start;
+  font-weight: 400;
+  transition: all 0.3s ease;
+}
+
+  .footer-link-btn:hover {
+    color: #3498db !important;
+    background: transparent;
+    padding-left: 0.5rem;
+  }
+
+/* Social Media */
+.social-links {
+  display: flex;
+  align-items: center;
+}
+
+.social-btn {
+  color: rgba(255, 255, 255, 0.8);
+  transition: all 0.3s ease;
+}
+
+  .social-btn:hover {
+    transform: translateY(-2px);
+  }
+
+  .social-btn.instagram-btn:hover {
+    color: #e1306c;
+  }
+
+  .social-btn.whatsapp-btn:hover {
+    color: #25d366;
+  }
+
+  .social-btn.twitter-btn:hover {
+    color: #1da1f2;
+  }
+
+.social-text {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+  font-weight: 400;
+}
+
+/* Copyright Section */
+.footer-divider {
+  border-color: rgba(255, 255, 255, 0.1);
+  margin: 2rem 0 1rem;
+}
+
+.copyright-text {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.copyright-icon {
+  font-size: 1rem;
+  vertical-align: middle;
+}
+
+/* Responsive Design */
+@media (max-width: 991.98px) {
+  .footer-container {
+    padding: 2rem 0 1rem;
+  }
+
+  .footer-section {
+    padding: 0.5rem;
+    text-align: center;
+  }
+
+  .contact-item {
+    justify-content: center;
+  }
+
+  .social-links {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 576px) {
+  .footer-container {
+    padding: 1.5rem 0 1rem;
+  }
+
+  .section-title {
+    font-size: 1rem;
+  }
+
+  .contact-title {
+    font-size: 0.9rem;
+  }
+
+  .contact-link,
+  .footer-link-btn {
+    font-size: 0.85rem;
+  }
+
+  .copyright-text {
+    font-size: 0.8rem;
+  }
+
+  .social-text {
+    display: none;
+  }
+}
