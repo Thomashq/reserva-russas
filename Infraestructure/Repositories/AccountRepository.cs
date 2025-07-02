@@ -1,68 +1,186 @@
-﻿using Core.Repositories;
-using Domain.Models;
-using Infraestructure;
+﻿using global::RR.Core.Entities;
+using global::RR.Core.Repositories;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Migrations;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
+using RR.Infraestructure.DataContext;
+using RR.Infraestructure.Repositories.Base;
 
-namespace RR.Infraestructure.Repositories
+namespace RR.Infrastructure.Repositories
 {
-    public class AccountRepository:IRepository<Account>
+    /// <summary>
+    /// Implementação do repositório de contas
+    /// </summary>
+    public class AccountRepository : BaseRepository<Account, int>, IAccountRepository
     {
-        private readonly DataContext _context;
-
-        public AccountRepository(DataContext context)
+        public AccountRepository(ApplicationDbContext context) : base(context)
         {
-            _context = context;
         }
 
-        public async Task<IEnumerable<Account>> GetAllAsync()
+        /// <summary>
+        /// Obtém uma conta pelo nome de usuário
+        /// </summary>
+        /// <param name="userName">Nome de usuário</param>
+        /// <returns>Conta encontrada ou null</returns>
+        public async Task<Account?> GetByUserNameAsync(string userName)
         {
-            return await _context.Set<Account>().ToListAsync();
+            if (string.IsNullOrWhiteSpace(userName))
+                return null;
+
+            return await _dbSet
+                .Where(a => !a.IsActive && a.UserName.ToLower() == userName.ToLower())
+                .FirstOrDefaultAsync();
         }
 
-        public async Task<Account?> GetByIdAsync(Guid id)
+        /// <summary>
+        /// Obtém uma conta pelo email
+        /// </summary>
+        /// <param name="email">Email</param>
+        /// <returns>Conta encontrada ou null</returns>
+        public async Task<Account?> GetByEmailAsync(string email)
         {
-            return await _context.Set<Account>().FindAsync(id);
+            if (string.IsNullOrWhiteSpace(email))
+                return null;
+
+            return await _dbSet
+                .Where(a => !a.IsActive && a.Mail.ToLower() == email.ToLower())
+                .FirstOrDefaultAsync();
         }
 
-        public async Task AddAsync(Account entity)
+        /// <summary>
+        /// Verifica se um nome de usuário está disponível
+        /// </summary>
+        /// <param name="userName">Nome de usuário</param>
+        /// <returns>True se disponível, false caso contrário</returns>
+        public async Task<bool> IsUserNameAvailableAsync(string userName)
         {
-            await _context.Set<Account>().AddAsync(entity);
-            await _context.SaveChangesAsync();
+            if (string.IsNullOrWhiteSpace(userName))
+                return false;
+
+            return !await _dbSet
+                .Where(a => !a.IsActive)
+                .AnyAsync(a => a.UserName.ToLower() == userName.ToLower());
         }
 
-        public async Task UpdateAsync(Account entity)
+        /// <summary>
+        /// Verifica se um email está disponível
+        /// </summary>
+        /// <param name="email">Email</param>
+        /// <returns>True se disponível, false caso contrário</returns>
+        public async Task<bool> IsEmailAvailableAsync(string email)
         {
-            _context.Set<Account>().Update(entity);
-            await _context.SaveChangesAsync();
+            if (string.IsNullOrWhiteSpace(email))
+                return false;
+
+            return !await _dbSet
+                .Where(a => !a.IsActive)
+                .AnyAsync(a => a.Mail.ToLower() == email.ToLower());
         }
 
-        public async Task DeleteAsync(Guid id)
+        /// <summary>
+        /// Obtém contas ativas
+        /// </summary>
+        /// <returns>Lista de contas ativas</returns>
+        public async Task<IEnumerable<Account>> GetActiveAccountsAsync()
         {
-            var entity = await GetByIdAsync(id);
+            return await _dbSet
+                .Where(a => !a.IsActive && a.IsActive)
+                .OrderBy(a => a.UserName)
+                .ToListAsync();
+        }
+
+        /// <summary>
+        /// Obtém contas paginadas
+        /// </summary>
+        /// <param name="page">Número da página</param>
+        /// <param name="pageSize">Tamanho da página</param>
+        /// <returns>Lista paginada de contas</returns>
+        public async Task<IEnumerable<Account>> GetPagedAccountsAsync(int page, int pageSize)
+        {
+            if (page < 1) page = 1;
+            if (pageSize < 1) pageSize = 10;
+
+            return await _dbSet
+                .Where(a => !a.IsActive)
+                .OrderBy(a => a.UserName)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+        }
+
+        /// <summary>
+        /// Conta o total de contas
+        /// </summary>
+        /// <returns>Número total de contas</returns>
+        public async Task<int> GetTotalAccountsCountAsync()
+        {
+            return await _dbSet
+                .Where(a => !a.IsActive)
+                .CountAsync();
+        }
+
+        /// <summary>
+        /// Obtém contas por nome de usuário (busca parcial)
+        /// </summary>
+        /// <param name="userName">Nome de usuário ou parte dele</param>
+        /// <returns>Lista de contas encontradas</returns>
+        public async Task<IEnumerable<Account>> GetAccountsByUserNameAsync(string userName)
+        {
+            if (string.IsNullOrWhiteSpace(userName))
+                return new List<Account>();
+
+            return await _dbSet
+                .Where(a => !a.IsActive && a.UserName.ToLower().Contains(userName.ToLower()))
+                .OrderBy(a => a.UserName)
+                .ToListAsync();
+        }
+
+        /// <summary>
+        /// Override do método GetAllAsync para ordenar por nome de usuário e filtrar deletados
+        /// </summary>
+        /// <returns>Lista de todas as contas não deletadas ordenadas por nome de usuário</returns>
+        public override async Task<IEnumerable<Account>> GetAllAsync()
+        {
+            return await _dbSet
+                .Where(a => !a.IsActive)
+                .OrderBy(a => a.UserName)
+                .ToListAsync();
+        }
+
+        /// <summary>
+        /// Override do método GetByIdAsync para filtrar deletados
+        /// </summary>
+        /// <param name="id">ID da conta</param>
+        /// <returns>Conta encontrada ou null</returns>
+        public override async Task<Account?> GetByIdAsync(int id)
+        {
+            return await _dbSet
+                .Where(a => !a.IsActive && a.Id == id)
+                .FirstOrDefaultAsync();
+        }
+
+        /// <summary>
+        /// Override do método DeleteAsync para fazer soft delete
+        /// </summary>
+        /// <param name="id">ID da conta</param>
+        public override async Task DeleteAsync(int id)
+        {
+            var entity = await _dbSet.FindAsync(id);
             if (entity != null)
             {
-                _context.Set<Account>().Remove(entity);
-                await _context.SaveChangesAsync();
+                // Soft delete
+                entity.IsActive = true;
+                _dbSet.Update(entity);
             }
         }
 
-        public async Task<(IEnumerable<Account>, int)> GetPagedAsync(int pageNumber, int pageSize, Expression<Func<Account, bool>>? filter = null)
+        /// <summary>
+        /// Override do método ExistsAsync para filtrar deletados
+        /// </summary>
+        /// <param name="id">ID da conta</param>
+        /// <returns>True se existe e não está deletada</returns>
+        public override async Task<bool> ExistsAsync(int id)
         {
-            var query = _context.Set<Account>().AsQueryable();
-            if (filter != null)
-                query = query.Where(filter);
-
-            var totalItems = await query.CountAsync();
-            var items = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
-
-            return (items, totalItems);
+            return await _dbSet
+                .AnyAsync(a => !a.IsActive && a.Id == id);
         }
     }
 }

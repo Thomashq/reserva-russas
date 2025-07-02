@@ -1,0 +1,25 @@
+﻿using Core.Services;
+using RR.Core.Services;
+using RR.Core.Services.Base;
+using RR.Service;
+using RR.Service.Service;
+
+namespace ReservaRussasAPI.Extensions
+{
+    public static class ServiceExtensions
+    {
+        public static IServiceCollection AddServices(this IServiceCollection services)
+        {
+            // Registrar repositórios primeiro
+            //services.AddServices();
+            services.AddScoped<IAccountService, AccountService>();
+            services.AddScoped<IPasswordService, PasswordService>();
+            services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<IServantService, ServantService>();
+            services.AddScoped<IStudentService, StudentService>();
+
+            return services;
+        }
+
+    }
+}

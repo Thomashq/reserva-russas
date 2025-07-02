@@ -1,4 +1,4 @@
-﻿using Domain.Models;
+﻿using RR.Core.Entities;
 
 namespace RR.Core.Repositories
 {

@@ -21,8 +21,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Core\RR.Core.csproj" />
-    <ProjectReference Include="..\Domain\RR.Domain.csproj" />
     <ProjectReference Include="..\Service\RR.Service.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Migrations\" />
   </ItemGroup>
 
 </Project>

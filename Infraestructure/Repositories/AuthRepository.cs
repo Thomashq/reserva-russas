@@ -1,25 +1,24 @@
-﻿using Domain.Enums;
-using Domain.Models;
-using Infraestructure;
-using Microsoft.EntityFrameworkCore;
-using RR.Core.DTOs;
+﻿using Microsoft.EntityFrameworkCore;
+using RR.Core.Entities;
+using RR.Core.Enums;
 using RR.Core.Repositories;
 using RR.Core.Services;
+using RR.Infraestructure.DataContext;
 
 namespace RR.Infraestructure.Repositories
 {
     public class AuthRepository:IAuthRepository
     {
-        private readonly DataContext _context;
-        private readonly IStudentService _studentService;
-        private readonly IServantService _servantService;
+        private readonly ApplicationDbContext _context;
+        private readonly IStudentRepository _studentRepository;
+        private readonly IServantRepository _servantRepository;
         private readonly IPasswordService _passwordService;
-        public AuthRepository(DataContext context, IPasswordService passwordService, IStudentService studentService, IServantService servantService)
+        public AuthRepository(ApplicationDbContext context, IPasswordService passwordService, IStudentRepository studentRepository, IServantRepository servantRepository)
         {
             _context = context;
             _passwordService = passwordService;
-            _studentService = studentService;
-            _servantService = servantService;
+            _studentRepository = studentRepository;
+            _servantRepository = servantRepository;
         }   
 
         public async Task<bool> RegisterUser(Account account)
@@ -46,19 +45,19 @@ namespace RR.Infraestructure.Repositories
             switch (type)
             {
                 case EAccountPermission.Student:
-                    var studentAccount = new StudentDTO{
+                    var studentAccount = new Student{
                         AccountId = account.Id
                     };
 
-                    await _studentService.CreateAsync(studentAccount);
+                    await _studentRepository.AddAsync(studentAccount);
                 break;
                 
                 case EAccountPermission.Servant:
-                    var servantAccount = new ServantDTO 
+                    var servantAccount = new Servant 
                     {
                         AccountId = account.Id
                     };
-                    await _servantService.CreateAsync(servantAccount);
+                    await _servantRepository.AddAsync(servantAccount);
                 break;
 
                 default:

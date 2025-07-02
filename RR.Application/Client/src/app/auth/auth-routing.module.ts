@@ -1,15 +1,27 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { AuthLoginComponent } from './auth-login/auth-login.component';
+import { LoginComponent } from './auth-login/auth-login.component';
 import { AuthRegisterComponent } from './auth-register/auth-register.component';
+import { NoAuthGuard } from './auth-guard';
 
 const routes: Routes = [
   {
-    path: 'auth',
+    path: '', // Vazio porque o 'auth' já é definido no app-routing
+    canActivate: [NoAuthGuard],
     children: [
-      { path: 'login', component: AuthLoginComponent},
-      { path: 'register', component: AuthRegisterComponent },
-      { path: '', redirectTo: 'login', pathMatch: 'full' }
+      {
+        path: '',
+        redirectTo: 'login',
+        pathMatch: 'full'
+      },
+      {
+        path: 'login',
+        component: LoginComponent
+      },
+      {
+        path: 'register',
+        component: AuthRegisterComponent
+      }
     ]
   }
 ];

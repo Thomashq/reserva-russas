@@ -38,7 +38,7 @@ export class HeaderComponent {
   }
 
   login(): void {
-    // this.router.navigate(['/login']);
+    this.router.navigate(['/auth']);
     console.log('Navegando para Login');
   }
 }

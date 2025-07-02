@@ -1,6 +1,6 @@
-﻿using Domain.Models;
-using RR.Core.DTOs;
+﻿using RR.Core.Entities;
 using RR.Core.Repositories;
+using RR.Core.Requests.Account;
 using RR.Core.Services;
 
 namespace RR.Service.Service
@@ -28,11 +28,11 @@ namespace RR.Service.Service
             throw new NotImplementedException();
         }
 
-        public async Task<bool> Register(AccountDTO dto)
+        public async Task<bool> Register(CreateAccountRequest dto)
         {
             var createdAccount = new Account
             {
-                Mail = dto.Email,
+                Mail = dto.Mail,
                 UserName = dto.UserName,
                 PasswordHash = dto.Password,
                 Phone = dto.Phone,

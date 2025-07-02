@@ -1,5 +1,5 @@
-﻿using Domain.Models;
-using RR.Core.DTOs;
+﻿using RR.Core.Entities;
+using RR.Core.Requests.Account;
 
 namespace RR.Core.Services
 {
@@ -9,6 +9,6 @@ namespace RR.Core.Services
 
         Task<bool> Logout();
 
-        Task<bool> Register(AccountDTO dto);
+        Task<bool> Register(CreateAccountRequest dto);
     }
 }
