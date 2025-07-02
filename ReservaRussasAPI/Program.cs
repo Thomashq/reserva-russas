@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using ReservaRussasAPI.Extensions;
+using RR.Core.Entities;
 using RR.Infraestructure.DataContext;
 using RR.ReservaRussasAPI.Docs;
 using System.Text;
@@ -29,9 +30,22 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddApplicationServices();
 
+ReservaRussasConnectString reservaRussasConnectString = new();
+reservaRussasConnectString = builder.Configuration.GetSection("Connection").Get<ReservaRussasConnectString>();
+string str_conexao = $"Host={reservaRussasConnectString.Host};Port={reservaRussasConnectString.Port};Database={reservaRussasConnectString.DataBase};Username={reservaRussasConnectString.UserName};Password={reservaRussasConnectString.Password}";
+
+// CORREÇÃO: Configuração do DbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
+    options.UseNpgsql(str_conexao, npgsqlOptions =>
+    {
+        npgsqlOptions.MigrationsAssembly("RR.Infraestructure");
+        npgsqlOptions.CommandTimeout((int)TimeSpan.FromMinutes(10).TotalSeconds);
+    });
+
+    options.EnableDetailedErrors();
+    options.EnableSensitiveDataLogging();
+    options.LogTo(Console.WriteLine, LogLevel.Information);
 });
 
 // Configuração JWT apenas para autenticação (sem autorização por roles)
@@ -57,27 +71,6 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
-// APLICAR MIGRATIONS AUTOMATICAMENTE
-try
-{
-    await app.Services.EnsureDatabaseMigratedAsync();
-}
-catch (Exception ex)
-{
-    var logger = app.Services.GetRequiredService<ILogger<Program>>();
-    logger.LogCritical(ex, "Falha crítica ao aplicar migrations. A aplicação será encerrada.");
-
-    // Em produção, você pode querer continuar sem o banco ou implementar retry logic
-    if (app.Environment.IsProduction())
-    {
-        logger.LogError("Aplicação continuará sem conexão com banco de dados.");
-    }
-    else
-    {
-        throw; // Em desenvolvimento, pare a aplicação
-    }
-}
-
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -86,6 +79,16 @@ if (app.Environment.IsDevelopment())
 else
 {
     app.UseExceptionHandler("/Home/Error");
+}
+
+// Executar migrações
+using (var scope = app.Services.GetRequiredService<IServiceScopeFactory>().CreateScope())
+{
+    using (var context = scope.ServiceProvider.GetService<ApplicationDbContext>())
+    {
+        context.Database.SetCommandTimeout((int)TimeSpan.FromMinutes(20).TotalSeconds);
+        context.Database.Migrate();
+    }
 }
 
 app.UseCors("AllowAllOrigins"); // Especificar a política CORS

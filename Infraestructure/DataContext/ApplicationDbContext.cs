@@ -13,6 +13,13 @@ namespace RR.Infraestructure.DataContext
         }
 
         public DbSet<Account> Account { get; set; }
+        public DbSet<Manager> Manager { get; set; } 
+        public DbSet<Reservation> Reservation { get; set; }
+        public DbSet<Rooms> Rooms { get; set; }
+        public DbSet<Servant> Servant { get; set; }
+        public DbSet<Student> Student { get; set; }
+        public DbSet<StudentAdvisor> StudentAdvisor { get; set; } 
+        public DbSet<StudentPermission> StudentPermission { get; set; } 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
