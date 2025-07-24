@@ -11,6 +11,7 @@ using System.Text;
 using RR.Core.DTOs.Requests;
 using RR.Core.DTOs.Responses;
 using Core.Services;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ReservaRussasAPI.Controllers
 {
@@ -35,6 +36,7 @@ namespace ReservaRussasAPI.Controllers
         /// <param name="request">Dados de login</param>
         /// <returns>Token JWT</returns>
         [HttpPost("login")]
+        [AllowAnonymous]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
             try
@@ -84,6 +86,7 @@ namespace ReservaRussasAPI.Controllers
         /// <param name="request">Dados para registro</param>
         /// <returns>Conta criada</returns>
         [HttpPost("register")]
+        [AllowAnonymous]
         public async Task<IActionResult> Register([FromBody] CreateAccountRequest request)
         {
             try

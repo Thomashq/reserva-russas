@@ -1,113 +1,32 @@
 <div class="login-container">
-  <div class="container-fluid">
-    <div class="row">
-      <!-- Left Panel -->
-      <div class="left-panel">
-        <div class="brand-section">
-          <h2 class="brand-title">ReservaRussas</h2>
-          <div class="login-section">
-            <h3 class="section-title">Entrar</h3>
-            <div class="underline"></div>
-          </div>
-        </div>
-      </div>
+  <mat-card class="login-card">
+    <mat-card-title>Entrar</mat-card-title>
 
-      <!-- Right Panel -->
-      <div class="right-panel">
-        <div class="login-form-container">
-          <div class="login-card">
-            <!-- Mobile Brand -->
-            <div class="mobile-brand">
-              <h2 class="brand-title">ReservaRussas</h2>
-            </div>
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Usuário</mat-label>
+        <input matInput formControlName="userName" placeholder="Digite seu usuário" />
+        <mat-error *ngIf="loginForm.get('userName')?.hasError('required')">
+          Usuário é obrigatório.
+        </mat-error>
+      </mat-form-field>
 
-            <h2 class="login-title">LOGIN</h2>
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Senha</mat-label>
+        <input matInput type="password" formControlName="password" placeholder="Digite sua senha" />
+        <mat-error *ngIf="loginForm.get('password')?.hasError('required')">
+          Senha é obrigatória.
+        </mat-error>
+      </mat-form-field>
 
-            <!-- Error Message -->
-            <div *ngIf="error" class="alert alert-error">
-              {{ error }}
-            </div>
+      <button mat-raised-button color="primary" class="full-width" type="submit" [disabled]="isLoading">
+        {{ isLoading ? 'Entrando...' : 'Entrar' }}
+      </button>
+    </form>
 
-            <!-- Login Form -->
-            <div class="login-form-wrapper">
-              <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
-
-                <!-- Username Field -->
-                <div class="form-group">
-                  <label for="username">NOME DE USUÁRIO</label>
-                  <input type="text"
-                         id="username"
-                         formControlName="userName"
-                         class="form-control"
-                         [class.error]="userName?.invalid && userName?.touched"
-                         placeholder="Digite seu nome de usuário">
-                  <div *ngIf="userName?.errors?.['required'] && userName?.touched" class="error-message">
-                    Nome de usuário é obrigatório
-                  </div>
-                </div>
-
-                <!-- Password Field -->
-                <div class="form-group">
-                  <label for="password">SENHA</label>
-                  <div class="password-wrapper">
-                    <input [type]="hidePassword ? 'password' : 'text'"
-                           id="password"
-                           formControlName="senha"
-                           class="form-control"
-                           [class.error]="senha?.invalid && senha?.touched"
-                           placeholder="Digite sua senha">
-                    <button type="button"
-                            class="password-toggle"
-                            (click)="hidePassword = !hidePassword">
-                      <span>{{ hidePassword ? '👁️' : '🙈' }}</span>
-                    </button>
-                  </div>
-                  <div *ngIf="senha?.errors?.['required'] && senha?.touched" class="error-message">
-                    Senha é obrigatória
-                  </div>
-                  <div *ngIf="senha?.errors?.['minlength'] && senha?.touched" class="error-message">
-                    Senha deve ter pelo menos 3 caracteres
-                  </div>
-                </div>
-
-                <!-- Login Button -->
-                <button type="submit"
-                        class="login-button"
-                        [disabled]="loading">
-                  <span *ngIf="loading" class="spinner">⏳</span>
-                  {{ loading ? 'ENTRANDO...' : 'ENTRAR' }}
-                </button>
-
-                <!-- Register Link -->
-                <div class="register-section">
-                  <span class="register-text">Não tem conta? </span>
-                  <button type="button"
-                          class="register-link"
-                          (click)="navigateToRegister()">
-                    REGISTRE-SE
-                  </button>
-                </div>
-
-                <!-- Divider -->
-                <div class="divider-container">
-                  <hr class="divider">
-                  <span class="divider-text">OU</span>
-                  <hr class="divider">
-                </div>
-
-                <!-- Google Login Button -->
-                <button type="button"
-                        class="google-button"
-                        (click)="onGoogleLogin()">
-                  <span class="google-icon">🔍</span>
-                  Entrar com Google
-                </button>
-
-              </form>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div class="register-link">
+      <span>Não tem uma conta?</span>
+      <a routerLink="/auth/register">Registrar-se</a>
     </div>
-  </div>
+  </mat-card>
 </div>

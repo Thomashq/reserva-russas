@@ -2,7 +2,6 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { HomePageComponent } from './home-page/home-page.component';
 
-// Definir as rotas da aplicação
 const routes: Routes = [
   {
     path: '',
@@ -11,29 +10,12 @@ const routes: Routes = [
   },
   {
     path: 'auth',
-    loadChildren: () => import('./auth/auth-routing.module').then(m => m.AuthRoutingModule)
-  },
-  // Adicione suas rotas protegidas aqui quando necessário
-  // Exemplo:
-  // {
-  //   path: 'sua-rota-protegida',
-  //   canActivate: [AuthGuard],
-  //   component: SeuComponent
-  // },
-  {
-    path: '**',
-    redirectTo: '', // Redireciona para home em caso de rota não encontrada
-    pathMatch: 'full'
+    loadChildren: () => import('./auth/auth.module').then(m => m.AuthModule)
   }
 ];
 
 @NgModule({
-  imports: [
-    RouterModule.forRoot(routes, {
-      enableTracing: false, // Set to true for debugging
-      scrollPositionRestoration: 'top'
-    })
-  ],
+  imports: [RouterModule.forRoot(routes)],
   exports: [RouterModule]
 })
 export class AppRoutingModule { }

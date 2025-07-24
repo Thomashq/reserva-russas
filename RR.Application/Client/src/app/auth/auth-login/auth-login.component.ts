@@ -1,105 +1,50 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AuthService } from '../auth.service';
 import { Router } from '@angular/router';
-import { AuthService, LoginRequest } from '../auth.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { LoginRequest } from '../../domain/dto/request/LoginRequest';
 
 @Component({
   selector: 'app-login',
+  templateUrl: './auth-login.component.html',
   standalone: false,
-  templateUrl: './login.component.html',
-  styleUrls: ['./login.component.scss']
+  styleUrls: ['./auth-login.component.css'],
 })
 export class LoginComponent implements OnInit {
-  loginForm: FormGroup;
-  loading = false;
-  error = '';
-  hidePassword = true;
+  loginForm!: FormGroup;
+  isLoading = false;
 
   constructor(
-    private formBuilder: FormBuilder,
+    private fb: FormBuilder,
     private authService: AuthService,
-    private router: Router
-  ) {
-    this.loginForm = this.formBuilder.group({
-      userName: ['', [Validators.required]],
-      senha: ['', [Validators.required, Validators.minLength(3)]]
-    });
-  }
+    private router: Router,
+    private snackBar: MatSnackBar
+  ) { }
 
   ngOnInit(): void {
-    // Verifica se o usuário já está autenticado
-    console.log("Componente nao carregado");
-    if (this.authService.isAuthenticated()) {
-      console.log('Usuário já autenticado, redirecionando...');
-      this.router.navigate(['/']); // Redireciona para home
-    }
+    this.loginForm = this.fb.group({
+      userName: ['', [Validators.required]],
+      password: ['', [Validators.required]],
+    });
   }
 
   onSubmit(): void {
-    if (this.loginForm.valid) {
-      this.loading = true;
-      this.error = '';
+    if (this.loginForm.invalid) return;
 
-      const credentials: LoginRequest = {
-        userName: this.loginForm.get('userName')?.value,
-        senha: this.loginForm.get('senha')?.value
-      };
+    this.isLoading = true;
+    const credentials: LoginRequest = this.loginForm.value;
 
-      this.authService.login(credentials).subscribe({
-        next: (token) => {
-          this.loading = false;
-          console.log('Login realizado com sucesso');
-
-          // Obtém o usuário atual para mostrar informações
-          const currentUser = this.authService.getCurrentUser();
-          console.log('Usuário logado:', currentUser);
-
-          // Redireciona após login bem-sucedido
-          this.router.navigate(['/']); // Redireciona para home
-        },
-        error: (error) => {
-          this.loading = false;
-
-          // Trata diferentes tipos de erro
-          if (error.status === 401) {
-            this.error = 'Usuário ou senha incorretos';
-          } else if (error.error?.message) {
-            this.error = error.error.message;
-          } else if (error.message) {
-            this.error = error.message;
-          } else {
-            this.error = 'Erro ao fazer login. Tente novamente.';
-          }
-
-          console.error('Erro no login:', error);
-        }
-      });
-    } else {
-      this.markFormGroupTouched();
-    }
-  }
-
-  onGoogleLogin(): void {
-    this.authService.loginWithGoogle();
-  }
-
-  navigateToRegister(): void {
-    this.router.navigate(['/auth/register']);
-  }
-
-  private markFormGroupTouched(): void {
-    Object.keys(this.loginForm.controls).forEach(key => {
-      const control = this.loginForm.get(key);
-      control?.markAsTouched();
+    this.authService.login(credentials).subscribe({
+      next: () => {
+        this.snackBar.open('Login realizado com sucesso!', 'Fechar', { duration: 3000 });
+        this.router.navigate(['/']); // ou rota de dashboard
+      },
+      error: (err) => {
+        this.snackBar.open(err.message || 'Erro ao fazer login.', 'Fechar', { duration: 3000 });
+        this.isLoading = false;
+      },
+      complete: () => this.isLoading = false
     });
-  }
-
-  // Getters para facilitar o acesso aos campos no template
-  get userName() {
-    return this.loginForm.get('userName');
-  }
-
-  get senha() {
-    return this.loginForm.get('senha');
   }
 }

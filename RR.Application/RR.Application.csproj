@@ -8,7 +8,6 @@
 
   <ItemGroup>
     <Folder Include="Client\src\app\auth\" />
-    <Folder Include="Client\src\app\domain\dto\" />
     <Folder Include="Client\src\app\domain\enums\" />
     <Folder Include="Client\src\app\domain\enum\" />
     <Folder Include="Client\src\app\domain\shared\" />

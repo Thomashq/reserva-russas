@@ -1,35 +1,28 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-import { AppRoutingModule } from './app-routing.module';
+import { HttpClientModule } from '@angular/common/http'; // ✅ necessário para AuthService
 import { AppComponent } from './app.component';
-
-//imports dos componentes novos
-import { AuthModule } from './auth/auth.module';
+import { AppRoutingModule } from './app-routing.module';
+import { AuthRoutingModule } from './auth/auth-routing.module';
+import { HomePageComponent } from './home-page/home-page.component';
+import { LoginComponent } from './auth/auth-login/auth-login.component';
+import { HeaderComponent } from './header/header.component';
+import { FooterComponent } from './footer/footer.component';
 import { HeaderModule } from './header/header.module';
 import { FooterModule } from './footer/footer.module';
-import { HomeModule } from './home-page/home-page.module';
-import { HeaderComponent } from './header/header.component';
-import { HomePageComponent } from './home-page/home-page.component';
-import { FooterComponent } from './footer/footer.component';
-import { RouterModule } from '@angular/router';
-import { HttpClientModule } from '@angular/common/http';
-
 
 @NgModule({
   declarations: [
-    AppComponent
+    AppComponent,
   ],
   imports: [
-    RouterModule,
     BrowserModule,
-    AppRoutingModule,
+    HttpClientModule,
     HeaderModule,
     FooterModule,
-    HomeModule,
-    HttpClientModule
+    AppRoutingModule,
+    AuthRoutingModule
   ],
-  providers: [],
   bootstrap: [AppComponent]
 })
-export class AppModule {
-}
+export class AppModule { }

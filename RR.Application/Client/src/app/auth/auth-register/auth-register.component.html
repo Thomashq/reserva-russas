@@ -1,1 +1,38 @@
-<p>auth-register works!</p>
+<div class="register-container">
+  <mat-card class="register-card">
+    <h2>Cadastro</h2>
+
+    <form [formGroup]="registerForm" (ngSubmit)="register()">
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>Usuário</mat-label>
+        <input matInput formControlName="userName" required>
+      </mat-form-field>
+
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>Email</mat-label>
+        <input matInput formControlName="email" type="email" required>
+      </mat-form-field>
+
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>Senha</mat-label>
+        <input matInput formControlName="password" type="password" required>
+      </mat-form-field>
+
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>Confirmar Senha</mat-label>
+        <input matInput formControlName="confirmPassword" type="password" required>
+      </mat-form-field>
+
+      <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
+
+      <button mat-raised-button color="primary" type="submit" class="full-width">
+        Registrar
+      </button>
+    </form>
+
+    <div class="login-link">
+      Já tem uma conta?
+      <a routerLink="/auth/login">Login</a>
+    </div>
+  </mat-card>
+</div>

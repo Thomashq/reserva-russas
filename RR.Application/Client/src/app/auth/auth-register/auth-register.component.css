@@ -1,0 +1,48 @@
+.register-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #f4f4f4;
+  padding: 1rem;
+}
+
+.register-card {
+  width: 100%;
+  max-width: 400px;
+  padding: 2rem;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.full-width {
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+button.full-width {
+  margin-top: 1rem;
+}
+
+.login-link {
+  margin-top: 1rem;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+  .login-link a {
+    margin-left: 0.5rem;
+    color: #3f51b5;
+    text-decoration: none;
+  }
+
+    .login-link a:hover {
+      text-decoration: underline;
+    }
+
+.error-message {
+  color: red;
+  margin-bottom: 1rem;
+  text-align: center;
+}

@@ -29,7 +29,7 @@ namespace RR.Infraestructure.Repositories
                 return false;
 
             account.PasswordHash = _passwordService.HashPassword(account.PasswordHash);
-
+            account.IsActive = true;
             await _context.Account.AddAsync(account);
             await _context.SaveChangesAsync();
 

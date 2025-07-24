@@ -1,0 +1,31 @@
+.header-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #0d2c40; 
+}
+
+.auth-buttons button.register-btn {
+  color: #0d2c40;
+  font-weight: bold;
+}
+
+.logo {
+  font-weight: bold;
+  font-size: 1.5rem;
+  color: white;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.nav-buttons button,
+.auth-buttons button {
+  color: white;
+  margin-left: 0.5rem;
+}
+
+.auth-buttons button:first-child {
+  margin-left: 0;
+}

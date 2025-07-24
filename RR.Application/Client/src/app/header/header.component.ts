@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
   selector: 'app-header',
   templateUrl: './header.component.html',
   standalone:false,
-  styleUrls: ['./header.component.scss']
+  styleUrls: ['./header.component.css']
 })
 export class HeaderComponent {
 
@@ -34,11 +34,10 @@ export class HeaderComponent {
 
   register(): void {
     // this.router.navigate(['/registro']);
-    console.log('Navegando para Registro');
+    this.router.navigate(['/auth/register']);
   }
 
   login(): void {
     this.router.navigate(['/auth']);
-    console.log('Navegando para Login');
   }
 }

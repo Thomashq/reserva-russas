@@ -24,34 +24,6 @@ namespace ReservaRussasAPI.Controllers
         }
 
         /// <summary>
-        /// Obtém todas as contas
-        /// </summary>
-        /// <returns>Lista de contas resumidas</returns>
-        [HttpGet]
-        [Authorize]
-        public async Task<IActionResult> GetAll()
-        {
-            try
-            {
-                var accounts = await _accountService.GetAllAsync();
-                var accountResponses = accounts.Select(u => new AccountResponse
-                {
-                    Id = u.Id,
-                    UserName = u.UserName,
-                    Mail = u.Mail,
-                    IsActive = u.IsActive,
-                    CreatedAt = u.CreatedAt,
-                    UpdatedAt = u.UpdatedAt
-                });
-                return ResponseOk(accountResponses, "Contas recuperadas com sucesso");
-            }
-            catch (Exception ex)
-            {
-                return ResponseInternalServerError(ex);
-            }
-        }
-
-        /// <summary>
         /// Obtém uma conta por ID
         /// </summary>
         /// <param name="id">ID da conta</param>
@@ -115,7 +87,7 @@ namespace ReservaRussasAPI.Controllers
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };
-                _accountService.CreateAsync(account);
+                _accountService.AddAsync(account);
                 return ResponseCreated(account, "Conta criada com sucesso");
             }
             catch (Exception ex)
@@ -144,13 +116,14 @@ namespace ReservaRussasAPI.Controllers
                     return modelValidation;
 
                 var account = new Account { 
+                    Id = id,
                     UserName = request.UserName,
                     Mail = request.Mail,
                     Phone = request.Phone,
                     AccountPermission = request.AccountPermission,
                 };
 
-                var updatedAccount = await _accountService.UpdateAsync(id, account);
+                var updatedAccount = await _accountService.UpdateAsync(account);
 
                 if (updatedAccount == null)
                     return ResponseNotFound("Conta não encontrada");

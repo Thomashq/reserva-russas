@@ -36,14 +36,12 @@ namespace RR.Infraestructure.DataContext
         {
             foreach (var entity in modelBuilder.Model.GetEntityTypes())
             {
-                // Configure table names in snake_case
                 var tableName = entity.GetTableName();
                 if (!string.IsNullOrEmpty(tableName))
                 {
                     entity.SetTableName(ToSnakeCase(tableName));
                 }
 
-                // Configure column names in snake_case (only if not explicitly configured)
                 foreach (var property in entity.GetProperties())
                 {
                     var columnName = property.GetColumnName();

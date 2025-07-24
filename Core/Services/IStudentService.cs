@@ -9,7 +9,12 @@ using System.Threading.Tasks;
 
 namespace RR.Core.Services
 {
-    public interface IStudentService:IBaseService<Student, int>
+    public interface IStudentService
     {
+        Task<bool> AddAsync(Student student);
+        Task<Student> GetServantById(int id);
+        Task<Student> UpdateAsync(Student servant);
+        Task<bool> DeleteAsync(int id);
+        Task<Student> GetStudentByAccountId(int id);
     }
 }

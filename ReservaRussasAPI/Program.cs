@@ -10,7 +10,6 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
 
-// Add services to the container.
 builder.Services.AddControllers();
 
 if (builder.Environment.IsDevelopment())
@@ -34,7 +33,6 @@ ReservaRussasConnectString reservaRussasConnectString = new();
 reservaRussasConnectString = builder.Configuration.GetSection("Connection").Get<ReservaRussasConnectString>();
 string str_conexao = $"Host={reservaRussasConnectString.Host};Port={reservaRussasConnectString.Port};Database={reservaRussasConnectString.DataBase};Username={reservaRussasConnectString.UserName};Password={reservaRussasConnectString.Password}";
 
-// CORREÇÃO: Configuração do DbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
     options.UseNpgsql(str_conexao, npgsqlOptions =>
@@ -48,7 +46,6 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.LogTo(Console.WriteLine, LogLevel.Information);
 });
 
-// Configuração JWT apenas para autenticação (sem autorização por roles)
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -65,8 +62,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-// Removidas as políticas de autorização baseadas em roles
-// Agora só precisamos verificar se o usuário está autenticado
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
@@ -91,12 +86,11 @@ using (var scope = app.Services.GetRequiredService<IServiceScopeFactory>().Creat
     }
 }
 
-app.UseCors("AllowAllOrigins"); // Especificar a política CORS
+app.UseCors("AllowAllOrigins"); 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 
-// IMPORTANTE: A ordem é crucial - Authentication antes de Authorization
 app.UseAuthentication();
 app.UseAuthorization();
 

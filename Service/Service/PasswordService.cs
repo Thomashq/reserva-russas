@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 using RR.Core.Services;
-using System;
 using System.Security.Cryptography;
-using System.Text;
 
 namespace RR.Service.Service
 {
@@ -16,7 +14,6 @@ namespace RR.Service.Service
                 rng.GetBytes(salt);
             }
 
-            // Gera o hash da senha
             byte[] hash = KeyDerivation.Pbkdf2(
                 password: password,
                 salt: salt,
@@ -47,7 +44,6 @@ namespace RR.Service.Service
                 byte[] originalHash = new byte[32];
                 Array.Copy(combined, 16, originalHash, 0, 32);
 
-                // Gera o hash da senha fornecida usando o mesmo salt
                 byte[] providedHash = KeyDerivation.Pbkdf2(
                     password: providedPassword,
                     salt: salt,
@@ -55,7 +51,6 @@ namespace RR.Service.Service
                     iterationCount: 100000,
                     numBytesRequested: 32);
 
-                // Compara os hashes de forma segura
                 return CryptographicOperations.FixedTimeEquals(originalHash, providedHash);
             }
             catch
@@ -65,7 +60,7 @@ namespace RR.Service.Service
             }
         }
 
-            public bool IsPasswordStrong(string password)
+        public bool IsPasswordStrong(string password)
         {
             if (string.IsNullOrEmpty(password) || password.Length < 8)
                 return false;

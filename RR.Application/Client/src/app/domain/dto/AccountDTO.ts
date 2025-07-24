@@ -1,5 +1,5 @@
 export interface AccountDTO {
-  id: string; // Guid
+  id?: number; 
   userName?: string | null;
   password?: string | null;
   email?: string | null;

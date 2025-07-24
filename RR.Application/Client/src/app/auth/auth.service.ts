@@ -1,28 +1,21 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { tap, map } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { Account } from '../domain/models/account';
-import { AccountDTO } from '../domain/dto/AccountDTO';
-
-export interface LoginRequest {
-  userName: string;
-  senha: string;
-}
-
-// Interface para a resposta da API
-export interface ApiResponse<T> {
-  data: T;
-  success: boolean;
-  message: string;
-}
+import { LoginRequest } from '../domain/dto/request/LoginRequest';
+import { LoginResponse } from '../domain/dto/response/LoginResponse';
+import { RegisterRequest } from '../domain/dto/request/RegisterRequest';
+import { AccountCreatedResponse, AccountResponse } from '../domain/dto/response/AccountResponse';
+import { RefreshTokenRequest } from '../domain/dto/request/TokenRequest';
+import { RefreshTokenResponse } from '../domain/dto/response/TokenResponse';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'https://localhost:7099/api/Auth'; // Removido a barra final
+  private apiUrl = 'https://localhost:7099/api/v1/Auth';
   private currentUserSubject = new BehaviorSubject<Account | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
 
@@ -30,7 +23,6 @@ export class AuthService {
     private http: HttpClient,
     private router: Router
   ) {
-    // Verifica se há um token salvo no localStorage
     const token = localStorage.getItem('token');
     if (token && this.isTokenValid(token)) {
       const user = this.getUserFromToken(token);
@@ -38,32 +30,47 @@ export class AuthService {
         this.setCurrentUser(user);
       }
     } else {
-      // Remove token inválido
       localStorage.removeItem('token');
     }
   }
 
-  login(credentials: LoginRequest): Observable<string> {
-    // Usando HttpParams para enviar como query parameters (conforme seu backend)
-    const params = new HttpParams()
-      .set('userName', credentials.userName)
-      .set('senha', credentials.senha);
-
-    return this.http.post<ApiResponse<string>>(`${this.apiUrl}/login`, null, { params })
+  login(credentials: LoginRequest): Observable<LoginResponse> {
+    // O interceptor já vai desembrulhar a ApiResponse automaticamente
+    return this.http.post<LoginResponse>(`${this.apiUrl}/login`, credentials)
       .pipe(
-        map(response => {
-          if (response.success) {
-            return response.data;
-          } else {
-            throw new Error(response.message);
-          }
-        }),
-        tap(token => {
-          // Salva o token no localStorage
-          localStorage.setItem('token', token);
+        tap(loginResponse => {
+          localStorage.setItem('token', loginResponse.token);
+          // Converte AccountResponse para Account
+          //const account = this.mapAccountResponseToAccount(loginResponse.account);
+          //this.setCurrentUser(account);
+        })
+      );
+  }
 
-          // Extrai as informações do usuário do token JWT
-          const user = this.getUserFromToken(token);
+  register(registerData: RegisterRequest): Observable<AccountCreatedResponse> {
+    // O interceptor já vai desembrulhar a ApiResponse automaticamente
+    return this.http.post<AccountCreatedResponse>(`${this.apiUrl}/register`, registerData)
+      .pipe(
+        tap(response => {
+          console.log("Registro efetuado com sucesso");
+        })
+      );
+  }
+
+  refreshToken(): Observable<RefreshTokenResponse> {
+    const currentToken = this.getToken();
+    if (!currentToken) {
+      throw new Error('Nenhum token disponível para renovação');
+    }
+
+    const refreshRequest: RefreshTokenRequest = { token: currentToken };
+
+    // O interceptor já vai desembrulhar a ApiResponse automaticamente
+    return this.http.post<RefreshTokenResponse>(`${this.apiUrl}/refresh-token`, refreshRequest)
+      .pipe(
+        tap(response => {
+          localStorage.setItem('token', response.token);
+          const user = this.getUserFromToken(response.token);
           if (user) {
             this.setCurrentUser(user);
           }
@@ -71,49 +78,8 @@ export class AuthService {
       );
   }
 
-  register(accountData: AccountDTO): Observable<boolean> {
-    return this.http.post<ApiResponse<boolean>>(`${this.apiUrl}/register`, accountData)
-      .pipe(
-        map(response => {
-          if (!response.success) {
-            throw new Error(response.message);
-          }
-          return response.data;
-        })
-      );
-  }
-
-  refreshToken(): Observable<string> {
-    const currentToken = this.getToken();
-    if (!currentToken) {
-      throw new Error('Nenhum token disponível para renovação');
-    }
-
-    return this.http.post<ApiResponse<string>>(`${this.apiUrl}/refreshtoken`, `"${currentToken}"`, {
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    }).pipe(
-      map(response => {
-        if (response.success) {
-          return response.data;
-        } else {
-          throw new Error(response.message);
-        }
-      }),
-      tap(newToken => {
-        localStorage.setItem('token', newToken);
-        const user = this.getUserFromToken(newToken);
-        if (user) {
-          this.setCurrentUser(user);
-        }
-      })
-    );
-  }
-
   loginWithGoogle(): void {
     console.log('Login com Google - implementar integração');
-    // TODO: Implementar integração com Google OAuth
   }
 
   logout(): void {
@@ -124,7 +90,9 @@ export class AuthService {
 
   isAuthenticated(): boolean {
     const token = localStorage.getItem('token');
-    return token ? this.isTokenValid(token) : false;
+    if(token != null)
+      return token ? this.isTokenValid(token) : false;
+    return false;
   }
 
   getToken(): string | null {
@@ -142,7 +110,7 @@ export class AuthService {
   private isTokenValid(token: string): boolean {
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
-      const exp = payload.exp * 1000; // Convert to milliseconds
+      const exp = payload.exp * 1000;
       return Date.now() < exp;
     } catch (error) {
       console.error('Erro ao validar token:', error);
@@ -153,17 +121,33 @@ export class AuthService {
   private getUserFromToken(token: string): Account | null {
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
-
-      // Mapeamento correto dos claims do JWT conforme seu backend
       return {
-        id: payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'] || payload.nameid,
+        id: parseInt(payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'] || payload.nameid),
         userName: payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] || payload.unique_name,
         mail: payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'] || payload.email,
-        accountPermission: payload.permission
+        phone: payload.phone || undefined,
+        accountPermission: parseInt(payload.permission || '0'),
+        createdAt: new Date(payload.createdAt || Date.now()),
+        updatedAt: new Date(payload.updatedAt || Date.now()),
+        isActive: payload.isActive === 'true' || payload.isActive === true
       } as Account;
     } catch (error) {
       console.error('Erro ao decodificar token:', error);
       return null;
     }
+  }
+
+  /**
+   * Converte AccountResponse (da API) para Account (modelo local)
+   */
+  private mapAccountResponseToAccount(accountResponse: AccountResponse): Account {
+    return {
+      id: accountResponse.id,
+      userName: accountResponse.userName,
+      mail: accountResponse.mail,
+      phone: accountResponse.phone,
+      accountPermission: accountResponse.accountPermission,
+      isActive: accountResponse.isActive
+    };
   }
 }

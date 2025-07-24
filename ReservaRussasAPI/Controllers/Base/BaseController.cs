@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using RR.Core.Common;
 using RR.Core.Extensions;
 using System.Net;
@@ -7,6 +8,7 @@ namespace ReservaRussasAPI.Controllers.Base
 {
     [ApiController]
     [Route("api/v1/[controller]")]
+    [Authorize]
     public abstract class BaseControllerFYP : ControllerBase
     {
         /// <summary>
