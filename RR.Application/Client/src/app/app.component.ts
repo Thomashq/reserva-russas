@@ -1,10 +1,14 @@
+import { FooterComponent } from './footer/footer.component';
+import { HeaderComponent } from './header/header.component';
+import { RouterModule } from '@angular/router';
+import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  standalone: false,
+  imports: [CommonModule, RouterModule, HeaderComponent, FooterComponent],
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {

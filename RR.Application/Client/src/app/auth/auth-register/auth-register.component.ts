@@ -1,3 +1,13 @@
+import { MatDividerModule } from '@angular/material/divider';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatCardModule } from '@angular/material/card';
+import { ReactiveFormsModule } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
+import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AuthService } from '../auth.service';
@@ -9,7 +19,7 @@ import { AccountCreatedResponse } from '../../domain/dto/response/AccountRespons
 @Component({
   selector: 'app-register',
   templateUrl: './auth-register.component.html',
-  standalone: false,
+  imports: [MatDividerModule, MatIconModule, MatButtonModule, MatInputModule, MatFormFieldModule, MatCardModule, CommonModule, RouterModule, FormsModule, ReactiveFormsModule],
   styleUrls: ['./auth-register.component.css']
 })
 export class RegisterComponent {

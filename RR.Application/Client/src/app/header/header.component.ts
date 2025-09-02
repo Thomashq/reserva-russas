@@ -1,10 +1,14 @@
+import { MatButtonModule } from '@angular/material/button';
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { RouterModule } from '@angular/router';
+import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-header',
   templateUrl: './header.component.html',
-  standalone:false,
+  imports: [MatButtonModule, MatToolbarModule, CommonModule, RouterModule],
   styleUrls: ['./header.component.css']
 })
 export class HeaderComponent {
