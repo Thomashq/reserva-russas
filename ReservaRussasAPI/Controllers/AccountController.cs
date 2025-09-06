@@ -82,7 +82,6 @@ namespace ReservaRussasAPI.Controllers
                 {
                     UserName = request.UserName,
                     Mail = request.Mail,
-                    PasswordHash = _passwordService.HashPassword(request.Password),
                     IsActive = true,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow

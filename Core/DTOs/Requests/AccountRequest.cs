@@ -18,6 +18,7 @@ namespace RR.Core.Requests.Account
         [Required(ErrorMessage = "Senha é obrigatória")]
         [StringLength(1000, MinimumLength = 8, ErrorMessage = "Senha deve ter pelo menos 8 caracteres")]
         public string Password { get; set; } = string.Empty;
+        public string FullName { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Email é obrigatório")]
         [EmailAddress(ErrorMessage = "Email deve ter um formato válido")]

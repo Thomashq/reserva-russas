@@ -1,119 +1,172 @@
-import { MatDividerModule } from '@angular/material/divider';
-import { MatIconModule } from '@angular/material/icon';
-import { MatButtonModule } from '@angular/material/button';
-import { MatInputModule } from '@angular/material/input';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatCardModule } from '@angular/material/card';
-import { AbstractControl, ReactiveFormsModule, ValidationErrors } from '@angular/forms';
-import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
-import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { CommonModule } from '@angular/common';
+import { Router, RouterModule } from '@angular/router';
+import {
+  FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors,
+  ReactiveFormsModule, FormControl, ValidatorFn
+} from '@angular/forms';
+
+import { MatCardModule } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatDividerModule } from '@angular/material/divider';
+
 import { AuthService } from '../auth.service';
-import { Router } from '@angular/router';
 import { RegisterRequest } from '../../domain/dto/request/RegisterRequest';
 import { AccountCreatedResponse } from '../../domain/dto/response/AccountResponse';
 
+interface RegisterFormControls {
+  fullName: FormControl<string>;
+  userName: FormControl<string>;
+  email: FormControl<string>;
+  password: FormControl<string>;
+  confirmPassword: FormControl<string>;
+  phone: FormControl<string | null>;
+}
+
 @Component({
   selector: 'app-register',
+  standalone: true,
+  imports: [
+    CommonModule, RouterModule, ReactiveFormsModule,
+    MatCardModule, MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule, MatDividerModule
+  ],
   templateUrl: './auth-register.component.html',
-  imports: [MatDividerModule, MatIconModule, MatButtonModule, MatInputModule, MatFormFieldModule, MatCardModule, CommonModule, RouterModule, FormsModule, ReactiveFormsModule],
   styleUrls: ['./auth-register.component.css']
 })
 export class RegisterComponent {
-  registerForm: FormGroup;
+  registerForm: FormGroup<RegisterFormControls>;
   errorMessage: string | null = null;
-  isLoading: boolean = false;
+  isLoading = false;
+  hidePassword = true;
+  hideConfirm = true;
 
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
     private router: Router
   ) {
-    this.registerForm = this.fb.group({
-      userName: ['', [Validators.required, Validators.minLength(3)]],
-      email: ['', [Validators.required, Validators.email], this.ufcEmailValidator()],
-      password: ['', [Validators.required, Validators.minLength(6)]],
-      confirmPassword: ['', Validators.required],
-      phone: [''] // Campo opcional para telefone
-    },
-    { validators: this.passwordsMatchValidator }
-    );
+    this.registerForm = this.fb.group<RegisterFormControls>({
+      fullName: this.fb.nonNullable.control('', [
+        Validators.required,
+        Validators.minLength(10),
+        this.fullNameValidator()
+      ]),
+      userName: this.fb.nonNullable.control('', [
+        Validators.required,
+        Validators.minLength(3)
+      ]),
+      email: this.fb.nonNullable.control('', [
+        Validators.required,
+        Validators.email,
+        this.ufcEmailValidator()
+      ]),
+      password: this.fb.nonNullable.control('', [
+        Validators.required,
+        Validators.minLength(6)
+      ]),
+      confirmPassword: this.fb.nonNullable.control('', [Validators.required]),
+      phone: this.fb.control<string | null>(null, [this.phoneOptionalValidator()])
+    }, { validators: this.passwordsMatchValidator });
+  }
+
+  get f() {
+    return this.registerForm.controls;
   }
 
   register(): void {
     if (this.registerForm.invalid) {
-      this.markFormGroupTouched();
+      this.registerForm.markAllAsTouched();
       return;
     }
 
-    const { userName, email, password, confirmPassword, phone } = this.registerForm.value;
-
-    if (password !== confirmPassword) {
-      this.errorMessage = 'As senhas não coincidem.';
-      return;
-    }
+    const { fullName, userName, email, password, phone } = this.registerForm.getRawValue();
 
     this.isLoading = true;
     this.errorMessage = null;
 
-    const registerData: RegisterRequest = {
-      userName: userName,
-      mail: email, // Mapeando 'email' para 'mail' para coincidir com a controller
-      password: password,
-      phone: phone || undefined, // Enviar apenas se preenchido
-      accountPermission: 1 // Usuário comum
+    const phoneDigits = this.digitsOnly(phone ?? '');
+
+    // envia ambos: fullName e userName, conforme você adicionou no backend
+    const payload: RegisterRequest = {
+      fullName: fullName.trim(),
+      userName: userName.trim(),
+      mail: email.trim(),
+      password,
+      phone: phoneDigits || undefined
     };
 
-    this.authService.register(registerData).subscribe({
+    this.authService.register(payload).subscribe({
       next: (response: AccountCreatedResponse) => {
-        console.log('Registro bem-sucedido:', response);
-        // Agora temos acesso ao ID da conta criada e data de criação
-        const message = `Conta criada com sucesso! ID: ${response.id}, criada em: ${new Date(response.createdAt).toLocaleDateString('pt-BR')}`;
-        this.router.navigate(['/auth/login'], {
-          queryParams: { message }
-        });
+        const message = `Conta criada com sucesso. ID: ${response.id}, criada em: ${new Date(response.createdAt).toLocaleDateString('pt-BR')}`;
+        this.router.navigate(['/auth/login'], { queryParams: { message } });
       },
       error: (err) => {
-        console.error('Erro no registro:', err);
-        this.errorMessage = err.message || 'Erro ao registrar. Tente novamente.';
+        this.errorMessage = err?.message || 'Erro ao registrar. Tente novamente.';
         this.isLoading = false;
       },
-      complete: () => {
-        this.isLoading = false;
-      }
+      complete: () => this.isLoading = false
     });
   }
 
-  private markFormGroupTouched(): void {
-    Object.keys(this.registerForm.controls).forEach(key => {
-      this.registerForm.get(key)?.markAsTouched();
-    });
+  private fullNameValidator(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      const v = (control.value || '').toString().trim().replace(/\s+/g, ' ');
+      if (!v) return null;
+      const parts = v.split(' ').filter(Boolean);
+      if (parts.length < 2) return { fullNameInvalid: true };
+      if (parts[0].length < 2 || parts[1].length < 2) return { fullNameInvalid: true };
+      return null;
+    };
   }
 
-  // Métodos auxiliares para validação no template
-  hasError(fieldName: string, errorType: string): boolean {
-    const field = this.registerForm.get(fieldName);
-    return !!(field && field.hasError(errorType) && field.touched);
+  private phoneOptionalValidator(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      const digits = this.digitsOnly(control.value || '');
+      if (digits.length === 0) return null; // opcional
+      return digits.length === 11 ? null : { phoneInvalid: true };
+    };
   }
 
-  getErrorMessage(fieldName: string): string {
-    const field = this.registerForm.get(fieldName);
-    if (!field || !field.errors || !field.touched) return '';
+  onPhoneKeydown(e: KeyboardEvent) {
+    const allowedControl = [
+      'Backspace', 'Delete', 'Tab', 'Enter', 'Escape', 'ArrowLeft', 'ArrowRight', 'Home', 'End'
+    ];
+    if (allowedControl.includes(e.key) || (e.ctrlKey || e.metaKey)) return;
+    if (!/^[0-9]$/.test(e.key)) e.preventDefault();
+  }
 
-    if (field.hasError('required')) return `${fieldName} é obrigatório`;
-    if (field.hasError('email')) return 'Email inválido';
-    if (field.hasError('minlength')) {
-      const requiredLength = field.errors['minlength'].requiredLength;
-      return `Deve ter pelo menos ${requiredLength} caracteres`;
+  onPhoneInput() {
+    const raw = this.f.phone.value ?? '';
+    const digits = this.digitsOnly(raw).slice(0, 11); // 2 DDD + 9 número
+    const formatted = this.formatPhone(digits);
+    if (formatted !== raw) {
+      this.f.phone.setValue(formatted, { emitEvent: false });
     }
-
-    return 'Campo inválido';
   }
 
-  // ===== Validators =====
-  private ufcEmailValidator() {
+  onPhonePaste(e: ClipboardEvent) {
+    e.preventDefault();
+    const pasted = e.clipboardData?.getData('text') ?? '';
+    const digits = this.digitsOnly(pasted).slice(0, 11);
+    this.f.phone.setValue(this.formatPhone(digits));
+  }
+
+  private formatPhone(d: string): string {
+    const ddd = d.slice(0, 2);
+    const num = d.slice(2); // até 9 dígitos
+    let numFmt = num;
+    if (num.length > 5) numFmt = `${num.slice(0, 5)}-${num.slice(5)}`;
+    return ddd.length ? `${ddd} - ${numFmt}` : numFmt;
+  }
+
+  private digitsOnly(s: string): string {
+    return s.replace(/\D+/g, '');
+  }
+
+  private ufcEmailValidator(): ValidatorFn {
     const re = /^[^@]+@(ufc\.br|alu\.ufc\.br)$/i;
     return (control: AbstractControl): ValidationErrors | null => {
       const v = (control.value || '').toString().trim();
@@ -122,9 +175,9 @@ export class RegisterComponent {
     };
   }
 
-  private passwordsMatchValidator(group: AbstractControl): ValidationErrors | null {
+  private passwordsMatchValidator: ValidatorFn = (group: AbstractControl): ValidationErrors | null => {
     const p = group.get('password')?.value;
     const c = group.get('confirmPassword')?.value;
     return p && c && p !== c ? { passwordMismatch: true } : null;
-  }
+  };
 }

@@ -9,6 +9,7 @@ namespace Core.Services
         Task<bool> AddAsync(Account account);
         Task<Account> GetByIdAsync(int id);
         Task<Account> UpdateAsync(Account account);
+        Task<Account> GetByUserIdAsync(int id);
         Task<Account?> GetByEmailAsync(string email);
         Task<Account?> GetByUsernameAsync(string username);
         Task<bool> EmailExistsAsync(string email);

@@ -4,44 +4,32 @@ import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
+import { AuthService } from '../auth/auth.service';
+import { Observable } from 'rxjs';
+import { Account } from '../domain/models/account';
 
 @Component({
   selector: 'app-header',
+  standalone: true,
   templateUrl: './header.component.html',
   imports: [MatButtonModule, MatToolbarModule, CommonModule, RouterModule],
   styleUrls: ['./header.component.css']
 })
 export class HeaderComponent {
+  isAuth$!: Observable<boolean>;
+  user$!: Observable<Account | null>;
 
-  constructor(private router: Router) { }
-
-  // Métodos para navegação (placeholder)
-  navigateToInfo(): void {
-    // this.router.navigate(['/info']);
-    console.log('Navegando para Info');
+  constructor(private router: Router, private authService: AuthService) {
+    this.isAuth$ = this.authService.isAuthenticated$;
+    this.user$ = this.authService.currentUser$;     
   }
 
-  navigateToAbout(): void {
-    // this.router.navigate(['/sobre']);
-    console.log('Navegando para Sobre');
-  }
+  navigateToInfo(): void { console.log('Navegando para Info'); }
+  navigateToAbout(): void { console.log('Navegando para Sobre'); }
+  navigateToRooms(): void { console.log('Navegando para Salas'); }
+  navigateToContact(): void { console.log('Navegando para Contato'); }
 
-  navigateToRooms(): void {
-    // this.router.navigate(['/salas']);
-    console.log('Navegando para Salas');
-  }
-
-  navigateToContact(): void {
-    // this.router.navigate(['/contato']);
-    console.log('Navegando para Contato');
-  }
-
-  register(): void {
-    // this.router.navigate(['/registro']);
-    this.router.navigate(['/auth/register']);
-  }
-
-  login(): void {
-    this.router.navigate(['/auth']);
-  }
+  register(): void { this.router.navigate(['/auth/register']); }
+  login(): void { this.router.navigate(['/auth']); }
+  logout(): void { this.authService.logout(); }
 }

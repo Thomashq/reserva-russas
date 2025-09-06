@@ -1,7 +1,7 @@
 import { HttpClient } from "@angular/common/http";
 import { Injectable } from "@angular/core";
 import { Router } from "@angular/router";
-import { BehaviorSubject, Observable, tap } from "rxjs";
+import { BehaviorSubject, Observable, tap, map } from "rxjs";
 import { LoginRequest } from "../domain/dto/request/LoginRequest";
 import { RegisterRequest } from "../domain/dto/request/RegisterRequest";
 import { RefreshTokenRequest } from "../domain/dto/request/TokenRequest";
@@ -17,6 +17,10 @@ export class AuthService {
 
   private currentUserSubject = new BehaviorSubject<Account | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
+
+  public isAuthenticated$ = this.currentUser$.pipe(map(u => !!u));
+
+  public userName$ = this.currentUser$.pipe(map(u => u?.userName ?? null));
 
   constructor(private http: HttpClient, private router: Router) {
     const token = localStorage.getItem('token');

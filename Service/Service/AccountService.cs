@@ -13,6 +13,20 @@ namespace RR.Service
             _accountRepository = accountRepository;
         }
 
+        public async Task<Account?> GetByUserIdAsync(int userId) => await _accountRepository.GetByUserIdAsync(userId);
+
+        public async Task<bool> SetActiveStatusAsync(int id, bool isActive)
+        {
+            var user = await GetByIdAsync(id);
+            if (user == null) return false;
+
+            user.IsActive = isActive;
+            user.UpdatedAt = DateTime.UtcNow;
+
+            var updated = await _accountRepository.UpdateAsync(user);
+            return updated is not null; 
+        }
+
         public async Task<bool> AddAsync(Account account)
         {
             if (account == null)
@@ -63,19 +77,6 @@ namespace RR.Service
 
             var user = await GetByEmailAsync(email);
             return user != null;
-        }
-
-        public async Task<bool> SetActiveStatusAsync(int id, bool isActive)
-        {
-            var user = await GetByIdAsync(id);
-            if (user == null)
-                return false;
-
-            user.IsActive = isActive;
-            user.UpdatedAt = DateTime.UtcNow;
-
-            //await UpdateAsync(id, user);
-            return true;
         }
 
         public async Task<Account> GetByIdAsync(int id)

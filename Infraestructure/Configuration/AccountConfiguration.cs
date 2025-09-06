@@ -24,12 +24,6 @@ namespace RR.Infrastructure.Configurations
                 .HasMaxLength(100)
                 .IsRequired();
 
-            // PasswordHash configuration - deve ter pelo menos 500 caracteres
-            builder.Property(x => x.PasswordHash)
-                .HasColumnName("password_hash")
-                .HasMaxLength(1000) // Máximo de 1000 para comportar diferentes algoritmos de hash
-                .IsRequired();
-
             // Mail configuration
             builder.Property(x => x.Mail)
                 .HasColumnName("mail")

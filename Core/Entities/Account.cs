@@ -10,8 +10,6 @@ public class Account : BaseEntity
 
     public string UserName {get; set;}
 
-    public string PasswordHash {get; set;}
-
     public string Mail {get; set;}
 
     public string? Phone {get; set;}

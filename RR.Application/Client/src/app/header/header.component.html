@@ -1,6 +1,6 @@
 <header class="header-container">
   <mat-toolbar color="primary" class="header-toolbar">
-    <span class="logo">ReservaRussas</span>
+    <span class="logo" routerLink="/">ReservaRussas</span>
 
     <span class="spacer"></span>
 
@@ -13,19 +13,26 @@
 
     <span class="spacer"></span>
 
-    <div class="auth-buttons">
-      <button mat-raised-button
-              color="accent"
-              class="register-btn"
-              (click)="register()">
-        REGISTRE-SE
-      </button>
-      <button mat-button
-              class="login-btn text-white"
-              (click)="login()">
-        Fazer Login
+    <!-- Logado -->
+    <div class="auth-buttons" *ngIf="isAuth$ | async; else guest">
+      <!-- (opcional) mostrar nome -->
+      <span class="mr-2">Olá, {{ (user$ | async)?.userName }}</span> 
+      <button mat-button class="login-btn text-white" (click)="logout()">
+        Sair
       </button>
     </div>
+
+    <!-- Visitante -->
+    <ng-template #guest>
+      <div class="auth-buttons">
+        <button mat-raised-button color="accent" class="register-btn" (click)="register()">
+          REGISTRE-SE
+        </button>
+        <button mat-button class="login-btn text-white" (click)="login()">
+          Fazer Login
+        </button>
+      </div>
+    </ng-template>
 
   </mat-toolbar>
 </header>

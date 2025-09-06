@@ -6,6 +6,7 @@ namespace RR.Core.Repositories
     {
         Task<bool> AddAsync(Account account);
         Task<Account> GetByIdAsync(int id);
+        Task<Account> GetByUserIdAsync(int id);
         Task<Account?> GetByUserNameAsync(string userName);
         Task<Account?> UpdateAsync(Account account);
         Task<Account?> GetByEmailAsync(string email);
