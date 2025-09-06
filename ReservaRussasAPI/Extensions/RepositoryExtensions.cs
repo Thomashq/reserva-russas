@@ -10,7 +10,6 @@ namespace ReservaRussasAPI.Extensions
         {
             // Registros manuais específicos (opcional)
             services.AddScoped<IAccountRepository, AccountRepository>();
-            services.AddScoped<IAuthRepository, AuthRepository>(); 
             services.AddScoped<IStudentRepository, StudentRepository>(); 
             services.AddScoped<IServantRepository, ServantRepository>(); 
             // services.AddScoped<IProductRepository, ProductRepository>();
@@ -19,4 +18,4 @@ namespace ReservaRussasAPI.Extensions
         }
 
     }
-}
+} 

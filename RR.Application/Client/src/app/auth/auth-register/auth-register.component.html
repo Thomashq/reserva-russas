@@ -6,27 +6,57 @@
       <mat-form-field appearance="fill" class="full-width">
         <mat-label>Usuário</mat-label>
         <input matInput formControlName="userName" required>
+        <mat-error *ngIf="f.userName.touched && f.userName.hasError('required')">
+          Informe o usuário.
+        </mat-error>
       </mat-form-field>
 
       <mat-form-field appearance="fill" class="full-width">
         <mat-label>Email</mat-label>
-        <input matInput formControlName="email" type="email" required>
+        <!-- NOTE: o form control chama 'mail' (não 'email') pra casar com o backend -->
+        <input matInput formControlName="mail" type="email" required>
+        <mat-error *ngIf="f.mail.touched && f.mail.hasError('required')">
+          Informe o e-mail.
+        </mat-error>
+        <mat-error *ngIf="f.mail.touched && f.mail.hasError('email')">
+          E-mail inválido.
+        </mat-error>
+        <mat-error *ngIf="f.mail.touched && f.mail.hasError('ufcEmail')">
+          Use um e-mail @ufc.br ou @alu.ufc.br.
+        </mat-error>
       </mat-form-field>
 
       <mat-form-field appearance="fill" class="full-width">
         <mat-label>Senha</mat-label>
         <input matInput formControlName="password" type="password" required>
+        <mat-error *ngIf="f.password.touched && f.password.hasError('required')">
+          Informe a senha.
+        </mat-error>
+        <mat-error *ngIf="f.password.touched && f.password.hasError('minlength')">
+          Mínimo de {{ f.password.getError('minlength')?.requiredLength }} caracteres.
+        </mat-error>
       </mat-form-field>
 
       <mat-form-field appearance="fill" class="full-width">
         <mat-label>Confirmar Senha</mat-label>
         <input matInput formControlName="confirmPassword" type="password" required>
+        <mat-error *ngIf="f.confirmPassword.touched && f.confirmPassword.hasError('required')">
+          Confirme a senha.
+        </mat-error>
+        <mat-error *ngIf="registerForm.touched && registerForm.hasError('passwordMismatch')">
+          As senhas não conferem.
+        </mat-error>
       </mat-form-field>
 
+      <!-- erro vindo da API (message) -->
       <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
 
-      <button mat-raised-button color="primary" type="submit" class="full-width">
-        Registrar
+      <button mat-raised-button
+              color="primary"
+              type="submit"
+              class="full-width"
+              [disabled]="registerForm.invalid || isLoading">
+        {{ isLoading ? 'Registrando...' : 'Registrar' }}
       </button>
     </form>
 

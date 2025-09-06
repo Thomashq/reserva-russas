@@ -1,10 +1,14 @@
 ﻿using Microsoft.AspNetCore.Cryptography.KeyDerivation;
-using RR.Core.Services;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace RR.Service.Service
+namespace RR.Util.Criptography
 {
-    public class PasswordService : IPasswordService
+    public class HashPass
     {
         public string HashPassword(string password)
         {
@@ -18,8 +22,8 @@ namespace RR.Service.Service
                 password: password,
                 salt: salt,
                 prf: KeyDerivationPrf.HMACSHA256,
-                iterationCount: 100000, 
-                numBytesRequested: 32); 
+                iterationCount: 100000,
+                numBytesRequested: 32);
 
             // Combina salt + hash em uma única string
             byte[] combined = new byte[48];

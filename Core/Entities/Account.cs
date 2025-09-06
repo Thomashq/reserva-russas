@@ -6,6 +6,8 @@ public class Account : BaseEntity
 {
     public int Id { get; set; }
 
+    public int UserId { get; set; } // conexão com o appuser para aspnet identity
+
     public string UserName {get; set;}
 
     public string PasswordHash {get; set;}

@@ -1,10 +1,13 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore; // UserOnlyStore<>
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using ReservaRussasAPI.Extensions;
-using RR.Core.Entities;
+using RR.Core.Entities;                    
 using RR.Infraestructure.DataContext;
 using RR.ReservaRussasAPI.Docs;
+using RR.Util.Criptography;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -31,7 +34,8 @@ builder.Services.AddApplicationServices();
 
 ReservaRussasConnectString reservaRussasConnectString = new();
 reservaRussasConnectString = builder.Configuration.GetSection("Connection").Get<ReservaRussasConnectString>();
-string str_conexao = $"Host={reservaRussasConnectString.Host};Port={reservaRussasConnectString.Port};Database={reservaRussasConnectString.DataBase};Username={reservaRussasConnectString.UserName};Password={reservaRussasConnectString.Password}";
+string str_conexao =
+    $"Host={reservaRussasConnectString.Host};Port={reservaRussasConnectString.Port};Database={reservaRussasConnectString.DataBase};Username={reservaRussasConnectString.UserName};Password={reservaRussasConnectString.Password}";
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
@@ -46,6 +50,26 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.LogTo(Console.WriteLine, LogLevel.Information);
 });
 
+// >>> Identity Core (sem UI/cookies) + UserOnlyStore (sem roles por enquanto)
+builder.Services
+    .AddIdentityCore<AppUser>(o =>
+    {
+        o.User.RequireUniqueEmail = true;
+        o.Password.RequiredLength = 8;
+        o.Password.RequireNonAlphanumeric = false;
+        o.Password.RequireUppercase = false;
+        o.Password.RequireLowercase = false;
+        o.Password.RequireDigit = false;
+    })
+    .AddSignInManager(); 
+
+builder.Services.AddScoped<IUserStore<AppUser>, UserOnlyStore<AppUser, ApplicationDbContext, int>>();
+
+builder.Services.AddSingleton<IPasswordHasher<AppUser>, Pbkdf2PasswordHasherAdapter>();
+
+builder.Services.AddHttpContextAccessor();
+
+// >>> Autenticação JWT (mantida como está)
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -58,7 +82,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidIssuer = config["Jwt:Issuer"],
             ValidAudience = config["Jwt:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Jwt:Key"])),
-            ClockSkew = TimeSpan.Zero // Remove tolerância de tempo padrão
+            ClockSkew = TimeSpan.Zero
         };
     });
 
@@ -66,7 +90,6 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwaggerConfigurationReservaRussas();
@@ -76,7 +99,6 @@ else
     app.UseExceptionHandler("/Home/Error");
 }
 
-// Executar migrações
 using (var scope = app.Services.GetRequiredService<IServiceScopeFactory>().CreateScope())
 {
     using (var context = scope.ServiceProvider.GetService<ApplicationDbContext>())
@@ -86,7 +108,7 @@ using (var scope = app.Services.GetRequiredService<IServiceScopeFactory>().Creat
     }
 }
 
-app.UseCors("AllowAllOrigins"); 
+app.UseCors("AllowAllOrigins");
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();

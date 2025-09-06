@@ -13,7 +13,6 @@ namespace ReservaRussasAPI.Extensions
             // Registrar repositórios primeiro
             //services.AddServices();
             services.AddScoped<IAccountService, AccountService>();
-            services.AddScoped<IPasswordService, PasswordService>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IServantService, ServantService>();
             services.AddScoped<IStudentService, StudentService>();

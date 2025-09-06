@@ -4,7 +4,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatCardModule } from '@angular/material/card';
-import { ReactiveFormsModule } from '@angular/forms';
+import { AbstractControl, ReactiveFormsModule, ValidationErrors } from '@angular/forms';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -14,7 +14,6 @@ import { AuthService } from '../auth.service';
 import { Router } from '@angular/router';
 import { RegisterRequest } from '../../domain/dto/request/RegisterRequest';
 import { AccountCreatedResponse } from '../../domain/dto/response/AccountResponse';
-
 
 @Component({
   selector: 'app-register',
@@ -34,11 +33,13 @@ export class RegisterComponent {
   ) {
     this.registerForm = this.fb.group({
       userName: ['', [Validators.required, Validators.minLength(3)]],
-      email: ['', [Validators.required, Validators.email]],
+      email: ['', [Validators.required, Validators.email], this.ufcEmailValidator()],
       password: ['', [Validators.required, Validators.minLength(6)]],
       confirmPassword: ['', Validators.required],
       phone: [''] // Campo opcional para telefone
-    });
+    },
+    { validators: this.passwordsMatchValidator }
+    );
   }
 
   register(): void {
@@ -62,7 +63,7 @@ export class RegisterComponent {
       mail: email, // Mapeando 'email' para 'mail' para coincidir com a controller
       password: password,
       phone: phone || undefined, // Enviar apenas se preenchido
-      accountPermission: 0 // Usuário comum
+      accountPermission: 1 // Usuário comum
     };
 
     this.authService.register(registerData).subscribe({
@@ -109,5 +110,21 @@ export class RegisterComponent {
     }
 
     return 'Campo inválido';
+  }
+
+  // ===== Validators =====
+  private ufcEmailValidator() {
+    const re = /^[^@]+@(ufc\.br|alu\.ufc\.br)$/i;
+    return (control: AbstractControl): ValidationErrors | null => {
+      const v = (control.value || '').toString().trim();
+      if (!v) return null;
+      return re.test(v) ? null : { ufcEmail: true };
+    };
+  }
+
+  private passwordsMatchValidator(group: AbstractControl): ValidationErrors | null {
+    const p = group.get('password')?.value;
+    const c = group.get('confirmPassword')?.value;
+    return p && c && p !== c ? { passwordMismatch: true } : null;
   }
 }

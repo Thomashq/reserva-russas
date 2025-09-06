@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace RR.Infraestructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialMigration : Migration
+    public partial class aspidentity : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -18,6 +18,7 @@ namespace RR.Infraestructure.Migrations
                 {
                     id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    user_id = table.Column<int>(type: "integer", nullable: false),
                     user_name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     password_hash = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: false),
                     mail = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
@@ -30,6 +31,36 @@ namespace RR.Infraestructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_account", x => x.id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "rr_users",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "NOW()"),
+                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "NOW()"),
+                    is_active = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
+                    full_name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
+                    user_name = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    normalized_user_name = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    normalized_email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    email_confirmed = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
+                    password_hash = table.Column<string>(type: "text", nullable: true),
+                    security_stamp = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    concurrency_stamp = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    phone_number = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: true),
+                    phone_number_confirmed = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
+                    two_factor_enabled = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
+                    lockout_end = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    lockout_enabled = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
+                    access_failed_count = table.Column<int>(type: "integer", nullable: false, defaultValue: 0)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_rr_users", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
@@ -307,6 +338,27 @@ namespace RR.Infraestructure.Migrations
                 column: "manager_id");
 
             migrationBuilder.CreateIndex(
+                name: "ix_rr_users_created_at",
+                table: "rr_users",
+                column: "created_at");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_rr_users_is_active",
+                table: "rr_users",
+                column: "is_active");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_rr_users_normalized_email",
+                table: "rr_users",
+                column: "normalized_email");
+
+            migrationBuilder.CreateIndex(
+                name: "ux_rr_users_normalized_user_name",
+                table: "rr_users",
+                column: "normalized_user_name",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_servant_account_id",
                 table: "servant",
                 column: "account_id",
@@ -379,6 +431,9 @@ namespace RR.Infraestructure.Migrations
         {
             migrationBuilder.DropTable(
                 name: "reservation");
+
+            migrationBuilder.DropTable(
+                name: "rr_users");
 
             migrationBuilder.DropTable(
                 name: "student_advisor");

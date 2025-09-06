@@ -25,6 +25,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "1-Application", "1-Applicat
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RR.Application", "RR.Application\RR.Application.csproj", "{D726D63C-1072-42B1-8E94-F827D532D18A}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Util", "Util", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RR.Util.Criptography", "RR.Util.Criptography\RR.Util.Criptography.csproj", "{9AB1BA23-E54D-48E3-902A-60BD3AC142A9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -55,6 +59,10 @@ Global
 		{D726D63C-1072-42B1-8E94-F827D532D18A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D726D63C-1072-42B1-8E94-F827D532D18A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D726D63C-1072-42B1-8E94-F827D532D18A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9AB1BA23-E54D-48E3-902A-60BD3AC142A9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9AB1BA23-E54D-48E3-902A-60BD3AC142A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9AB1BA23-E54D-48E3-902A-60BD3AC142A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9AB1BA23-E54D-48E3-902A-60BD3AC142A9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -66,6 +74,7 @@ Global
 		{E9EB4B75-E3E2-4651-8FA0-8FC4921DDF32} = {BCA69549-A9F6-41F7-8227-F13AA9B8320C}
 		{A2AE1234-CBF1-412E-AB44-2BA45FD7F6D4} = {D5A4E7CB-4AFE-4628-9B17-6406FAC72944}
 		{D726D63C-1072-42B1-8E94-F827D532D18A} = {422208D5-4EF6-41D1-85AF-7AA0B9323E82}
+		{9AB1BA23-E54D-48E3-902A-60BD3AC142A9} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {024AF818-291F-4A39-825E-768920BF41A4}
