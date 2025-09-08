@@ -1,9 +1,4 @@
 ﻿using RR.Core.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace RR.Core.Repositories
 {
@@ -17,6 +12,7 @@ namespace RR.Core.Repositories
         Task<IEnumerable<Reservation>> GetReservationsByRoomId(int roomId);
         Task<IEnumerable<Reservation>> GetReservationsByAccountId(int accountId);
         Task<IEnumerable<Reservation>> GetReservationsByPeriod(DateTime start, DateTime end);
+        Task<IEnumerable<Reservation>> GetReservationsBySeriesId(int seriesId);
         Task<bool> IsRoomAvailable(int roomId, DateTime start, DateTime end);
     }
 }

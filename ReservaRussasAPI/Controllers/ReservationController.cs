@@ -5,8 +5,6 @@ using RR.Core.DTOs.Requests;
 using RR.Core.Entities;
 using RR.Core.Services;
 
-[ApiController]
-[Route("api/v1/[controller]")]
 public class ReservationsController : BaseControllerFYP
 {
     private readonly IReservationService _reservations;
@@ -79,6 +77,22 @@ public class ReservationsController : BaseControllerFYP
 
         if (updated is null) return ResponseNotFound("Reservation not found");
         return ResponseOk(updated, "Reservation updated");
+    }
+
+    [HttpPut("cancel/{id:int}")]
+    public async Task<IActionResult> Cancel(int id)
+    {
+        var canceled = await _reservations.CancelReservation(id);
+        if (canceled is false) return ResponseNotFound("Reservation not found or cannot be canceled");
+        return ResponseOk(canceled, "Reservation canceled");
+    }
+
+    [HttpPut("approve/{id:int}")]
+    public async Task<IActionResult> Approve(int id)
+    {
+        var approved = await _reservations.ApproveReservation(id);
+        if (approved is null) return ResponseNotFound("Reservation not found or cannot be approved");
+        return ResponseOk(approved, "Reservation approved");
     }
 
     [HttpDelete("{id:int}")]

@@ -17,6 +17,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Core\RR.Core.csproj" />
     <ProjectReference Include="..\RR.Util.Criptography\RR.Util.Criptography.csproj" />
+    <ProjectReference Include="..\RR.Util.ReservationRules\RR.Util.ReservationRules.csproj" />
   </ItemGroup>
 
 </Project>

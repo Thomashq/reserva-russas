@@ -59,9 +59,9 @@ namespace RR.Infraestructure.Repositories
             return await _context.Reservation.Where(x => x.IsActive && x.RoomId == roomId).ToListAsync();
         }
 
-        public Task<bool> IsRoomAvailable(int roomId, DateTime start, DateTime end)
+        public async Task<bool> IsRoomAvailable(int roomId, DateTime start, DateTime end)
         {
-            return Task.FromResult(!_context.Reservation.Any(r => r.RoomId == roomId && r.IsActive && r.StartTime < end && r.EndTime > start));
+            return await Task.FromResult(!_context.Reservation.Any(r => r.RoomId == roomId && r.IsActive && r.StartTime < end && r.EndTime > start));
         }
 
         public async Task<Reservation> UpdateAsync(Reservation reservation)
@@ -76,6 +76,13 @@ namespace RR.Infraestructure.Repositories
             await _context.SaveChangesAsync();
 
             return existingReservation;
+        }
+
+        public async Task<IEnumerable<Reservation>> GetReservationsBySeriesId(int seriesId)
+        {
+            return await _context.Reservation
+                .Where(r => r.SeriesId == seriesId && r.IsActive)
+                .ToListAsync();
         }
     }
 }

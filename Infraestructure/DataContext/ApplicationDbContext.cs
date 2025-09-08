@@ -21,6 +21,9 @@ namespace RR.Infraestructure.DataContext
         public DbSet<StudentAdvisor> StudentAdvisor { get; set; } 
         public DbSet<StudentPermission> StudentPermission { get; set; } 
         public DbSet<AppUser> AppUser { get; set; }
+        public DbSet<ReservationException> ReservationException { get; set; }
+        public DbSet<ReservationSeries> ReservationSeries { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

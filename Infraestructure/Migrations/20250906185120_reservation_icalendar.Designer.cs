@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using RR.Infraestructure.DataContext;
@@ -11,9 +12,11 @@ using RR.Infraestructure.DataContext;
 namespace RR.Infraestructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250906185120_reservation_icalendar")]
+    partial class reservation_icalendar
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -293,7 +296,7 @@ namespace RR.Infraestructure.Migrations
                         .HasColumnName("description");
 
                     b.Property<DateTime>("EndTime")
-                        .HasColumnType("timestamp without time zone")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("end_time");
 
                     b.Property<bool>("IsActive")
@@ -302,28 +305,30 @@ namespace RR.Infraestructure.Migrations
                         .HasDefaultValue(true)
                         .HasColumnName("is_active");
 
-                    b.Property<int?>("MovedFromReservationId")
-                        .HasColumnType("integer")
-                        .HasColumnName("moved_from_reservation_id");
+                    b.Property<bool>("IsRecurring")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_recurring");
 
-                    b.Property<int>("Origin")
-                        .HasColumnType("integer")
-                        .HasColumnName("origin");
+                    b.Property<string>("RecurrenceRule")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("recurrence_rule");
+
+                    b.Property<DateTime>("RecurrentUntil")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("recurrent_until");
 
                     b.Property<int>("RoomId")
                         .HasColumnType("integer")
                         .HasColumnName("room_id");
-
-                    b.Property<int?>("SeriesId")
-                        .HasColumnType("integer")
-                        .HasColumnName("series_id");
 
                     b.Property<int?>("ServantId")
                         .HasColumnType("integer")
                         .HasColumnName("servant_id");
 
                     b.Property<DateTime>("StartTime")
-                        .HasColumnType("timestamp without time zone")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("start_time");
 
                     b.Property<int>("Status")
@@ -360,8 +365,6 @@ namespace RR.Infraestructure.Migrations
                     b.HasIndex("IsActive")
                         .HasDatabaseName("ix_reservation_is_active");
 
-                    b.HasIndex("MovedFromReservationId");
-
                     b.HasIndex("RoomId")
                         .HasDatabaseName("ix_reservation_room_id");
 
@@ -372,15 +375,8 @@ namespace RR.Infraestructure.Migrations
 
                     b.HasIndex("StudentId");
 
-                    b.HasIndex("SeriesId", "StartTime")
-                        .HasDatabaseName("ix_reservation_series_start");
-
                     b.HasIndex("RoomId", "StartTime", "EndTime")
                         .HasDatabaseName("ix_reservation_room_time_range");
-
-                    b.HasIndex("SeriesId", "StartTime", "RoomId")
-                        .IsUnique()
-                        .HasDatabaseName("ux_reservation_series_start_room");
 
                     b.ToTable("reservation", null, t =>
                         {
@@ -397,10 +393,6 @@ namespace RR.Infraestructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("Action")
-                        .HasColumnType("integer")
-                        .HasColumnName("action");
-
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
@@ -408,7 +400,7 @@ namespace RR.Infraestructure.Migrations
                         .HasDefaultValueSql("NOW()");
 
                     b.Property<DateTime>("ExceptionDate")
-                        .HasColumnType("timestamp without time zone")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("exception_date");
 
                     b.Property<bool>("IsActive")
@@ -416,22 +408,6 @@ namespace RR.Infraestructure.Migrations
                         .HasColumnType("boolean")
                         .HasDefaultValue(true)
                         .HasColumnName("is_active");
-
-                    b.Property<DateTime?>("NewEndTime")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("new_end_time");
-
-                    b.Property<int?>("NewRoomId")
-                        .HasColumnType("integer")
-                        .HasColumnName("new_room_id");
-
-                    b.Property<DateTime?>("NewStartTime")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("new_start_time");
-
-                    b.Property<DateTime>("OriginalDate")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("original_date");
 
                     b.Property<string>("Reason")
                         .IsRequired()
@@ -442,10 +418,6 @@ namespace RR.Infraestructure.Migrations
                     b.Property<int>("ReservationId")
                         .HasColumnType("integer")
                         .HasColumnName("reservation_id");
-
-                    b.Property<int>("SeriesId")
-                        .HasColumnType("integer")
-                        .HasColumnName("series_id");
 
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAdd()
@@ -461,116 +433,9 @@ namespace RR.Infraestructure.Migrations
                     b.HasIndex("IsActive")
                         .HasDatabaseName("ix_reservation_exception_is_active");
 
-                    b.HasIndex("NewRoomId");
-
-                    b.HasIndex("SeriesId");
-
-                    b.HasIndex("ReservationId", "ExceptionDate")
-                        .HasDatabaseName("ix_reservation_exception_reservation_date");
+                    b.HasIndex("ReservationId");
 
                     b.ToTable("reservation_exception", (string)null);
-                });
-
-            modelBuilder.Entity("RR.Core.Entities.ReservationSeries", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("AccountId")
-                        .HasColumnType("integer")
-                        .HasColumnName("account_id");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("NOW()");
-
-                    b.Property<string>("DaysOfWeek")
-                        .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)")
-                        .HasColumnName("days_of_week");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)")
-                        .HasColumnName("description");
-
-                    b.Property<bool>("IsActive")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(true)
-                        .HasColumnName("is_active");
-
-                    b.Property<string>("RecurrenceRule")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("recurrence_rule");
-
-                    b.Property<int>("RoomId")
-                        .HasColumnType("integer")
-                        .HasColumnName("default_room_id");
-
-                    b.Property<int>("SeriesStatus")
-                        .HasColumnType("integer")
-                        .HasColumnName("series_status");
-
-                    b.Property<TimeSpan>("TimeEnd")
-                        .HasColumnType("time without time zone")
-                        .HasColumnName("time_end");
-
-                    b.Property<TimeSpan>("TimeStart")
-                        .HasColumnType("time without time zone")
-                        .HasColumnName("time_start");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("title");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at")
-                        .HasDefaultValueSql("NOW()");
-
-                    b.Property<DateTime>("WindowEnd")
-                        .HasColumnType("date")
-                        .HasColumnName("window_end");
-
-                    b.Property<DateTime>("WindowStart")
-                        .HasColumnType("date")
-                        .HasColumnName("window_start");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AccountId")
-                        .HasDatabaseName("ix_reservation_series_account_id");
-
-                    b.HasIndex("CreatedAt")
-                        .HasDatabaseName("ix_reservation_series_created_at");
-
-                    b.HasIndex("IsActive")
-                        .HasDatabaseName("ix_reservation_series_is_active");
-
-                    b.HasIndex("RoomId")
-                        .HasDatabaseName("ix_reservation_series_default_room_id");
-
-                    b.HasIndex("WindowStart")
-                        .HasDatabaseName("ix_reservation_series_window_start");
-
-                    b.ToTable("reservation_series", null, t =>
-                        {
-                            t.HasCheckConstraint("ck_reservation_series_window_end_after_start", "window_end >= window_start");
-                        });
                 });
 
             modelBuilder.Entity("RR.Core.Entities.Rooms", b =>
@@ -833,23 +698,11 @@ namespace RR.Infraestructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("RR.Core.Entities.Reservation", "MovedFromReservation")
-                        .WithMany()
-                        .HasForeignKey("MovedFromReservationId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("fk_reservation_moved_from_id");
-
                     b.HasOne("RR.Core.Entities.Rooms", "Room")
                         .WithMany("Reservations")
                         .HasForeignKey("RoomId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("RR.Core.Entities.ReservationSeries", "Series")
-                        .WithMany("Reservations")
-                        .HasForeignKey("SeriesId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .HasConstraintName("fk_reservation_series_id");
 
                     b.HasOne("RR.Core.Entities.Servant", null)
                         .WithMany("Reservations")
@@ -861,19 +714,11 @@ namespace RR.Infraestructure.Migrations
 
                     b.Navigation("Account");
 
-                    b.Navigation("MovedFromReservation");
-
                     b.Navigation("Room");
-
-                    b.Navigation("Series");
                 });
 
             modelBuilder.Entity("RR.Core.Entities.ReservationException", b =>
                 {
-                    b.HasOne("RR.Core.Entities.Rooms", "NewRoom")
-                        .WithMany()
-                        .HasForeignKey("NewRoomId");
-
                     b.HasOne("RR.Core.Entities.Reservation", "Reservation")
                         .WithMany("Exceptions")
                         .HasForeignKey("ReservationId")
@@ -881,38 +726,7 @@ namespace RR.Infraestructure.Migrations
                         .IsRequired()
                         .HasConstraintName("fk_reservation_exception_reservation_id");
 
-                    b.HasOne("RR.Core.Entities.ReservationSeries", "Series")
-                        .WithMany("Exceptions")
-                        .HasForeignKey("SeriesId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("NewRoom");
-
                     b.Navigation("Reservation");
-
-                    b.Navigation("Series");
-                });
-
-            modelBuilder.Entity("RR.Core.Entities.ReservationSeries", b =>
-                {
-                    b.HasOne("RR.Core.Entities.Account", "Account")
-                        .WithMany()
-                        .HasForeignKey("AccountId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("fk_reservation_series_account_id");
-
-                    b.HasOne("RR.Core.Entities.Rooms", "DefaultRoom")
-                        .WithMany()
-                        .HasForeignKey("RoomId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("fk_reservation_series_default_room_id");
-
-                    b.Navigation("Account");
-
-                    b.Navigation("DefaultRoom");
                 });
 
             modelBuilder.Entity("RR.Core.Entities.Rooms", b =>
@@ -997,13 +811,6 @@ namespace RR.Infraestructure.Migrations
             modelBuilder.Entity("RR.Core.Entities.Reservation", b =>
                 {
                     b.Navigation("Exceptions");
-                });
-
-            modelBuilder.Entity("RR.Core.Entities.ReservationSeries", b =>
-                {
-                    b.Navigation("Exceptions");
-
-                    b.Navigation("Reservations");
                 });
 
             modelBuilder.Entity("RR.Core.Entities.Rooms", b =>

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using RR.Infraestructure.DataContext;
@@ -11,9 +12,11 @@ using RR.Infraestructure.DataContext;
 namespace RR.Infraestructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250907142242_reservation-organization")]
+    partial class reservationorganization
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -302,6 +305,10 @@ namespace RR.Infraestructure.Migrations
                         .HasDefaultValue(true)
                         .HasColumnName("is_active");
 
+                    b.Property<bool>("IsRecurring")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_recurring");
+
                     b.Property<int?>("MovedFromReservationId")
                         .HasColumnType("integer")
                         .HasColumnName("moved_from_reservation_id");
@@ -309,6 +316,16 @@ namespace RR.Infraestructure.Migrations
                     b.Property<int>("Origin")
                         .HasColumnType("integer")
                         .HasColumnName("origin");
+
+                    b.Property<string>("RecurrenceRule")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("recurrence_rule");
+
+                    b.Property<DateTime>("RecurrentUntil")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("recurrent_until");
 
                     b.Property<int>("RoomId")
                         .HasColumnType("integer")
@@ -496,6 +513,10 @@ namespace RR.Infraestructure.Migrations
                         .HasColumnType("character varying(32)")
                         .HasColumnName("days_of_week");
 
+                    b.Property<int?>("DefaultRoomId")
+                        .HasColumnType("integer")
+                        .HasColumnName("default_room_id");
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(1000)
@@ -513,10 +534,6 @@ namespace RR.Infraestructure.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)")
                         .HasColumnName("recurrence_rule");
-
-                    b.Property<int>("RoomId")
-                        .HasColumnType("integer")
-                        .HasColumnName("default_room_id");
 
                     b.Property<int>("SeriesStatus")
                         .HasColumnType("integer")
@@ -558,11 +575,11 @@ namespace RR.Infraestructure.Migrations
                     b.HasIndex("CreatedAt")
                         .HasDatabaseName("ix_reservation_series_created_at");
 
+                    b.HasIndex("DefaultRoomId")
+                        .HasDatabaseName("ix_reservation_series_default_room_id");
+
                     b.HasIndex("IsActive")
                         .HasDatabaseName("ix_reservation_series_is_active");
-
-                    b.HasIndex("RoomId")
-                        .HasDatabaseName("ix_reservation_series_default_room_id");
 
                     b.HasIndex("WindowStart")
                         .HasDatabaseName("ix_reservation_series_window_start");
@@ -905,9 +922,8 @@ namespace RR.Infraestructure.Migrations
 
                     b.HasOne("RR.Core.Entities.Rooms", "DefaultRoom")
                         .WithMany()
-                        .HasForeignKey("RoomId")
+                        .HasForeignKey("DefaultRoomId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
                         .HasConstraintName("fk_reservation_series_default_room_id");
 
                     b.Navigation("Account");

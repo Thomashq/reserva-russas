@@ -21,7 +21,7 @@ namespace RR.Infraestructure.Configuration
             builder.Property(x => x.Id)
                    .HasColumnName("id")
                    .IsRequired()
-                   .ValueGeneratedOnAdd(); // Guid gerado no app (ou no banco, conforme sua estratégia)
+                   .ValueGeneratedOnAdd(); 
 
             // Identity "core"
             builder.Property(x => x.UserName)

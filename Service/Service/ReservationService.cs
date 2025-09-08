@@ -28,9 +28,12 @@ namespace RR.Service.Service
             if (reservation.StartTime >= reservation.EndTime) throw new ArgumentException("StartTime must be before EndTime.");
 
             var available = await _reservations.IsRoomAvailable(reservation.RoomId, reservation.StartTime, reservation.EndTime);
+            
             if (!available)
                 throw new InvalidOperationException("Room is not available for the selected period.");
 
+            reservation.Status = 0; // Criado
+            
             var created = await _reservations.AddAsync(reservation);
             _logger?.LogInformation("Reservation created: {ReservationId} Room {RoomId} ({Start} - {End})",
                 created.Id, created.RoomId, created.StartTime, created.EndTime);
@@ -38,6 +41,22 @@ namespace RR.Service.Service
             return created;
         }
 
+        public async Task<Reservation> ApproveReservation(int id)
+        {
+            var reservation = await _reservations.GetReservationById(id);
+            reservation.Status = 1; // Aprovado
+
+            var updated = await _reservations.UpdateAsync(reservation);
+
+            if (updated is null)
+            {
+                _logger?.LogError("Failed to approve reservation {ReservationId}", id);
+                return null!;
+            }
+
+            _logger?.LogInformation("Reservation approved: {ReservationId}", id);
+            return updated;
+        }
         public async Task<Reservation> GetReservationById(int id)
         {
             if (id <= 0) throw new ArgumentOutOfRangeException(nameof(id));
@@ -101,6 +120,28 @@ namespace RR.Service.Service
             return updated;
         }
 
+        public async Task<bool> CancelReservation(int id) {             
+            if (id <= 0) throw new ArgumentOutOfRangeException(nameof(id));
+            
+            var reservation = await _reservations.GetReservationById(id);
+            if (reservation is null || !reservation.IsActive)
+            {
+                _logger?.LogWarning("Attempt to cancel non-existent or inactive reservation {ReservationId}", id);
+                return false;
+            }
+            
+            reservation.Status = 2; // Rejeitado/cancelado
+            
+            var updated = await _reservations.UpdateAsync(reservation);
+            if (updated is null)
+            {
+                _logger?.LogError("Failed to cancel reservation {ReservationId}", id);
+                return false;
+            }
+            _logger?.LogInformation("Reservation cancelled: {ReservationId}", id);
+            return true;
+        }
+
         public async Task<bool> DeleteAsync(int id)
         {
             if (id <= 0) throw new ArgumentOutOfRangeException(nameof(id));
@@ -110,6 +151,12 @@ namespace RR.Service.Service
             else
                 _logger?.LogWarning("Attempt to delete non-existent reservation {ReservationId}", id);
             return ok;
+        }
+
+        public async Task<IEnumerable<Reservation>> GetReservationsBySeriesId(int seriesId)
+        {
+            if (seriesId <= 0) throw new ArgumentOutOfRangeException(nameof(seriesId));
+            return await _reservations.GetReservationsBySeriesId(seriesId);
         }
     }
 }
