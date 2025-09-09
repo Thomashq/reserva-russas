@@ -16,8 +16,6 @@ using System.Text.RegularExpressions;
 
 namespace ReservaRussasAPI.Controllers
 {
-    [ApiController]
-    [Route("auth")]
     public class AuthController : BaseControllerFYP
     {
         private readonly IAuthService _authService;

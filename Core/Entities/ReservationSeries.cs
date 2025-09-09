@@ -19,7 +19,7 @@ namespace RR.Core.Entities
         public DateTime WindowStart { get; set; }
         public DateTime WindowEnd { get; set; }
 
-        // RRULE (ex.: "FREQ=WEEKLY;BYDAY=MO,WE;INTERVAL=1;UNTIL=20251212T235959")
+        // RRULE (ex.: "FREQ=WEEKLY;WE;INTERVAL=1;UNTIL=20251212T235959")
         public string RecurrenceRule { get; set; }
 
         // Campos normalizados (evita parsear RRULE toda hora)
@@ -29,11 +29,5 @@ namespace RR.Core.Entities
 
         // Status da série (separe do status das ocorrências)
         public int SeriesStatus { get; set; } // 0=Criado 1=Aceito 2=rejeitado/cancelado
-
-        // Navegação
-        public virtual Account Account { get; set; }
-        public virtual Rooms DefaultRoom { get; set; }
-        public virtual ICollection<Reservation> Reservations { get; set; } = new List<Reservation>();
-        public virtual ICollection<ReservationException> Exceptions { get; set; } = new List<ReservationException>();
     }
 }
