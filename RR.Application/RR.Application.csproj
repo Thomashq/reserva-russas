@@ -10,8 +10,10 @@
     <Folder Include="Client\src\app\auth\" />
     <Folder Include="Client\src\app\domain\enums\" />
     <Folder Include="Client\src\app\domain\enum\" />
-    <Folder Include="Client\src\app\domain\shared\" />
+    <Folder Include="Client\src\app\domain\shared\http\" />
+    <Folder Include="Client\src\app\domain\shared\utils\" />
     <Folder Include="Client\src\app\interceptors\" />
+    <Folder Include="Client\src\app\rooms\" />
   </ItemGroup>
 
 </Project>

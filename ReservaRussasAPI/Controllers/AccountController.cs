@@ -51,7 +51,7 @@ namespace ReservaRussasAPI.Controllers
                     UpdatedAt = account.UpdatedAt
                 };
 
-                return ResponseOk(accountResponse, "Conta encontrada com sucesso");
+                return ResponseOk(accountResponse);
             }
             catch (Exception ex)
             {
@@ -87,7 +87,7 @@ namespace ReservaRussasAPI.Controllers
                     UpdatedAt = DateTime.UtcNow
                 };
                 _accountService.AddAsync(account);
-                return ResponseCreated(account, "Conta criada com sucesso");
+                return ResponseCreated(account);
             }
             catch (Exception ex)
             {
@@ -127,7 +127,7 @@ namespace ReservaRussasAPI.Controllers
                 if (updatedAccount == null)
                     return ResponseNotFound("Conta não encontrada");
 
-                return ResponseOk(updatedAccount, "Conta atualizada com sucesso");
+                return ResponseOk(updatedAccount);
             }
             catch (ArgumentException ex)
             {
@@ -162,7 +162,7 @@ namespace ReservaRussasAPI.Controllers
                 if (!success)
                     return ResponseNotFound("Conta não encontrada");
 
-                return ResponseNoContent("Conta removida com sucesso");
+                return ResponseNoContent();
             }
             catch (InvalidOperationException ex)
             {
@@ -188,10 +188,6 @@ namespace ReservaRussasAPI.Controllers
             {
                 if (id <= 0)
                     return ResponseBadRequest("ID deve ser um número positivo");
-
-                var modelValidation = ValidateModelState();
-                if (modelValidation != null)
-                    return modelValidation;
 
                 var success = true;
 

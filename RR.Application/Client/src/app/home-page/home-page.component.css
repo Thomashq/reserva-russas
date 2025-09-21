@@ -1,0 +1,13 @@
+.container {
+  padding: 12px;
+}
+
+.actions-card {
+  margin: 12px 0;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}

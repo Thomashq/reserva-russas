@@ -1,0 +1,18 @@
+<mat-card>
+  <mat-card-title>Salas</mat-card-title>
+  <mat-card-content>
+    <ng-container *ngIf="!isLoading; else loading">
+      <mat-nav-list *ngIf="rooms?.length; else empty">
+        <a mat-list-item *ngFor="let r of rooms" (click)="openRoom(r)">
+          <div matLine>{{ r.name }}</div>
+          <div matLine>Capacidade: {{ r.capacity }}</div>
+          <button mat-stroked-button (click)="$event.stopPropagation(); newReservation(r)">
+            Reservar nesta sala
+          </button>
+        </a>
+      </mat-nav-list>
+    </ng-container>
+    <ng-template #loading>Carregando...</ng-template>
+    <ng-template #empty>Nenhuma sala encontrada.</ng-template>
+  </mat-card-content>
+</mat-card>

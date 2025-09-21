@@ -33,39 +33,18 @@ namespace ReservaRussasAPI.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
-            var validation = ValidateModelState();
-            if (validation is not null) return validation;
-
             var account = await _authService.Login(request.UserName, request.Password);
             if (account is null) return ResponseUnauthorized("Usuário ou senha inválidos");
 
-            var token = GenerateJwtToken(account.UserId, account);
-            var loginResponse = new LoginResponse
-            {
-                Token = token,
-                ExpiresAt = DateTime.UtcNow.AddHours(2),
-                Account = new AccountResponse
-                {
-                    Id = account.Id,
-                    UserName = account.UserName,
-                    Mail = account.Mail,
-                    Phone = account.Phone,
-                    AccountPermission = account.AccountPermission,
-                    IsActive = account.IsActive,
-                    CreatedAt = account.CreatedAt,
-                    UpdatedAt = account.UpdatedAt
-                }
-            };
-            return ResponseOk(loginResponse, "Login efetuado com sucesso");
+            string token = GenerateJwtToken(account.UserId, account);
+
+            return ResponseOk(token);
         }
 
         [HttpPost("register")]
         [AllowAnonymous]
         public async Task<IActionResult> Register([FromBody] CreateAccountRequest request)
         {
-            var validation = ValidateModelState();
-            if (validation is not null) return validation;
-
             var ok = await _authService.Register(request);
             if (!ok) return ResponseBadRequest("Não foi possível registrar a conta");
 
@@ -76,16 +55,13 @@ namespace ReservaRussasAPI.Controllers
                 Phone = request.Phone,
                 // AccountPermission agora é definido pelo email no service
             };
-            return ResponseCreated(resp, "Conta registrada com sucesso");
+            return ResponseCreated(resp);
         }
 
         [HttpPost("refresh-token")]
         [AllowAnonymous]
         public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest request)
         {
-            var validation = ValidateModelState();
-            if (validation is not null) return validation;
-
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]);
 
@@ -116,7 +92,7 @@ namespace ReservaRussasAPI.Controllers
                 ExpiresAt = DateTime.UtcNow.AddHours(2)
             };
 
-            return ResponseOk(refreshResponse, "Token renovado com sucesso");
+            return ResponseOk(refreshResponse);
         }
 
         [HttpGet("me")]
@@ -141,7 +117,7 @@ namespace ReservaRussasAPI.Controllers
                 CreatedAt = account.CreatedAt,
                 UpdatedAt = account.UpdatedAt
             };
-            return ResponseOk(dto, "Ok");
+            return ResponseOk(dto);
         }
 
         private string GenerateJwtToken(int userId, Account account)

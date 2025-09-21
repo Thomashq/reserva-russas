@@ -12,20 +12,20 @@ namespace ReservaRussasAPI.Controllers
         {
             _roomService = roomService;
         }
-
+        [HttpGet]
         public async Task<IActionResult> GetAll()
         {
             try
             {
                 var rooms = await _roomService.GetAllAsync();
-                return ResponseOk(rooms, "Rooms retrieved successfully");
+                return ResponseOk(rooms);
             }
             catch (Exception ex)
             {
                 return ResponseInternalServerError(ex);
             }
         }
-
+        [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
             try
@@ -35,14 +35,14 @@ namespace ReservaRussasAPI.Controllers
                 var room = await _roomService.GetRoomById(id);
                 if (room == null)
                     return ResponseNotFound("Room not found");
-                return ResponseOk(room, "Room retrieved successfully");
+                return ResponseOk(room);
             }
             catch (Exception ex)
             {
                 return ResponseInternalServerError(ex);
             }
         }
-
+        [HttpPost]
         public async Task<IActionResult> AddAsync([FromBody] Rooms room)
         {
             try
@@ -50,14 +50,14 @@ namespace ReservaRussasAPI.Controllers
                 if (room == null)
                     return ResponseBadRequest("Room data is required");
                 var createdRoom = await _roomService.AddAsync(room);
-                return ResponseOk(createdRoom, "Room created successfully");
+                return ResponseOk(createdRoom);
             }
             catch (Exception ex)
             {
                 return ResponseInternalServerError(ex);
             }
         }
-
+        [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAsync(int id)
         {
             try
@@ -67,14 +67,14 @@ namespace ReservaRussasAPI.Controllers
                 var deleted = await _roomService.DeleteAsync(id);
                 if (!deleted)
                     return ResponseNotFound("Room not found or already inactive");
-                return ResponseOk(deleted, "Room deleted successfully");
+                return ResponseOk(deleted);
             }
             catch (Exception ex)
             {
                 return ResponseInternalServerError(ex);
             }
         }
-
+        [HttpGet("period")]
         public async Task<IActionResult> GetRoomsReservationsByPeriod(int id, DateTime start, DateTime end)
         {
             try
@@ -86,7 +86,7 @@ namespace ReservaRussasAPI.Controllers
                 var room = await _roomService.GetRoomsReservationsByPeriod(id, start, end);
                 if (room == null)
                     return ResponseNotFound("Room not found");
-                return ResponseOk(room, "Room with reservations retrieved successfully");
+                return ResponseOk(room);
             }
             catch (Exception ex)
             {

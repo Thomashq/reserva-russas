@@ -1,8 +1,23 @@
-<section class="hero-section">
-  <div class="container">
-    <div class="hero-content">
-      <h1>{{ heroTitle }}</h1>
-      <p>{{ heroText }}</p>
-    </div>
-  </div>
-</section>
+<mat-toolbar color="primary">
+  <span>Reserva Russas</span>
+  <span style="flex:1 1 auto"></span>
+  <a mat-button routerLink="/room/list">Salas</a>
+  <a mat-button routerLink="/reservation/list">Reservas</a>
+  <a mat-button routerLink="/reservation/new">Nova reserva</a>
+</mat-toolbar>
+
+<main class="container">
+  <mat-card class="actions-card">
+    <mat-card-title>Ações rápidas</mat-card-title>
+    <mat-card-content>
+      <div class="actions">
+        <button mat-raised-button color="primary" routerLink="/reservation/new">Nova reserva</button>
+        <button mat-stroked-button routerLink="/reservation/list">Minhas reservas</button>
+        <button mat-flat-button color="accent" routerLink="/room/list">Salas</button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Lista semanal (hoje → +7) já com offset certinho -->
+  <app-reservation-list></app-reservation-list>
+</main>

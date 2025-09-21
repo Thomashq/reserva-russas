@@ -86,6 +86,19 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
+//Versionamento das APIs
+builder.Services.AddApiVersioning(p =>
+{
+    p.DefaultApiVersion = new Asp.Versioning.ApiVersion(1.0);
+    p.ReportApiVersions = true;
+    p.AssumeDefaultVersionWhenUnspecified = true;
+})
+    .AddApiExplorer(p =>
+    {
+        p.GroupNameFormat = "'v'VVV";
+        p.SubstituteApiVersionInUrl = true;
+    });
+
 builder.Services.AddAuthorization();
 
 var app = builder.Build();

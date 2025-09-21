@@ -54,6 +54,8 @@ public class ReservationsController : BaseControllerFYP
         {
             RoomId = req.RoomId,
             AccountId = req.AccountId,
+            Title = req.Title,
+            Description = req.Description,
             StartTime = req.StartTime,
             EndTime = req.EndTime
         });

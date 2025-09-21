@@ -1,142 +1,145 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Asp.Versioning;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using RR.Core.Common;
-using RR.Core.Extensions;
+using ReservaRussasAPI.Extensions;
+
 using System.Net;
 
 namespace ReservaRussasAPI.Controllers.Base
 {
+    [ApiVersion("1", Deprecated = true)]
     [ApiController]
-    [Route("api/v1/[controller]")]
+    [Route("api/v{version:ApiVersion}/[controller]")]
     [Authorize]
-    public abstract class BaseControllerFYP : ControllerBase
+    public abstract class BaseControllerFYP : ControllerBase, IDisposable
     {
-        /// <summary>
-        /// Response OK com dados
-        /// </summary>
-        protected IActionResult ResponseOk<T>(T data, string? message = null) =>
-            CreateResponse(HttpStatusCode.OK, data, message);
+        private bool disposedValue;
 
-        /// <summary>
-        /// Response OK sem dados
-        /// </summary>
-        protected IActionResult ResponseOk(string? message = null) =>
-            CreateResponse<object>(HttpStatusCode.OK, null, message);
+        protected IActionResult ResponseOk(object result) =>
+            Response(HttpStatusCode.OK, result);
 
-        /// <summary>
-        /// Response Created com dados
-        /// </summary>
-        protected IActionResult ResponseCreated<T>(T data, string? message = null) =>
-            CreateResponse(HttpStatusCode.Created, data, message);
+        protected IActionResult ResponseOk() =>
+            Response(HttpStatusCode.OK);
 
-        /// <summary>
-        /// Response Created sem dados
-        /// </summary>
-        protected IActionResult ResponseCreated(string? message = null) =>
-            CreateResponse<object>(HttpStatusCode.Created, null, message);
+        protected IActionResult ResponseCreated() =>
+            Response(HttpStatusCode.Created);
+   
+        protected IActionResult ResponseCreated(object data) =>
+            Response(HttpStatusCode.Created, data);
 
-        /// <summary>
-        /// Response No Content
-        /// </summary>
-        protected IActionResult ResponseNoContent(string? message = null) =>
-            CreateResponse<object>(HttpStatusCode.NoContent, null, message);
+        protected IActionResult ResponseNoContent() =>
+            Response(HttpStatusCode.NoContent);
 
-        /// <summary>
-        /// Response Bad Request
-        /// </summary>
+        protected IActionResult ResponseNotModified(string? msg) =>
+            Response(HttpStatusCode.NotModified, msg);
+
         protected IActionResult ResponseBadRequest(string errorMessage) =>
-            CreateResponse<object>(HttpStatusCode.BadRequest, null, null, new List<string> { errorMessage });
+            Response(HttpStatusCode.BadRequest, errorMessage: errorMessage);
 
-        /// <summary>
-        /// Response Bad Request com múltiplos erros
-        /// </summary>
-        protected IActionResult ResponseBadRequest(List<string> errors) =>
-            CreateResponse<object>(HttpStatusCode.BadRequest, null, null, errors);
-
-        /// <summary>
-        /// Response Bad Request padrão
-        /// </summary>
         protected IActionResult ResponseBadRequest() =>
-            ResponseBadRequest("A requisição é inválida");
+            Response(HttpStatusCode.BadRequest, errorMessage: "A requisição é inválida");
 
-        /// <summary>
-        /// Response Not Found
-        /// </summary>
+
         protected IActionResult ResponseNotFound(string errorMessage) =>
-            CreateResponse<object>(HttpStatusCode.NotFound, null, null, new List<string> { errorMessage });
+            Response(HttpStatusCode.NotFound, errorMessage: errorMessage);
 
-        /// <summary>
-        /// Response Not Found padrão
-        /// </summary>
         protected IActionResult ResponseNotFound() =>
-            ResponseNotFound("O recurso não foi encontrado");
+            Response(HttpStatusCode.NotFound, errorMessage: "O recurso não foi encontrado");
 
-        /// <summary>
-        /// Response Unauthorized
-        /// </summary>
         protected IActionResult ResponseUnauthorized(string errorMessage) =>
-            CreateResponse<object>(HttpStatusCode.Unauthorized, null, null, new List<string> { errorMessage });
+            Response(HttpStatusCode.Unauthorized, errorMessage: errorMessage);
 
-        /// <summary>
-        /// Response Unauthorized padrão
-        /// </summary>
         protected IActionResult ResponseUnauthorized() =>
-            ResponseUnauthorized("Permissão negada");
+            Response(HttpStatusCode.Unauthorized, errorMessage: "Permissão negada");
 
-        /// <summary>
-        /// Response Internal Server Error
-        /// </summary>
-        protected IActionResult ResponseInternalServerError(string errorMessage) =>
-            CreateResponse<object>(HttpStatusCode.InternalServerError, null, null, new List<string> { errorMessage });
-
-        /// <summary>
-        /// Response Internal Server Error com Exception
-        /// </summary>
-        protected IActionResult ResponseInternalServerError(Exception exception) =>
-            ResponseInternalServerError(exception.Message);
-
-        /// <summary>
-        /// Response Internal Server Error padrão
-        /// </summary>
         protected IActionResult ResponseInternalServerError() =>
-            ResponseInternalServerError("Erro interno do servidor");
+            Response(HttpStatusCode.InternalServerError);
 
-        /// <summary>
-        /// Cria resposta customizada
-        /// </summary>
-        private JsonResult CreateResponse<T>(HttpStatusCode statusCode, T? data = default, string? message = null, List<string>? errors = null)
+        protected IActionResult ResponseInternalServerError(string errorMessage) =>
+            Response(HttpStatusCode.InternalServerError, errorMessage: errorMessage);
+
+        protected IActionResult ResponseInternalServerError(Exception exception) =>
+            Response(HttpStatusCode.InternalServerError, errorMessage: exception.Message);
+
+        protected new JsonResult Response(string uri, HttpStatusCode statusCode, object data, string errorMessage)
         {
-            var success = statusCode.IsSuccess();
-            var response = new ApiResponse<T>
-            {
-                StatusCode = statusCode,
-                Success = success,
-                Data = data,
-                Message = message,
-                Errors = errors ?? new List<string>()
-            };
+            CustomResult result = null;
 
-            return new JsonResult(response)
+            if (string.IsNullOrWhiteSpace(errorMessage))
             {
-                StatusCode = (int)statusCode
-            };
-        }
+                var success = statusCode.IsSuccess();
 
-        /// <summary>
-        /// Valida ModelState e retorna erros se inválido
-        /// </summary>
-        protected IActionResult? ValidateModelState()
-        {
-            if (!ModelState.IsValid)
-            {
-                var errors = ModelState
-                    .SelectMany(x => x.Value?.Errors ?? new Microsoft.AspNetCore.Mvc.ModelBinding.ModelErrorCollection())
-                    .Select(x => x.ErrorMessage)
-                    .ToList();
-
-                return ResponseBadRequest(errors);
+                if (data != null)
+                    result = new CustomResult(statusCode, success, data);
+                else
+                    result = new CustomResult(statusCode, success);
             }
-            return null;
+            else
+            {
+                var errors = new List<string>();
+
+                if (!string.IsNullOrWhiteSpace(errorMessage))
+                    errors.Add(errorMessage);
+
+                result = new CustomResult(statusCode, false, errors);
+            }
+            return new JsonResult(result) { StatusCode = (int)result.StatusCode };
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="statusCode"></param>
+        /// <param name="result"></param>
+        /// <returns></returns>
+        protected new JsonResult Response(HttpStatusCode statusCode, object result) =>
+            Response(null, statusCode, result, null);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="statusCode"></param>
+        /// <param name="errorMessage"></param>
+        /// <returns></returns>
+        protected new JsonResult Response(HttpStatusCode statusCode, string errorMessage) =>
+            Response(null, statusCode, null, errorMessage);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="statusCode"></param>
+        /// <returns></returns>
+        protected new JsonResult Response(HttpStatusCode statusCode) =>
+            Response(null, statusCode, null, null);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="uri"></param>
+        /// <param name="statusCode"></param>
+        /// <param name="result"></param>
+        /// <returns></returns>
+        protected new JsonResult Response(string uri, HttpStatusCode statusCode, object result) =>
+            Response(uri, statusCode, null);
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                   
+                }
+
+                disposedValue = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
+
     }
 }

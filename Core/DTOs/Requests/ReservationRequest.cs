@@ -14,6 +14,11 @@ namespace RR.Core.DTOs.Requests
         public int RoomId { get; set; }
         [Required]
         public int AccountId { get; set; }
+
+        public string Title { get; set; }
+
+        public string Description { get; set; }
+
         [Required]
         public DateTime StartTime { get; set; }
         [Required]
@@ -30,7 +35,8 @@ namespace RR.Core.DTOs.Requests
 
         [Range(1, int.MaxValue, ErrorMessage = "AccountId inválido.")]
         public int AccountId { get; set; }
-
+        public string Title { get; set; }
+        public string Description { get; set; }
         [Required(ErrorMessage = "Informe a data/hora inicial.")]
         public DateTimeOffset StartTime { get; set; }
 

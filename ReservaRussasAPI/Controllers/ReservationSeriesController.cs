@@ -17,7 +17,7 @@ namespace ReservaRussasAPI.Controllers
             if (cancelledCount == 0)
                 return ResponseNotFound("No reservations found to cancel in the specified series.");
     
-            return ResponseOk(cancelledCount, $"{cancelledCount} reservations cancelled in series {seriesId}.");
+            return ResponseOk(cancelledCount);
         }
 
         [HttpPost]
@@ -32,13 +32,13 @@ namespace ReservaRussasAPI.Controllers
                 return ResponseBadRequest("Tem que ocorrer em pelo menos um dia da semana.");
            
             var seriesId = await _reservationSeriesService.CreateSeries(req);
-            return ResponseOk(seriesId, "Criada com sucesso.");
+            return ResponseOk(seriesId);
         }
 
         [HttpPut]
         public async Task<IActionResult> EditSeries([FromBody] EditSeriesRequest req)
         {
-            if (req is null) return ResponseBadRequest("O corpo da requisição é nulo.");
+            if (req is null) return ResponseBadRequest();
             if (req.WindowStart.HasValue && req.WindowEnd.HasValue && req.WindowStart >= req.WindowEnd)
                 return ResponseBadRequest("O começo da janela deve ser anterior ao fim.");
             if (req.TimeStart.HasValue && req.TimeEnd.HasValue && req.TimeStart >= req.TimeEnd)
@@ -50,7 +50,7 @@ namespace ReservaRussasAPI.Controllers
             if (updatedCount == 0)
                 return ResponseNotFound("Nenhuma reserva foi encontrada no update da série.");
     
-            return ResponseOk(updatedCount, $"{updatedCount} reservations updated in series {req.SeriesId}.");
+            return ResponseOk(updatedCount);
         }
 
         [HttpPost("preview")]
@@ -65,7 +65,7 @@ namespace ReservaRussasAPI.Controllers
                 return ResponseBadRequest("Tem que ocorrer em pelo menos um dia da semana.");
            
             var preview = await _reservationSeriesService.PreviewSeries(req);
-            return ResponseOk(preview, "Preview generated successfully.");
+            return ResponseOk(preview);
         }
     }
 }

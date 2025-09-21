@@ -4,7 +4,7 @@ import { routes } from './app.routes';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
-import { ApiResponseInterceptor } from './interceptors/api-response.interceptor';
+import { ApiResponseHttp } from './interceptors/api-response.interceptor';
 import { AuthInterceptor } from './interceptors/auth.interceptor';
 
 export const appConfig: ApplicationConfig = {
@@ -12,7 +12,7 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideHttpClient(withInterceptorsFromDi()),
     provideAnimations(),
-    { provide: HTTP_INTERCEPTORS, useClass: ApiResponseInterceptor, multi: true },
+    { provide: HTTP_INTERCEPTORS, useClass: ApiResponseHttp, multi: true },
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
   ]
 };

@@ -37,7 +37,7 @@ namespace RR.Service.Service
         public Task<bool> DeleteAsync(int id)
         {
             if (id <= 0) throw new ArgumentOutOfRangeException(nameof(id));
-            return _rooms.DeleteAsync(id); // soft-delete (IsActive = false)
+            return _rooms.DeleteAsync(id); 
         }
 
         public Task<IEnumerable<Rooms>> GetAllAsync()
