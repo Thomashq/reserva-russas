@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using ReservaRussasAPI.Controllers.Base;
 using RR.Core.Entities;
 using RR.Core.Services;
@@ -13,6 +14,7 @@ namespace ReservaRussasAPI.Controllers
             _roomService = roomService;
         }
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> GetAll()
         {
             try

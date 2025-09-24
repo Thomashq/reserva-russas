@@ -16,6 +16,10 @@ namespace ReservaRussasAPI.Extensions
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IServantService, ServantService>();
             services.AddScoped<IStudentService, StudentService>();
+            services.AddScoped<IRoomService, RoomService>();
+            services.AddScoped<IReservationService, ReservationService>();
+            services.AddScoped<IReservationSeriesService, ReservationSeriesService>();
+
 
             return services;
         }

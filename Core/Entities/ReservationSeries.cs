@@ -26,7 +26,9 @@ namespace RR.Core.Entities
         public string DaysOfWeek { get; set; }  // ex.: "MO,WE"
         public TimeSpan TimeStart { get; set; } // ex.: 10:00
         public TimeSpan TimeEnd { get; set; } // ex.: 11:40
+        public Account Account { get; set; }
 
+        public IEnumerable<Reservation> Reservations { get; set; }
         // Status da série (separe do status das ocorrências)
         public int SeriesStatus { get; set; } // 0=Criado 1=Aceito 2=rejeitado/cancelado
     }

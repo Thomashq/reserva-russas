@@ -2,17 +2,15 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
-using ReservaRussasAPI.Controllers.Base; 
+using Newtonsoft.Json;
+using ReservaRussasAPI.Controllers.Base;
 using RR.Core.DTOs.Requests;
-using RR.Core.DTOs.Responses;
 using RR.Core.Entities;
 using RR.Core.Requests.Account;
-using RR.Core.Responses.Account;
 using RR.Core.Services;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using System.Text.RegularExpressions;
 
 namespace ReservaRussasAPI.Controllers
 {
@@ -34,11 +32,31 @@ namespace ReservaRussasAPI.Controllers
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
             var account = await _authService.Login(request.UserName, request.Password);
-            if (account is null) return ResponseUnauthorized("Usuário ou senha inválidos");
+            if (account is null)
+                return ResponseUnauthorized("Usuário ou senha inválidos");
+            var now = DateTime.UtcNow;
 
-            string token = GenerateJwtToken(account.UserId, account);
+            var claims = new List<Claim>
+            {
+                new Claim("account", JsonConvert.SerializeObject(account)),
+                new Claim(ClaimTypes.NameIdentifier, account.UserId.ToString()),
+                new Claim(JwtRegisteredClaimNames.Jti , Guid.NewGuid().ToString()),
+                new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString()),
+            };
 
-            return ResponseOk(token);
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("reserva-russas-token-auth-chave-autenticacao-token-jwt-handler-auto"));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var token = new JwtSecurityToken(
+                issuer: "reservas-russas",
+                audience: "sistema",
+                claims: claims,
+                expires: DateTime.UtcNow.AddMinutes(30),
+                signingCredentials: creds
+            );
+            var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
+            // retorna só o token puro (string)
+            return ResponseOk(tokenString);
         }
 
         [HttpPost("register")]
@@ -46,89 +64,87 @@ namespace ReservaRussasAPI.Controllers
         public async Task<IActionResult> Register([FromBody] CreateAccountRequest request)
         {
             var ok = await _authService.Register(request);
-            if (!ok) return ResponseBadRequest("Não foi possível registrar a conta");
+            if (!ok)
+                return ResponseBadRequest("Não foi possível registrar a conta");
 
-            var resp = new AccountCreatedResponse
+            var resp = new
             {
-                UserName = request.UserName,
-                Mail = request.Mail,
-                Phone = request.Phone,
-                // AccountPermission agora é definido pelo email no service
+                request.UserName,
+                request.Mail,
+                request.Phone
             };
             return ResponseCreated(resp);
         }
 
         [HttpPost("refresh-token")]
         [AllowAnonymous]
-        public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest request)
+        public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest? request)
         {
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]);
+            var tokenString = request?.Token;
+            if (string.IsNullOrWhiteSpace(tokenString))
+            {
+                var authHeader = HttpContext.Request.Headers["Authorization"].ToString();
+                tokenString = authHeader.StartsWith("Bearer ") ? authHeader[7..] : authHeader;
+            }
 
+            if (string.IsNullOrWhiteSpace(tokenString))
+                return ResponseUnauthorized("Token não informado");
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var keyBytes = Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]);
             var validationParameters = new TokenValidationParameters
             {
-                ValidateIssuer = true,
-                ValidateAudience = true,
-                ValidateLifetime = false,
                 ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(keyBytes),
+                ValidateIssuer = true,
                 ValidIssuer = _configuration["Jwt:Issuer"],
+                ValidateAudience = true,
                 ValidAudience = _configuration["Jwt:Audience"],
-                IssuerSigningKey = new SymmetricSecurityKey(key),
+                ValidateLifetime = false,
                 ClockSkew = TimeSpan.Zero
             };
 
-            var principal = tokenHandler.ValidateToken(request.Token, validationParameters, out _);
-            var userIdStr = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out var userId))
-                return ResponseUnauthorized("Token inválido");
-
-            var account = await _accountService.GetByUserIdAsync(userId);
-            if (account is null) return ResponseUnauthorized("Usuário não encontrado");
-
-            var newToken = GenerateJwtToken(userId, account);
-            var refreshResponse = new RefreshTokenResponse
+            try
             {
-                Token = newToken,
-                ExpiresAt = DateTime.UtcNow.AddHours(2)
-            };
+                var principal = tokenHandler.ValidateToken(tokenString, validationParameters, out var validatedToken);
 
-            return ResponseOk(refreshResponse);
+                if (validatedToken is not JwtSecurityToken jwt ||
+                    !jwt.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.OrdinalIgnoreCase))
+                {
+                    return ResponseUnauthorized("Falha ao tentar renovar o token");
+                }
+
+                var userIdStr = principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value
+                             ?? principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+                if (string.IsNullOrWhiteSpace(userIdStr) || !int.TryParse(userIdStr, out var userId))
+                    return ResponseUnauthorized("Token inválido");
+
+                var account = await _accountService.GetByUserIdAsync(userId);
+                if (account is null)
+                    return ResponseUnauthorized("Usuário não encontrado");
+
+                var newToken = GenerateJwtToken(account);
+                // retorna só o token puro
+                return ResponseOk(newToken);
+            }
+            catch
+            {
+                return ResponseUnauthorized("Falha ao tentar renovar o token");
+            }
         }
 
-        [HttpGet("me")]
-        [Authorize]
-        public async Task<IActionResult> GetCurrentUser()
+        private string GenerateJwtToken(Account account)
         {
-            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out var userId))
-                return ResponseNotFound("Não autenticado");
+            var now = DateTime.UtcNow;
 
-            var account = await _accountService.GetByUserIdAsync(userId);
-            if (account is null) return ResponseNotFound("Usuário não encontrado");
-
-            var dto = new AccountResponse
-            {
-                Id = account.Id,
-                UserName = account.UserName,
-                Mail = account.Mail,
-                Phone = account.Phone,
-                AccountPermission = account.AccountPermission,
-                IsActive = account.IsActive,
-                CreatedAt = account.CreatedAt,
-                UpdatedAt = account.UpdatedAt
-            };
-            return ResponseOk(dto);
-        }
-
-        private string GenerateJwtToken(int userId, Account account)
-        {
             var claims = new List<Claim>
-        {
-            new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
-            new Claim(ClaimTypes.Name, account.UserName),
-            new Claim(ClaimTypes.Email, account.Mail),
-            new Claim("permission", account.AccountPermission.ToString())
-        };
+            {
+                new Claim("account", JsonConvert.SerializeObject(account)),
+                new Claim(ClaimTypes.NameIdentifier, account.UserId.ToString()),
+                new Claim(JwtRegisteredClaimNames.Jti , Guid.NewGuid().ToString()),
+                new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString()),
+            };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -137,7 +153,7 @@ namespace ReservaRussasAPI.Controllers
                 issuer: _configuration["Jwt:Issuer"],
                 audience: _configuration["Jwt:Audience"],
                 claims: claims,
-                expires: DateTime.UtcNow.AddHours(2),
+                expires: now.AddHours(2),
                 signingCredentials: creds
             );
 

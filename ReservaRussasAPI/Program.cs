@@ -3,8 +3,11 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore; // UserOnlyStore<>
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
+using ReservaRussasAPI.Controllers.Base;
 using ReservaRussasAPI.Extensions;
-using RR.Core.Entities;                    
+using RR.Core.Entities;
 using RR.Infraestructure.DataContext;
 using RR.ReservaRussasAPI.Docs;
 using RR.Util.Criptography;
@@ -13,7 +16,12 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddNewtonsoftJson(options =>
+    {
+        options.SerializerSettings.ContractResolver = new DefaultContractResolver() { };
+        options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+    });
 
 if (builder.Environment.IsDevelopment())
 {
@@ -69,22 +77,39 @@ builder.Services.AddSingleton<IPasswordHasher<AppUser>, Pbkdf2PasswordHasherAdap
 
 builder.Services.AddHttpContextAccessor();
 
-// >>> Autenticação JWT (mantida como está)
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = config["Jwt:Issuer"],
-            ValidAudience = config["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Jwt:Key"])),
-            ClockSkew = TimeSpan.Zero
-        };
-    });
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+  .AddJwtBearer(async o =>
+  {
+      o.TokenValidationParameters = new TokenValidationParameters
+      {
+          ValidateIssuer = true,
+          ValidateAudience = true,
+          ValidateLifetime = true,
+          ValidateIssuerSigningKey = true,
+          ValidIssuer = builder.Configuration["Jwt:Issuer"],
+          ValidAudience = builder.Configuration["Jwt:Audience"],
+          IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])),
+          ClockSkew = TimeSpan.Zero
+      };
+
+      o.Events = new JwtBearerEvents
+      {
+          OnChallenge = async context =>
+          {
+              context.HandleResponse();
+
+              context.Response.StatusCode = 401;
+              context.Response.Headers.Append("Content-Type", "application/json");
+              await context.Response.WriteAsync(JsonConvert.SerializeObject(new CustomResult(System.Net.HttpStatusCode.Unauthorized, false, $"Voce não está autorizado à usar o endpoint [ {context.Request.Path} ].")));
+          }
+      };
+  });
+
+
 
 //Versionamento das APIs
 builder.Services.AddApiVersioning(p =>

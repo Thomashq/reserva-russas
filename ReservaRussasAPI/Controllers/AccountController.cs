@@ -69,10 +69,6 @@ namespace ReservaRussasAPI.Controllers
         {
             try
             {
-                var modelValidation = ValidateModelState();
-                if (modelValidation != null)
-                    return modelValidation;
-
                 var existingAccount = await _accountService.GetByEmailAsync(request.Mail);
 
                 if (existingAccount != null)
@@ -109,10 +105,6 @@ namespace ReservaRussasAPI.Controllers
             {
                 if (id <= 0)
                     return ResponseBadRequest("ID deve ser um número positivo");
-
-                var modelValidation = ValidateModelState();
-                if (modelValidation != null)
-                    return modelValidation;
 
                 var account = new Account { 
                     Id = id,

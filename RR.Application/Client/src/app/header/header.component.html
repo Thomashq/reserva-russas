@@ -14,12 +14,9 @@
     <span class="spacer"></span>
 
     <!-- Logado -->
-    <div class="auth-buttons" *ngIf="isAuth$ | async; else guest">
-      <!-- (opcional) mostrar nome -->
-      <span class="mr-2">Olá, {{ (user$ | async)?.userName }}</span> 
-      <button mat-button class="login-btn text-white" (click)="logout()">
-        Sair
-      </button>
+    <div class="auth-buttons" *ngIf="isAuth; else guest">
+      <span class="mr-2">Olá, {{ userName }}</span>
+      <button mat-button class="login-btn text-white" (click)="logout()">Sair</button>
     </div>
 
     <!-- Visitante -->
@@ -33,6 +30,5 @@
         </button>
       </div>
     </ng-template>
-
   </mat-toolbar>
 </header>

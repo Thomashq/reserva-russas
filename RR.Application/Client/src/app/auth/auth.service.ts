@@ -19,19 +19,20 @@ export class AuthService {
   private loginRequest: LoginRequest = {};
 
   constructor(
-    @Inject('API_URL') private apiUrl: string,
+    @Inject('BASE_URL') private apiUrl: string,
     private http: HttpClient,
     private router: Router,
     private tokenService: TokenService)
   {
-    this.url_controller = `${this.apiUrl}/auth`;
-    this.tokenService.hasToken(this.key) && this.decodeAndNotify();
+    this.url_controller = `${this.apiUrl}auth`;
+    this.tokenService.hasToken(this.key) &&
+      this.decodeAndNotify();
   }
 
   private decodeAndNotify() {
     const token = this.tokenService.getToken(this.key);
-    const tokenDecoded = jwtDecode(token!);
 
+    const tokenDecoded = jwtDecode(token!);
     const acc = (tokenDecoded as any).account;
 
     this.account = JSON.parse(acc as string) as Account
@@ -40,6 +41,7 @@ export class AuthService {
   }
 
   Login(login: LoginRequest) {
+    localStorage.removeItem('auth_token');
     const ctx = new HttpContext()
       .set(SKIP_ERROR_TOAST, true);
 
@@ -47,14 +49,14 @@ export class AuthService {
       observe: 'response',
       context: ctx
     }).pipe(tap(res => {
-      const authToken = res.body!;
-      this.setToken(authToken.toString());
+      const authToken = res.body;
+      this.setToken(authToken!.toString());
     }));
   }
 
 
   register(registerData: RegisterRequest): Observable<AccountCreatedResponse> {
-    return this.http.post<AccountCreatedResponse>(`${this.apiUrl}/register`, registerData)
+    return this.http.post<AccountCreatedResponse>(this.url_controller + '/register', registerData)
       .pipe(tap(() => console.log('Registro efetuado com sucesso')));
   }
 
@@ -72,14 +74,14 @@ export class AuthService {
   }
 
   logout(): void {
-    localStorage.removeItem('token');
+    localStorage.removeItem('auth_token');
     this.currentUserSubject.next(null);
     this.account = {};
     this.router.navigate(['/auth/login']);
   }
 
   refreshToken() {
-    this.http.post<string>(this.url_controller + "refresh", null, { observe: 'response' }).subscribe(res => {
+    this.http.post<string>(this.url_controller + "refresh-token", null, { observe: 'response' }).subscribe(res => {
       const authToken = res.body;
       this.setToken(authToken!.toString());
     });

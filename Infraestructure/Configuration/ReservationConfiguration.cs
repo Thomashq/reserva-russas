@@ -115,9 +115,6 @@ namespace RR.Infraestructure.Configuration
         }
     }
 
-    // ------------------------------
-    // ReservationSeries (HEADER/REGRA)
-    // ------------------------------
     public class ReservationSeriesConfiguration : IEntityTypeConfiguration<ReservationSeries>
     {
         public void Configure(EntityTypeBuilder<ReservationSeries> builder)
@@ -144,12 +141,6 @@ namespace RR.Infraestructure.Configuration
             // Sala padrão: tua entidade usa RoomId, mas a coluna será 'default_room_id'
             builder.Property(x => x.RoomId)
                 .HasColumnName("default_room_id");
-
-            builder.HasOne(x => x.DefaultRoom)
-                .WithMany()
-                .HasForeignKey(x => x.RoomId)
-                .HasConstraintName("fk_reservation_series_default_room_id")
-                .OnDelete(DeleteBehavior.Restrict);
 
             // Título / Descrição padrão
             builder.Property(x => x.Title)
@@ -195,13 +186,6 @@ namespace RR.Infraestructure.Configuration
             builder.Property(x => x.SeriesStatus)
                 .HasColumnName("series_status")
                 .IsRequired();
-
-            // Relacionamento com Reservations
-            builder.HasMany(s => s.Reservations)
-                .WithOne(r => r.Series)
-                .HasForeignKey(r => r.SeriesId)
-                .HasConstraintName("fk_reservation_series_id")
-                .OnDelete(DeleteBehavior.Cascade);
 
             // Índices
             builder.HasIndex(x => x.AccountId)

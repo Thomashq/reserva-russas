@@ -5,8 +5,6 @@ import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../auth/auth.service';
-import { Observable } from 'rxjs';
-import { Account } from '../domain/models/account';
 
 @Component({
   selector: 'app-header',
@@ -16,20 +14,24 @@ import { Account } from '../domain/models/account';
   styleUrls: ['./header.component.css']
 })
 export class HeaderComponent {
-  isAuth$!: Observable<boolean>;
-  user$!: Observable<Account | null>;
 
-  constructor(private router: Router, private authService: AuthService) {
-    this.isAuth$ = this.authService.isAuthenticated$;
-    this.user$ = this.authService.currentUser$;     
+  constructor(private router: Router, private authService: AuthService) { }
+
+  // Alinhado ao AuthService atual
+  get isAuth(): boolean {
+    return this.authService.isLoggedIn();
+  }
+  get userName(): string {
+    return this.authService.Account?.userName ?? '';
   }
 
-  navigateToInfo(): void { console.log('Navegando para Info'); }
-  navigateToAbout(): void { console.log('Navegando para Sobre'); }
-  navigateToRooms(): void { console.log('Navegando para Salas'); }
-  navigateToContact(): void { console.log('Navegando para Contato'); }
+  // Navegação
+  navigateToInfo(): void { this.router.navigate(['/']); }
+  navigateToAbout(): void { /* placeholder */ console.log('Navegando para Sobre'); }
+  navigateToRooms(): void { this.router.navigate(['/room/list']); }
+  navigateToContact(): void { /* placeholder */ console.log('Navegando para Contato'); }
 
   register(): void { this.router.navigate(['/auth/register']); }
-  login(): void { this.router.navigate(['/auth']); }
+  login(): void { this.router.navigate(['/auth/login']); }
   logout(): void { this.authService.logout(); }
 }

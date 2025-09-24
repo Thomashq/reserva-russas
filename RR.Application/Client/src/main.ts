@@ -13,9 +13,9 @@ export function getBaseUrl_Version() {
 
 export function getBaseUrl() {
   if(isDevMode())
-    return "https://localhost:7241/api/" + getBaseUrl_Version() + "/";
+    return "https://localhost:7099/api/" + getBaseUrl_Version() + "/";
   else
-    return "testes";
+    return "https://localhost:7099/api/" + getBaseUrl_Version() + "/";
 }
 const providers = [
   { provide: 'BASE_URL', useValue: getBaseUrl() }

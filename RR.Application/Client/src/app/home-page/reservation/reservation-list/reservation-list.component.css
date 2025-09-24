@@ -1,0 +1,30 @@
+.loading {
+  display: flex;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.no-data {
+  text-align: center;
+  padding: 2rem;
+  color: rgba(0, 0, 0, 0.54);
+}
+
+  .no-data mat-icon {
+    font-size: 48px;
+    height: 48px;
+    width: 48px;
+    margin-bottom: 1rem;
+  }
+
+mat-table {
+  width: 100%;
+}
+
+mat-cell, mat-header-cell {
+  padding: 0.5rem;
+}
+
+mat-card {
+  margin: 1rem 0;
+}

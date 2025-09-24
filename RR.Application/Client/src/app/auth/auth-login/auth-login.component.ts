@@ -33,6 +33,8 @@ export class LoginComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
+    localStorage.removeItem('auth_token');
+
     this.loginForm = this.fb.group({
       userName: ['', [Validators.required]],
       password: ['', [Validators.required]],
@@ -41,11 +43,9 @@ export class LoginComponent implements OnInit {
 
   onSubmit(): void {
     if (this.loginForm.invalid) return;
-
     this.isLoading = true;
     const credentials: LoginRequest = this.loginForm.value;
-
-    this.authService.login(credentials).subscribe({
+    this.authService.Login(credentials).subscribe({
       next: () => {
         this.snackBar.open('Login realizado com sucesso!', 'Fechar', { duration: 3000 });
         this.router.navigate(['/']); // ou rota de dashboard

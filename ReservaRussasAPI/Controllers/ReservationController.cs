@@ -1,21 +1,22 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using ReservaRussasAPI.Controllers.Base;
 using RR.Core.Common;
 using RR.Core.DTOs.Requests;
 using RR.Core.Entities;
 using RR.Core.Services;
 
-public class ReservationsController : BaseControllerFYP
+public class ReservationController : BaseControllerFYP
 {
     private readonly IReservationService _reservations;
 
-    public ReservationsController(IReservationService reservations) => _reservations = reservations;
+    public ReservationController(IReservationService reservations) => _reservations = reservations;
 
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
         var list = await _reservations.GetAllAsync();
-        return ResponseOk(list, "Reservas encontradas");
+        return ResponseOk(list);
     }
 
     [HttpGet("{id:int}")]
@@ -23,28 +24,29 @@ public class ReservationsController : BaseControllerFYP
     {
         var res = await _reservations.GetReservationById(id);
         if (res is null) return ResponseNotFound("Reservation not found");
-        return ResponseOk(res, "Reserva Encontrada");
+        return ResponseOk(res);
     }
 
     [HttpGet("room/{roomId:int}")]
     public async Task<IActionResult> GetByRoom(int roomId)
     {
         var list = await _reservations.GetReservationsByRoomId(roomId);
-        return ResponseOk(list, "Reserva Encontrada");
+        return ResponseOk(list);
     }
 
     [HttpGet("account/{accountId:int}")]
     public async Task<IActionResult> GetByAccount(int accountId)
     {
         var list = await _reservations.GetReservationsByAccountId(accountId);
-        return ResponseOk(list, "contas encontradas");
+        return ResponseOk(list);
     }
 
     [HttpPost("period")]
+    [AllowAnonymous]
     public async Task<IActionResult> ByPeriod([FromBody] PeriodRequest req)
     {
         var list = await _reservations.GetReservationsByPeriod(req.Start, req.End);
-        return ResponseOk(list, "Lista de reservas por período");
+        return ResponseOk(list);
     }
 
     [HttpPost]
@@ -59,8 +61,8 @@ public class ReservationsController : BaseControllerFYP
             StartTime = req.StartTime,
             EndTime = req.EndTime
         });
-
-        return ResponseOk(created, "Reserva criada com sucesso");
+            
+        return ResponseOk(created);
     }
 
     [HttpPut("{id:int}")]
@@ -78,7 +80,7 @@ public class ReservationsController : BaseControllerFYP
         });
 
         if (updated is null) return ResponseNotFound("Reservation not found");
-        return ResponseOk(updated, "Reservation updated");
+        return ResponseOk(updated);
     }
 
     [HttpPut("cancel/{id:int}")]
@@ -86,7 +88,7 @@ public class ReservationsController : BaseControllerFYP
     {
         var canceled = await _reservations.CancelReservation(id);
         if (canceled is false) return ResponseNotFound("Reservation not found or cannot be canceled");
-        return ResponseOk(canceled, "Reservation canceled");
+        return ResponseOk(canceled);
     }
 
     [HttpPut("approve/{id:int}")]
@@ -94,7 +96,7 @@ public class ReservationsController : BaseControllerFYP
     {
         var approved = await _reservations.ApproveReservation(id);
         if (approved is null) return ResponseNotFound("Reservation not found or cannot be approved");
-        return ResponseOk(approved, "Reservation approved");
+        return ResponseOk(approved);
     }
 
     [HttpDelete("{id:int}")]
@@ -102,6 +104,6 @@ public class ReservationsController : BaseControllerFYP
     {
         var ok = await _reservations.DeleteAsync(id);
         if (!ok) return ResponseBadRequest("Reservation not found");
-        return ResponseOk(true, "Reservation deleted");
+        return ResponseOk(true);
     }
 }

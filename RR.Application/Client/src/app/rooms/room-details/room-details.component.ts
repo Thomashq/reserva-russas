@@ -66,4 +66,8 @@ export class RoomDetailsComponent implements OnInit {
       }
     });
   }
+
+  newReservation() {
+    this.router.navigate(['/reservations/new'], { queryParams: { roomId: this.roomId } });
+  }
 }

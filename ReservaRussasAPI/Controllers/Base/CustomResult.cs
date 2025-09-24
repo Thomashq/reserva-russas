@@ -17,10 +17,8 @@ namespace ReservaRussasAPI.Controllers.Base
             StatusCode = statusCode;
             Success = success;
             ExecutedIn = DateTime.Now;
-            Message = "API versão Teste BETA, Proibido o uso.";
+            Message = "Reserva russas teste beta API, Uso limitado, conferir licença";
             Errors = new List<string>();
-
-
         }
         /// <summary>
         /// 

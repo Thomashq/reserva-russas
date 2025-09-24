@@ -1,7 +1,16 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { MatDialogRef } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { Router } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { MatDialogModule } from '@angular/material/dialog';
+import { MatTabsModule } from '@angular/material/tabs';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatSelectModule } from '@angular/material/select';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthService } from '../../../auth/auth.service';
 import { CreateReservationRequest } from '../../../domain/dto/request/ReservationRequest';
 import { ReservationService } from '../reservation.service';
@@ -11,12 +20,24 @@ import { ReservationSeriesService } from '../reservation-series.service';
 import { DateOffset } from '../../../domain/shared/utils/date-offset.util';
 
 @Component({
-  selector: 'app-reservation-new',
-  imports: [ReactiveFormsModule],
-  templateUrl: './reservation-new.component.html',
-  styleUrls: ['./reservation-new.component.css']
+  selector: 'app-reservation-new-dialog',
+  standalone: true,
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatDialogModule,
+    MatTabsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
+    MatDatepickerModule,
+    MatSelectModule,
+    MatProgressSpinnerModule
+  ],
+  templateUrl: './reservation-new-dialog.component.html',
+  styleUrls: ['./reservation-new-dialog.component.css']
 })
-export class ReservationNewComponent implements OnInit {
+export class ReservationNewDialogComponent implements OnInit {
   frmCreateReservation!: FormGroup;
   frmCreateReservationSeries!: FormGroup;
   isLoading = false;
@@ -31,18 +52,17 @@ export class ReservationNewComponent implements OnInit {
     { label: 'Domingo', value: 'SU' },
   ];
 
-  // estado local para combinar data (datepicker) + hora (time picker)
   private _startDate: Date | null = null;
   private _endDate: Date | null = null;
   startTimeDisplay = '';
   endTimeDisplay = '';
 
   constructor(
+    private dialogRef: MatDialogRef<ReservationNewDialogComponent>,
     private reservationService: ReservationService,
     private reservationSeriesService: ReservationSeriesService,
     private fb: FormBuilder,
     private authService: AuthService,
-    private router: Router,
     private snackBar: MatSnackBar
   ) { }
 
@@ -52,8 +72,8 @@ export class ReservationNewComponent implements OnInit {
       accountId: [null, Validators.required],
       title: ['', Validators.required],
       description: [''],
-      startTime: ['', Validators.required], // será patchado com "yyyy-MM-ddTHH:mm:ss±HH:mm"
-      endTime: ['', Validators.required]    // idem
+      startTime: ['', Validators.required],
+      endTime: ['', Validators.required]
     });
 
     this.frmCreateReservationSeries = this.fb.group({
@@ -61,17 +81,16 @@ export class ReservationNewComponent implements OnInit {
       defaultRoomId: [null, Validators.required],
       title: ['', Validators.required],
       description: [''],
-      windowStart: [null, Validators.required], // será patchado p/ "yyyy-MM-ddTHH:mm:ss±HH:mm"
-      windowEnd: [null, Validators.required],   // idem
-      recurrenceRule: ['', Validators.required], // "WEEKLY" | "MONTHLY" | "YEARLY"
-      daysOfWeek: [[], Validators.required],     // array de siglas; vira "MO,TU"
-      timeStart: ['', Validators.required],      // "HH:mm"
-      timeEnd: ['', Validators.required],        // "HH:mm"
+      windowStart: [null, Validators.required],
+      windowEnd: [null, Validators.required],
+      recurrenceRule: ['', Validators.required],
+      daysOfWeek: [[], Validators.required],
+      timeStart: ['', Validators.required],
+      timeEnd: ['', Validators.required],
       interval: [1]
     });
   }
 
-  // === handlers chamados pelo template ===
   onDateChange(which: 'start' | 'end', date: Date | null): void {
     if (which === 'start') this._startDate = date; else this._endDate = date;
     this.tryPatchDateTime(which);
@@ -87,7 +106,7 @@ export class ReservationNewComponent implements OnInit {
     const hhmm = which === 'start' ? this.startTimeDisplay : this.endTimeDisplay;
     if (!date || !hhmm || !hhmm.includes(':')) return;
 
-    const dt = DateOffset.fromDateAndTime(date, hhmm); // "yyyy-MM-ddTHH:mm:ss±HH:mm"
+    const dt = DateOffset.fromDateAndTime(date, hhmm);
     const ctrl = which === 'start' ? 'startTime' : 'endTime';
     this.frmCreateReservation.patchValue({ [ctrl]: dt });
   }
@@ -95,7 +114,6 @@ export class ReservationNewComponent implements OnInit {
   onReservationSubmit(): void {
     if (this.frmCreateReservation.invalid) return;
 
-    // validação simples: início < fim
     const startIso = this.frmCreateReservation.value.startTime;
     const endIso = this.frmCreateReservation.value.endTime;
     if (!startIso || !endIso || new Date(startIso) >= new Date(endIso)) {
@@ -110,7 +128,7 @@ export class ReservationNewComponent implements OnInit {
     ).subscribe({
       next: () => {
         this.snackBar.open('Reserva criada com sucesso!', 'Fechar', { duration: 3000 });
-        // this.router.navigate(['/reservations', res.id]);
+        this.dialogRef.close(true); // Return true to indicate success
       },
       error: (err) => {
         this.snackBar.open('Erro ao criar reserva: ' + err.message, 'Fechar', { duration: 5000 });
@@ -121,7 +139,6 @@ export class ReservationNewComponent implements OnInit {
   onReservationSeriesSubmit(): void {
     if (this.frmCreateReservationSeries.invalid) return;
 
-    // dias: ["MO","WE"] -> "MO,WE"
     const v = this.frmCreateReservationSeries.value;
     if (Array.isArray(v.daysOfWeek)) {
       this.frmCreateReservationSeries.patchValue({
@@ -129,7 +146,6 @@ export class ReservationNewComponent implements OnInit {
       });
     }
 
-    // windowStart/windowEnd: garante offset no início/fim do dia
     if (v.windowStart instanceof Date) {
       const ws = DateOffset.format(DateOffset.startOfDay(v.windowStart));
       this.frmCreateReservationSeries.patchValue({ windowStart: ws });
@@ -146,8 +162,15 @@ export class ReservationNewComponent implements OnInit {
     ).subscribe({
       next: () => {
         this.snackBar.open('Série de reservas criada com sucesso!', 'Fechar', { duration: 3000 });
-        // this.router.navigate(['/reservations', res.id]);
+        this.dialogRef.close(true);
+      },
+      error: (err) => {
+        this.snackBar.open('Erro ao criar série: ' + err.message, 'Fechar', { duration: 5000 });
       }
     });
+  }
+
+  onCancel(): void {
+    this.dialogRef.close(false);
   }
 }
