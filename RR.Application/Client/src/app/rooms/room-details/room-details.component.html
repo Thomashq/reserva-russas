@@ -1,0 +1,30 @@
+<mat-card *ngIf="room; else loading">
+  <mat-card-title>{{ room.name }}</mat-card-title>
+  <mat-card-subtitle>Capacidade: {{ room.capacity }}</mat-card-subtitle>
+  <mat-card-content>
+    <p *ngIf="room.description">{{ room.description }}</p>
+
+    <h3>Próximas reservas (7 dias)</h3>
+    <ng-container *ngIf="upcomingReservations?.length; else empty">
+      <mat-list>
+        <mat-list-item *ngFor="let r of upcomingReservations">
+          <div matLine>{{ r.title || 'Reserva' }}</div>
+          <div matLine>
+            {{ r.startTime | date:'dd/MM/yyyy HH:mm' }} — {{ r.endTime | date:'dd/MM/yyyy HH:mm' }}
+          </div>
+        </mat-list-item>
+      </mat-list>
+    </ng-container>
+    <ng-template #empty>Nenhuma reserva no período.</ng-template>
+  </mat-card-content>
+
+  <mat-card-actions>
+    <button mat-raised-button color="primary" (click)="newReservation()">
+      Reservar nesta sala
+    </button>
+  </mat-card-actions>
+</mat-card>
+
+<ng-template #loading>
+  <mat-card><mat-card-content>Carregando...</mat-card-content></mat-card>
+</ng-template>

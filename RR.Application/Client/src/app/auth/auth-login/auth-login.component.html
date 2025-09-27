@@ -1,1 +1,32 @@
-<p>auth-login works!</p>
+<div class="login-container">
+  <mat-card class="login-card">
+    <mat-card-title>Entrar</mat-card-title>
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Usuário</mat-label>
+        <input matInput formControlName="userName" placeholder="Digite seu usuário" />
+        <mat-error *ngIf="loginForm.get('userName')?.hasError('required')">
+          Usuário é obrigatório.
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Senha</mat-label>
+        <input matInput type="password" formControlName="password" placeholder="Digite sua senha" />
+        <mat-error *ngIf="loginForm.get('password')?.hasError('required')">
+          Senha é obrigatória.
+        </mat-error>
+      </mat-form-field>
+
+      <button mat-raised-button color="primary" class="full-width" type="submit" [disabled]="isLoading">
+        {{ isLoading ? 'Entrando...' : 'Entrar' }}
+      </button>
+    </form>
+
+    <div class="register-link">
+      <span>Não tem uma conta?</span>
+      <a routerLink="/auth/register">Registrar-se</a>
+    </div>
+  </mat-card>
+</div>

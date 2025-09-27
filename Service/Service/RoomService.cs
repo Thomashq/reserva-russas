@@ -1,56 +1,86 @@
-﻿using Core.Repositories;
-using Domain.Models;
-using RR.Core.DTOs;
+﻿using Microsoft.Extensions.Logging;
+using RR.Core.Entities;
+using RR.Core.Repositories;
 using RR.Core.Services;
 
 namespace RR.Service.Service
 {
-    public class RoomService:IRoomService
+    public class RoomService : IRoomService
     {
-        private readonly IRepository<Rooms> _repository;
+        private readonly IRoomRepository _rooms;
+        private readonly ILogger<RoomService>? _logger;
 
-        public RoomService(IRepository<Rooms> repository)
+        public RoomService(IRoomRepository rooms, ILogger<RoomService>? logger = null)
         {
-            _repository = repository;
+            _rooms = rooms;
+            _logger = logger;
         }
 
-        public async Task<IEnumerable<RoomDTO>> GetAllAsync()
+        public async Task<Rooms> AddAsync(Rooms room)
         {
-            var rooms = await _repository.GetAllAsync();
-            return rooms.Select(r => new RoomDTO { Id = r.Id, Name = r.Name, Capacity = r.Capacity, ManagerId = r.ManagerId });
+            if (room is null) throw new ArgumentNullException(nameof(room));
+            if (string.IsNullOrWhiteSpace(room.Name))
+                throw new ArgumentException("Room name is required.", nameof(room));
+            if (room.Capacity <= 0)
+                throw new ArgumentException("Capacity must be greater than zero.", nameof(room));
+
+            // (Opcional) checar duplicidade de nome ativo
+            var existing = await _rooms.GetRoomByName(room.Name);
+            if (existing is not null)
+                throw new InvalidOperationException($"Room '{room.Name}' already exists.");
+
+            var created = await _rooms.AddAsync(room);
+            _logger?.LogInformation("Room created: {RoomId} - {Name}", created.Id, created.Name);
+            return created;
         }
 
-        public async Task<RoomDTO?> GetByIdAsync(Guid id)
+        public Task<bool> DeleteAsync(int id)
         {
-            var room = await _repository.GetByIdAsync(id);
-            return room != null ? new RoomDTO { Id = room.Id, Name = room.Name, Capacity = room.Capacity, ManagerId = room.ManagerId } : null;
+            if (id <= 0) throw new ArgumentOutOfRangeException(nameof(id));
+            return _rooms.DeleteAsync(id); 
         }
 
-        public async Task<RoomDTO> CreateAsync(RoomDTO dto)
+        public Task<IEnumerable<Rooms>> GetAllAsync()
+            => _rooms.GetAllAsync();
+
+        public Task<Rooms?> GetRoomById(int id)
         {
-            var room = new Rooms { Id = dto.Id, Name = dto.Name, Capacity = dto.Capacity, ManagerId = dto.ManagerId };
-            await _repository.AddAsync(room);
-            return dto;
+            if (id <= 0) throw new ArgumentOutOfRangeException(nameof(id));
+            return _rooms.GetRoomById(id);
         }
 
-        public async Task<RoomDTO?> UpdateAsync(Guid id, RoomDTO dto)
+        public Task<Rooms?> GetRoomByName(string name)
         {
-            var existing = await _repository.GetByIdAsync(id);
-            if (existing == null) return null;
-
-            existing.Name = dto.Name;
-            existing.Capacity = dto.Capacity;
-            existing.ManagerId = dto.ManagerId;
-            await _repository.UpdateAsync(existing);
-            return dto;
+            if (string.IsNullOrWhiteSpace(name))
+                throw new ArgumentException("Name is required.", nameof(name));
+            return _rooms.GetRoomByName(name);
         }
 
-        public async Task<bool> DeleteAsync(Guid id)
+        public Task<Rooms?> GetRoomsReservationsByPeriod(int id, DateTime start, DateTime end)
         {
-            var existing = await _repository.GetByIdAsync(id);
-            if (existing == null) return false;
-            await _repository.DeleteAsync(id);
-            return true;
+            if (id <= 0) throw new ArgumentOutOfRangeException(nameof(id));
+            if (start >= end) throw new ArgumentException("Start must be before End.");
+            return _rooms.GetRoomsReservationsByPeriod(id, start, end);
+        }
+
+        public async Task<Rooms?> UpdateAsync(Rooms room)
+        {
+            if (room is null) throw new ArgumentNullException(nameof(room));
+            if (room.Id <= 0) throw new ArgumentOutOfRangeException(nameof(room.Id));
+            if (string.IsNullOrWhiteSpace(room.Name))
+                throw new ArgumentException("Room name is required.", nameof(room));
+            if (room.Capacity <= 0)
+                throw new ArgumentException("Capacity must be greater than zero.", nameof(room));
+
+            var updated = await _rooms.UpdateAsync(room);
+            if (updated is null)
+            {
+                _logger?.LogWarning("Attempt to update non-existent room {RoomId}", room.Id);
+                return null;
+            }
+
+            _logger?.LogInformation("Room updated: {RoomId} - {Name}", updated.Id, updated.Name);
+            return updated;
         }
     }
 }

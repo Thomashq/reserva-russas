@@ -1,61 +1,41 @@
-﻿using Core.Repositories;
-using Domain.Models;
-using RR.Core.DTOs;
-using RR.Core.Services;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using RR.Core.Entities;
+using RR.Core.Repositories;
+using RR.Core.Services.Base;
 
 namespace RR.Service.Service
 {
-    public class ServantService:IServantService
+    public class ServantService : IServantService
     {
-        private readonly IRepository<Servant> _repository;
+        private readonly IServantRepository _servantRepository;
 
-        public ServantService(IRepository<Servant> repository)
+        public ServantService(IServantRepository servantRepository)
         {
-            _repository = repository;
+            _servantRepository = servantRepository;
         }
 
-        public async Task<IEnumerable<ServantDTO>> GetAllAsync()
+        public async Task<bool> AddAsync(Servant servant)
         {
-            var servants = await _repository.GetAllAsync();
-            return servants.Select(s => new ServantDTO { Id = s.Id, AccountId = s.AccountId, Advisee = s.Advisee, Reservation = s.Reservation });
+            return await _servantRepository.AddAsync(servant);
         }
 
-        public async Task<ServantDTO?> GetByIdAsync(Guid id)
+        public async Task<bool> DeleteAsync(int id)
         {
-            var servant = await _repository.GetByIdAsync(id);
-            return servant != null ? new ServantDTO { Id = servant.Id, AccountId = servant.AccountId, Advisee = servant.Advisee, Reservation = servant.Reservation } : null;
+            return await _servantRepository.DeleteAsync(id);
         }
 
-        public async Task<ServantDTO> CreateAsync(ServantDTO dto)
+        public async Task<Servant> GetServantByAccountId(int id)
         {
-            var servant = new Servant {AccountId = dto.AccountId, Advisee = dto.Advisee, Reservation = dto.Reservation };
-            servant.CreationDate = DateTime.UtcNow;
-            await _repository.AddAsync(servant);
-            return dto;
+            return await _servantRepository.GetServantByAccountId(id);
         }
 
-        public async Task<ServantDTO?> UpdateAsync(Guid id, ServantDTO dto)
+        public async Task<Servant> GetServantById(int id)
         {
-            var existing = await _repository.GetByIdAsync(id);
-            if (existing == null) return null;
-
-            existing.Advisee = dto.Advisee;
-            existing.Reservation = dto.Reservation;
-            await _repository.UpdateAsync(existing);
-            return dto;
+            return await _servantRepository.GetServantById(id);
         }
 
-        public async Task<bool> DeleteAsync(Guid id)
+        public async Task<Servant> UpdateAsync(Servant servant)
         {
-            var existing = await _repository.GetByIdAsync(id);
-            if (existing == null) return false;
-            await _repository.DeleteAsync(id);
-            return true;
+            return await _servantRepository.UpdateAsync(servant);
         }
     }
 }

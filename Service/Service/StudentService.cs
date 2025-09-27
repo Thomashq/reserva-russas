@@ -1,61 +1,42 @@
-﻿using Core.Repositories;
-using Domain.Models;
-using RR.Core.DTOs;
+﻿using RR.Core.Entities;
+using RR.Core.Repositories;
 using RR.Core.Services;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using RR.Core.Services.Base;
 
 namespace RR.Service.Service
 {
     public class StudentService : IStudentService
     {
-        private readonly IRepository<Student> _repository;
+        private readonly IStudentRepository _studentRepository;
 
-        public StudentService(IRepository<Student> repository)
+        public StudentService(IStudentRepository studentRepository)
         {
-            _repository = repository;
+            _studentRepository = studentRepository;
         }
 
-        public async Task<IEnumerable<StudentDTO>> GetAllAsync()
+        public async Task<bool> AddAsync(Student student)
         {
-            var students = await _repository.GetAllAsync();
-            return students.Select(s => new StudentDTO { Id = s.Id, AccountId = s.AccountId, Reservations = s.Reservations, Advisor = s.Advisor, Permissions = s.Permissions });
+            return await _studentRepository.AddAsync(student);
         }
 
-        public async Task<StudentDTO?> GetByIdAsync(Guid id)
+        public async Task<bool> DeleteAsync(int id)
         {
-            var student = await _repository.GetByIdAsync(id);
-            return student != null ? new StudentDTO { Id = student.Id, AccountId = student.AccountId, Reservations = student.Reservations, Advisor = student.Advisor, Permissions = student.Permissions } : null;
+            return await _studentRepository.DeleteAsync(id);
         }
 
-        public async Task<StudentDTO> CreateAsync(StudentDTO dto)
+        public async Task<Student> GetServantById(int id)
         {
-            var student = new Student {AccountId = dto.AccountId, Reservations = dto.Reservations, Advisor = dto.Advisor, Permissions = dto.Permissions };
-            await _repository.AddAsync(student);
-            return dto;
+            return await _studentRepository.GetStudentById(id);
         }
 
-        public async Task<StudentDTO?> UpdateAsync(Guid id, StudentDTO dto)
+        public async Task<Student> GetStudentByAccountId(int id)
         {
-            var existing = await _repository.GetByIdAsync(id);
-            if (existing == null) return null;
-
-            existing.Reservations = dto.Reservations;
-            existing.Advisor = dto.Advisor;
-            existing.Permissions = dto.Permissions;
-            await _repository.UpdateAsync(existing);
-            return dto;
+            return await _studentRepository.GetStudentByAccountId(id);
         }
 
-        public async Task<bool> DeleteAsync(Guid id)
+        public async Task<Student> UpdateAsync(Student student)
         {
-            var existing = await _repository.GetByIdAsync(id);
-            if (existing == null) return false;
-            await _repository.DeleteAsync(id);
-            return true;
+            return await _studentRepository.UpdateAsync(student);
         }
     }
 }

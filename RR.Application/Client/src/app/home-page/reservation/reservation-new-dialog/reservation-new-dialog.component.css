@@ -1,0 +1,40 @@
+.form {
+  padding: 1rem 0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+  .grid .full {
+    grid-column: 1 / -1;
+  }
+
+.dialog-actions {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e0e0e0;
+}
+
+mat-form-field {
+  width: 100%;
+}
+
+mat-spinner {
+  margin-right: 8px;
+}
+
+h2 {
+  margin: 0 0 1rem 0;
+}
+
+mat-tab-group {
+  min-height: 400px;
+}
+
+.mat-tab-body-content {
+  padding: 1rem 0;
+}

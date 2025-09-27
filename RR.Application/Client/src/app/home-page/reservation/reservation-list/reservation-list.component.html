@@ -1,0 +1,78 @@
+<mat-card>
+  <mat-card-header>
+    <mat-card-title>Próximas reservas</mat-card-title>
+    <mat-card-subtitle>Esta semana</mat-card-subtitle>
+  </mat-card-header>
+
+  <mat-card-content>
+    <div *ngIf="isLoading" class="loading">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+
+    <mat-table [dataSource]="reservations" *ngIf="!isLoading">
+      <ng-container matColumnDef="title">
+        <mat-header-cell *matHeaderCellDef>Título</mat-header-cell>
+        <mat-cell *matCellDef="let reservation">{{ reservation.title }}</mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="room">
+        <mat-header-cell *matHeaderCellDef>Sala</mat-header-cell>
+        <mat-cell *matCellDef="let reservation">{{ reservation.room?.name || 'N/A' }}</mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="start">
+        <mat-header-cell *matHeaderCellDef>Início</mat-header-cell>
+        <mat-cell *matCellDef="let reservation">
+          {{ formatDateTime(reservation.startTime) }}
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="end">
+        <mat-header-cell *matHeaderCellDef>Fim</mat-header-cell>
+        <mat-cell *matCellDef="let reservation">
+          {{ formatDateTime(reservation.endTime) }}
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <mat-header-cell *matHeaderCellDef></mat-header-cell>
+        <mat-cell *matCellDef="let reservation">
+          <button mat-icon-button [matMenuTriggerFor]="menu">
+            <mat-icon>more_vert</mat-icon>
+          </button>
+          <mat-menu #menu="matMenu">
+            <button mat-menu-item>
+              <mat-icon>edit</mat-icon>
+              Editar
+            </button>
+            <button mat-menu-item>
+              <mat-icon>delete</mat-icon>
+              Cancelar
+            </button>
+          </mat-menu>
+        </mat-cell>
+      </ng-container>
+
+      <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+      <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+    </mat-table>
+
+    <div *ngIf="!isLoading && reservations.length === 0" class="no-data">
+      <mat-icon>event_busy</mat-icon>
+      <p>Nenhuma reserva encontrada para esta semana.</p>
+      <button mat-raised-button color="primary" (click)="openNewReservationDialog()">
+        Criar primeira reserva
+      </button>
+    </div>
+  </mat-card-content>
+
+  <mat-card-actions align="end">
+    <button mat-button (click)="refresh()">
+      <mat-icon>refresh</mat-icon>
+      Atualizar
+    </button>
+    <button mat-raised-button color="primary" (click)="openNewReservationDialog()">
+      Nova reserva
+    </button>
+  </mat-card-actions>
+</mat-card>

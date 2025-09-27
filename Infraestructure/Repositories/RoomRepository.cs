@@ -1,62 +1,72 @@
-﻿using Core.Repositories;
-using Domain.Models;
-using Infraestructure;
-using Microsoft.EntityFrameworkCore;
-using System.Linq.Expressions;
+﻿using Microsoft.EntityFrameworkCore;
+using RR.Core.Entities;
+using RR.Core.Repositories;
+using RR.Infraestructure.DataContext;
 
 namespace RR.Infraestructure.Repositories
 {
-    public class RoomsRepository : IRepository<Rooms>
-    { 
-        private readonly DataContext _context;
+    public class RoomRepository : IRoomRepository
+    {
+        private readonly ApplicationDbContext _context;
 
-        public RoomsRepository(DataContext context)
+        public RoomRepository(ApplicationDbContext context)
         {
             _context = context;
         }
 
+        public async Task<Rooms> AddAsync(Rooms room)
+        {
+            room.IsActive = true;
+
+            var entry = await _context.Rooms.AddAsync(room);
+            await _context.SaveChangesAsync();
+
+            return entry.Entity;
+        }
+
+        public async Task<bool> DeleteAsync(int id)
+        {
+            var room = await _context.Rooms.FindAsync(id);
+            if (room == null) return false;
+
+            room.IsActive = false;
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
         public async Task<IEnumerable<Rooms>> GetAllAsync()
         {
-            return await _context.Set<Rooms>().ToListAsync();
+            return await _context.Rooms.Where(x => x.IsActive).ToListAsync();
         }
 
-        public async Task<Rooms?> GetByIdAsync(Guid id)
+        public async Task<Rooms> GetRoomById(int id)
         {
-            return await _context.Set<Rooms>().FindAsync(id);
+            var room = await _context.Rooms.FirstOrDefaultAsync(x => x.Id == id && x.IsActive);
+
+            return room;
         }
 
-        public async Task AddAsync(Rooms entity)
+        public async Task<Rooms> GetRoomByName(string name)
         {
-            await _context.Set<Rooms>().AddAsync(entity);
+            return await _context.Rooms.FirstOrDefaultAsync(x => x.Name == name && x.IsActive);
+        }
+
+        public async Task<Rooms> GetRoomsReservationsByPeriod(int id, DateTime start, DateTime end)
+        {
+            return await _context.Rooms
+                .Include(r => r.Reservations.Where(res => res.StartTime < end && res.EndTime > start && res.IsActive))
+                .FirstOrDefaultAsync(r => r.Id == id && r.IsActive);
+        }
+
+        public async Task<Rooms> UpdateAsync(Rooms room)
+        {
+            var existingRoom = await _context.Rooms.FindAsync(room.Id);
+            if (existingRoom == null) return null;
+            existingRoom.Name = room.Name;
+            existingRoom.Capacity = room.Capacity;
+            existingRoom.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
-        }
-
-        public async Task UpdateAsync(Rooms entity)
-        {
-            _context.Set<Rooms>().Update(entity);
-            await _context.SaveChangesAsync();
-        }
-
-        public async Task DeleteAsync(Guid id)
-        {
-            var entity = await GetByIdAsync(id);
-            if (entity != null)
-            {
-                _context.Set<Rooms>().Remove(entity);
-                await _context.SaveChangesAsync();
-            }
-        }
-
-        public async Task<(IEnumerable<Rooms>, int)> GetPagedAsync(int pageNumber, int pageSize, Expression<Func<Rooms, bool>>? filter = null)
-        {
-            var query = _context.Set<Rooms>().AsQueryable();
-            if (filter != null)
-                query = query.Where(filter);
-
-            var totalItems = await query.CountAsync();
-            var items = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
-
-            return (items, totalItems);
+            return existingRoom;
         }
     }
 }

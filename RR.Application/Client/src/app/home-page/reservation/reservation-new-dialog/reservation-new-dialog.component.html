@@ -1,0 +1,158 @@
+<div mat-dialog-content>
+  <h2 mat-dialog-title>Nova Reserva</h2>
+
+  <mat-tab-group>
+    <!-- Aba: Reserva pontual -->
+    <mat-tab label="Reserva pontual">
+      <form [formGroup]="frmCreateReservation" (ngSubmit)="onReservationSubmit()" class="form">
+        <div class="grid">
+          <mat-form-field>
+            <mat-label>Sala (ID)</mat-label>
+            <input matInput type="number" formControlName="roomId" required>
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-label>Conta (ID)</mat-label>
+            <input matInput type="number" formControlName="accountId" required>
+          </mat-form-field>
+
+          <mat-form-field class="full">
+            <mat-label>Título</mat-label>
+            <input matInput formControlName="title" required>
+          </mat-form-field>
+
+          <mat-form-field class="full">
+            <mat-label>Descrição</mat-label>
+            <textarea matInput rows="2" formControlName="description"></textarea>
+          </mat-form-field>
+
+          <!-- Início: Datepicker + Time -->
+          <mat-form-field>
+            <mat-label>Início (data)</mat-label>
+            <input matInput [matDatepicker]="startPicker" (dateChange)="onDateChange('start', $event.value)" required>
+            <mat-datepicker-toggle matSuffix [for]="startPicker"></mat-datepicker-toggle>
+            <mat-datepicker #startPicker></mat-datepicker>
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-label>Início (hora)</mat-label>
+            <input matInput
+                   type="time"
+                   [value]="startTimeDisplay"
+                   #startTimeRef
+                   (change)="onTimeChange('start', startTimeRef.value)"
+                   required>
+          </mat-form-field>
+
+          <!-- Fim: Datepicker + Time -->
+          <mat-form-field>
+            <mat-label>Fim (data)</mat-label>
+            <input matInput [matDatepicker]="endPicker" (dateChange)="onDateChange('end', $event.value)" required>
+            <mat-datepicker-toggle matSuffix [for]="endPicker"></mat-datepicker-toggle>
+            <mat-datepicker #endPicker></mat-datepicker>
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-label>Fim (hora)</mat-label>
+            <input matInput
+                   type="time"
+                   [value]="endTimeDisplay"
+                   #endTimeRef
+                   (change)="onTimeChange('end', endTimeRef.value)"
+                   required>
+          </mat-form-field>
+        </div>
+
+        <div mat-dialog-actions align="end" class="dialog-actions">
+          <button mat-button type="button" (click)="onCancel()">Cancelar</button>
+          <button mat-raised-button color="primary" type="submit"
+                  [disabled]="frmCreateReservation.invalid || isLoading">
+            <mat-spinner diameter="16" *ngIf="isLoading"></mat-spinner>
+            Criar reserva
+          </button>
+        </div>
+      </form>
+    </mat-tab>
+
+    <!-- Aba: Alocação (série) -->
+    <mat-tab label="Alocação (série)">
+      <form [formGroup]="frmCreateReservationSeries" (ngSubmit)="onReservationSeriesSubmit()" class="form">
+        <div class="grid">
+          <mat-form-field>
+            <mat-label>Conta (ID)</mat-label>
+            <input matInput type="number" formControlName="accountId" required>
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-label>Sala padrão (ID)</mat-label>
+            <input matInput type="number" formControlName="defaultRoomId" required>
+          </mat-form-field>
+
+          <mat-form-field class="full">
+            <mat-label>Título</mat-label>
+            <input matInput formControlName="title" required>
+          </mat-form-field>
+
+          <mat-form-field class="full">
+            <mat-label>Descrição</mat-label>
+            <textarea matInput rows="2" formControlName="description"></textarea>
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-label>Janela início</mat-label>
+            <input matInput [matDatepicker]="wsPicker" formControlName="windowStart" required>
+            <mat-datepicker-toggle matSuffix [for]="wsPicker"></mat-datepicker-toggle>
+            <mat-datepicker #wsPicker></mat-datepicker>
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-label>Janela fim</mat-label>
+            <input matInput [matDatepicker]="wePicker" formControlName="windowEnd" required>
+            <mat-datepicker-toggle matSuffix [for]="wePicker"></mat-datepicker-toggle>
+            <mat-datepicker #wePicker></mat-datepicker>
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-label>Recorrência</mat-label>
+            <mat-select formControlName="recurrenceRule" required>
+              <mat-option value="WEEKLY">Semanal</mat-option>
+              <mat-option value="MONTHLY">Mensal</mat-option>
+              <mat-option value="YEARLY">Anual</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-label>Dias da semana</mat-label>
+            <mat-select formControlName="daysOfWeek" multiple>
+              <mat-option *ngFor="let d of weekdays" [value]="d.value">{{ d.label }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-label>Hora início</mat-label>
+            <input matInput type="time" formControlName="timeStart" required>
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-label>Hora fim</mat-label>
+            <input matInput type="time" formControlName="timeEnd" required>
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-label>Intervalo</mat-label>
+            <input matInput type="number" min="1" formControlName="interval">
+          </mat-form-field>
+        </div>
+
+        <div mat-dialog-actions align="end" class="dialog-actions">
+          <button mat-button type="button" (click)="onCancel()">Cancelar</button>
+          <button mat-raised-button color="primary" type="submit"
+                  [disabled]="frmCreateReservationSeries.invalid || isLoading">
+            <mat-spinner diameter="16" *ngIf="isLoading"></mat-spinner>
+            Criar série
+          </button>
+        </div>
+      </form>
+    </mat-tab>
+  </mat-tab-group>
+</div>

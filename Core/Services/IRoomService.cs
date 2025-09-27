@@ -1,13 +1,16 @@
-﻿using RR.Core.DTOs;
+﻿// RR.Core/Services/IRoomService.cs
+using RR.Core.Entities;
 
 namespace RR.Core.Services
 {
     public interface IRoomService
     {
-        Task<IEnumerable<RoomDTO>> GetAllAsync();
-        Task<RoomDTO?> GetByIdAsync(Guid id);
-        Task<RoomDTO> CreateAsync(RoomDTO dto);
-        Task<RoomDTO?> UpdateAsync(Guid id, RoomDTO dto);
-        Task<bool> DeleteAsync(Guid id);
+        Task<Rooms> AddAsync(Rooms room);
+        Task<bool> DeleteAsync(int id);
+        Task<IEnumerable<Rooms>> GetAllAsync();
+        Task<Rooms?> GetRoomById(int id);
+        Task<Rooms?> GetRoomByName(string name);
+        Task<Rooms?> GetRoomsReservationsByPeriod(int id, DateTime start, DateTime end);
+        Task<Rooms?> UpdateAsync(Rooms room);
     }
 }

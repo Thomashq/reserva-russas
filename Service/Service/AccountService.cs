@@ -1,58 +1,97 @@
-﻿using Core.Repositories;
-using Core.Services;
-using Domain.Models;
-using RR.Core.DTOs;
+﻿using Core.Services;
+using RR.Core.Entities;
+using RR.Core.Repositories;
 
-namespace RR.Service.Service
+
+namespace RR.Service
 {
-    public class AccountService:IAccountService
+    public class AccountService: IAccountService
     {
-        private readonly IRepository<Account> _repository;
-
-        public AccountService(IRepository<Account> repository)
-        {
-            _repository = repository;
+        private readonly IAccountRepository _accountRepository;
+        public AccountService(IAccountRepository accountRepository) 
+        { 
+            _accountRepository = accountRepository;
         }
 
-        public async Task<IEnumerable<AccountDTO>> GetAllAsync()
+        public async Task<Account?> GetByUserIdAsync(int userId) => await _accountRepository.GetByUserIdAsync(userId);
+
+        public async Task<bool> SetActiveStatusAsync(int id, bool isActive)
         {
-            var accounts = await _repository.GetAllAsync();
-            return accounts.Select(a => new AccountDTO { Id = a.Id, UserName = a.UserName, Email = a.Mail, Phone = a.Phone });
+            var user = await GetByIdAsync(id);
+            if (user == null) return false;
+
+            user.IsActive = isActive;
+            user.UpdatedAt = DateTime.UtcNow;
+
+            var updated = await _accountRepository.UpdateAsync(user);
+            return updated is not null; 
         }
 
-        public async Task<AccountDTO?> GetByIdAsync(Guid id)
+        public async Task<bool> AddAsync(Account account)
         {
-            var account = await _repository.GetByIdAsync(id);
-            return account != null ? new AccountDTO { Id = account.Id, UserName = account.UserName, Email = account.Mail, Phone = account.Phone } : null;
+            if (account == null)
+                return false;
+
+            // Validações básicas
+            if (string.IsNullOrWhiteSpace(account.Mail) || string.IsNullOrWhiteSpace(account.UserName))
+                return false;
+
+            // Verifica se email já existe
+            if (await EmailExistsAsync(account.Mail))
+                return false;
+
+            // Verifica se username já existe
+            if (await GetByUsernameAsync(account.UserName) != null)
+                return false;
+
+            // Normaliza dados
+            account.Mail = account.Mail.ToLower();
+            account.UserName = account.UserName.ToLower();
+            account.CreatedAt = DateTime.UtcNow;
+            account.UpdatedAt = DateTime.UtcNow;
+            account.IsActive = true;
+
+            return await _accountRepository.AddAsync(account);
         }
 
-        public async Task<AccountDTO> CreateAsync(AccountDTO dto)
+        public async Task<Account?> GetByEmailAsync(string email)
         {
-            var account = new Account { Id = dto.Id, UserName = dto.UserName, Mail = dto.Email, Phone = dto.Phone, PasswordHash = dto.Password };
-            account.CreationDate = DateTime.UtcNow;
-            await _repository.AddAsync(account);
-            return dto;
+            if (string.IsNullOrWhiteSpace(email))
+                return null;
+
+            return await _accountRepository.GetByEmailAsync(email.ToLower());
         }
 
-        public async Task<AccountDTO?> UpdateAsync(Guid id, AccountDTO dto)
+        public async Task<Account?> GetByUsernameAsync(string username)
         {
-            var account = await _repository.GetByIdAsync(id);
-            if (account == null) return null;
+            if (string.IsNullOrWhiteSpace(username))
+                return null;
 
-            account.UserName = dto.UserName;
-            account.Mail = dto.Email;
-            account.Phone = dto.Phone;
-            account.PasswordHash = dto.Password;
-            await _repository.UpdateAsync(account);
-            return dto;
+            return await _accountRepository.GetByUserNameAsync(username.ToLower());
         }
 
-        public async Task<bool> DeleteAsync(Guid id)
+        public async Task<bool> EmailExistsAsync(string email)
         {
-            var account = await _repository.GetByIdAsync(id);
-            if (account == null) return false;
-            await _repository.DeleteAsync(id);
-            return true;
+            if (string.IsNullOrWhiteSpace(email))
+                return false;
+
+            var user = await GetByEmailAsync(email);
+            return user != null;
+        }
+
+        public async Task<Account> GetByIdAsync(int id)
+        {
+            return await _accountRepository.GetByIdAsync(id);
+        }
+
+        public async Task<Account> UpdateAsync(Account account)
+        {
+            return await _accountRepository.UpdateAsync(account);
+        }
+
+        public async Task<bool> DeleteAsync(int id)
+        {
+            return await _accountRepository.DeleteAsync(id);
         }
     }
 }

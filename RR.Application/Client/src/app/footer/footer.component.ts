@@ -1,3 +1,8 @@
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { RouterModule } from '@angular/router';
+import { CommonModule } from '@angular/common';
 // footer.component.ts
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
@@ -5,7 +10,7 @@ import { Router } from '@angular/router';
 @Component({
   selector: 'app-footer',
   templateUrl: './footer.component.html',
-  standalone: false,
+  imports: [MatTooltipModule, MatButtonModule, MatIconModule, CommonModule, RouterModule],
   styleUrls: ['./footer.component.css']
 })
 export class FooterComponent {

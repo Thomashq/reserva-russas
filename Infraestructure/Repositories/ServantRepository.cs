@@ -1,62 +1,64 @@
-﻿using Core.Repositories;
-using Domain.Models;
-using Infraestructure;
-using Microsoft.EntityFrameworkCore;
-using System.Linq.Expressions;
+﻿using Microsoft.EntityFrameworkCore;
+using RR.Core.Entities;
+using RR.Core.Repositories;
+using RR.Infraestructure.DataContext;
 
 namespace RR.Infraestructure.Repositories
 {
-    public class ServantRepository:IRepository<Servant>
+    public class ServantRepository : IServantRepository
     {
-        private readonly DataContext _context;
+        private readonly ApplicationDbContext _context;
 
-        public ServantRepository(DataContext context)
+        public ServantRepository(ApplicationDbContext context)
         {
             _context = context;
         }
 
+        public async Task<bool> AddAsync(Servant servant)
+        {
+            servant.IsActive = true;
+            await _context.Servant.AddAsync(servant);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> DeleteAsync(int id)
+        {
+            var servant = await _context.Servant.FindAsync(id);
+            if (servant == null) return false;
+
+            servant.IsActive = false;
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
         public async Task<IEnumerable<Servant>> GetAllAsync()
         {
-            return await _context.Set<Servant>().ToListAsync();
+            return await _context.Servant.Where(x => x.IsActive).ToListAsync();
         }
 
-        public async Task<Servant?> GetByIdAsync(Guid id)
+        public async Task<Servant> GetServantByAccountId(int id)
         {
-            return await _context.Set<Servant>().FindAsync(id);
+            var entity = await _context.Servant.FirstOrDefaultAsync(x => x.AccountId == id && x.IsActive);
+            return entity;
         }
 
-        public async Task AddAsync(Servant entity)
+        public async Task<Servant> GetServantById(int id)
         {
-            await _context.Set<Servant>().AddAsync(entity);
+            var servant = await _context.Servant.FirstOrDefaultAsync(x => x.Id == id && x.IsActive);
+            return servant;
+        }
+
+        public async Task<Servant> UpdateAsync(Servant servant)
+        {
+            var existingServant = await _context.Servant.FindAsync(servant.Id);
+            if (existingServant == null) return null;
+
+            existingServant.AccountId = servant.AccountId;
+            existingServant.UpdatedAt = DateTime.UtcNow;
+
             await _context.SaveChangesAsync();
-        }
-
-        public async Task UpdateAsync(Servant entity)
-        {
-            _context.Set<Servant>().Update(entity);
-            await _context.SaveChangesAsync();
-        }
-
-        public async Task DeleteAsync(Guid id)
-        {
-            var entity = await GetByIdAsync(id);
-            if (entity != null)
-            {
-                _context.Set<Servant>().Remove(entity);
-                await _context.SaveChangesAsync();
-            }
-        }
-
-        public async Task<(IEnumerable<Servant>, int)> GetPagedAsync(int pageNumber, int pageSize, Expression<Func<Servant, bool>>? filter = null)
-        {
-            var query = _context.Set<Servant>().AsQueryable();
-            if (filter != null)
-                query = query.Where(filter);
-
-            var totalItems = await query.CountAsync();
-            var items = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
-
-            return (items, totalItems);
+            return existingServant;
         }
     }
 }
