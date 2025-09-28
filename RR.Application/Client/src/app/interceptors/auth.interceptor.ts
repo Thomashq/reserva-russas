@@ -1,44 +1,26 @@
 import { Injectable } from '@angular/core';
 import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent, HttpErrorResponse } from '@angular/common/http';
-import { Observable, throwError, BehaviorSubject } from 'rxjs';
-import { catchError, switchMap, filter, take } from 'rxjs/operators';
-import { AuthService } from '../auth/auth.service';
-import {TokenService } from '../auth/token.service'
+import { Observable, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+import { Router } from '@angular/router';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
-  private isRefreshing = false;
-  private refreshTokenSubject: BehaviorSubject<any> = new BehaviorSubject<any>(null);
 
-  constructor(
-    private authService: AuthService,
-    private tokenService: TokenService
-  ) { }
+  constructor(private router: Router) { }
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    // Adiciona o token de autorização se disponível
-    const authToken = this.tokenService.getToken("auth_token");
-    console.log("auth_token poara debug", authToken)
-    const isPublicRoute = req.url.includes('/login') || req.url.includes('/register');
-    if (isPublicRoute) {
-      return next.handle(req);
-    }
-    if (authToken) {
-      req = this.addTokenToRequest(req, authToken);
-    }
+    const authReq = req.clone({
+      withCredentials: true
+    });
 
-    return next.handle(req).pipe(
+    return next.handle(authReq).pipe(
       catchError((error: HttpErrorResponse) => {
+        if (error.status === 401) {
+          this.router.navigate(['/auth/login']);
+        }
         return throwError(() => error);
       })
     );
-  }
-
-  private addTokenToRequest(request: HttpRequest<any>, token: string): HttpRequest<any> {
-    return request.clone({
-      setHeaders: {
-        Authorization: `Bearer ${token}`
-      }
-    });
   }
 }

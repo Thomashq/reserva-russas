@@ -29,6 +29,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReservaRussasAPI", "Reserva
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RR.Service", "Service\RR.Service.csproj", "{BA8DC163-481F-8C88-C13B-47A9EF8D075E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RR.ReservaRussasAPI.Docs", "RR.ReservaRussasAPI.Docs\RR.ReservaRussasAPI.Docs.csproj", "{6A0DFC8C-BE83-6CF7-6E6C-28C08D7CE009}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -63,6 +65,10 @@ Global
 		{BA8DC163-481F-8C88-C13B-47A9EF8D075E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BA8DC163-481F-8C88-C13B-47A9EF8D075E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BA8DC163-481F-8C88-C13B-47A9EF8D075E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6A0DFC8C-BE83-6CF7-6E6C-28C08D7CE009}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6A0DFC8C-BE83-6CF7-6E6C-28C08D7CE009}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6A0DFC8C-BE83-6CF7-6E6C-28C08D7CE009}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6A0DFC8C-BE83-6CF7-6E6C-28C08D7CE009}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -75,6 +81,7 @@ Global
 		{DB7B22ED-C36C-B81D-5794-645F2E92B22D} = {F66FBEC0-F49D-4E4E-BDD5-60C6D8167D6A}
 		{4A42B8AA-5DE0-47EE-A68B-7433E0AD3BED} = {D5A4E7CB-4AFE-4628-9B17-6406FAC72944}
 		{BA8DC163-481F-8C88-C13B-47A9EF8D075E} = {765D64BB-768E-4A99-8A3E-4D5E8A793E4F}
+		{6A0DFC8C-BE83-6CF7-6E6C-28C08D7CE009} = {D5A4E7CB-4AFE-4628-9B17-6406FAC72944}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {024AF818-291F-4A39-825E-768920BF41A4}

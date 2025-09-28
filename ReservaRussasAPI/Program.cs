@@ -1,8 +1,6 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore; // UserOnlyStore<>
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using ReservaRussasAPI.Controllers.Base;
@@ -30,9 +28,10 @@ if (builder.Environment.IsDevelopment())
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAllOrigins", policy =>
+    options.AddPolicy("AllowCredentials", policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.WithOrigins("http://localhost:4200") // Seu frontend Angular
+              .AllowCredentials()
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
@@ -58,9 +57,10 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.LogTo(Console.WriteLine, LogLevel.Information);
 });
 
-// >>> Identity Core (sem UI/cookies) + UserOnlyStore (sem roles por enquanto)
+// >>> Identity Core com Cookie Authentication
+// Configuração Identity completa com Entity Framework - IDs string
 builder.Services
-    .AddIdentityCore<AppUser>(o =>
+    .AddIdentity<AppUser, Microsoft.AspNetCore.Identity.IdentityRole>(o =>
     {
         o.User.RequireUniqueEmail = true;
         o.Password.RequiredLength = 8;
@@ -69,47 +69,48 @@ builder.Services
         o.Password.RequireLowercase = false;
         o.Password.RequireDigit = false;
     })
-    .AddSignInManager(); 
-
-builder.Services.AddScoped<IUserStore<AppUser>, UserOnlyStore<AppUser, ApplicationDbContext, int>>();
+    .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddDefaultTokenProviders();
 
 builder.Services.AddSingleton<IPasswordHasher<AppUser>, Pbkdf2PasswordHasherAdapter>();
 
 builder.Services.AddHttpContextAccessor();
 
-builder.Services.AddAuthentication(options =>
+// Configuração de Cookie Authentication
+builder.Services.ConfigureApplicationCookie(options =>
 {
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-  .AddJwtBearer(async o =>
-  {
-      o.TokenValidationParameters = new TokenValidationParameters
-      {
-          ValidateIssuer = true,
-          ValidateAudience = true,
-          ValidateLifetime = true,
-          ValidateIssuerSigningKey = true,
-          ValidIssuer = builder.Configuration["Jwt:Issuer"],
-          ValidAudience = builder.Configuration["Jwt:Audience"],
-          IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])),
-          ClockSkew = TimeSpan.Zero
-      };
+    options.LoginPath = "/auth/login";
+    options.LogoutPath = "/auth/logout";
+    options.AccessDeniedPath = "/auth/access-denied";
+    options.ExpireTimeSpan = TimeSpan.FromHours(2);
+    options.SlidingExpiration = true;
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    options.Cookie.SameSite = SameSiteMode.None; // Necessário para CORS
+    options.Cookie.Name = "ReservaRussas.Auth";
 
-      o.Events = new JwtBearerEvents
-      {
-          OnChallenge = async context =>
-          {
-              context.HandleResponse();
+    options.Events.OnRedirectToLogin = context =>
+    {
+        if (context.Request.Path.StartsWithSegments("/api"))
+        {
+            context.Response.StatusCode = 401;
+            context.Response.Headers.Append("Content-Type", "application/json");
+            return context.Response.WriteAsync(JsonConvert.SerializeObject(new CustomResult(System.Net.HttpStatusCode.Unauthorized, false, $"Você não está autorizado a usar o endpoint [ {context.Request.Path} ].")));
+        }
+        return Task.CompletedTask;
+    };
 
-              context.Response.StatusCode = 401;
-              context.Response.Headers.Append("Content-Type", "application/json");
-              await context.Response.WriteAsync(JsonConvert.SerializeObject(new CustomResult(System.Net.HttpStatusCode.Unauthorized, false, $"Voce não está autorizado à usar o endpoint [ {context.Request.Path} ].")));
-          }
-      };
-  });
-
-
+    options.Events.OnRedirectToAccessDenied = context =>
+    {
+        if (context.Request.Path.StartsWithSegments("/api"))
+        {
+            context.Response.StatusCode = 403;
+            context.Response.Headers.Append("Content-Type", "application/json");
+            return context.Response.WriteAsync(JsonConvert.SerializeObject(new CustomResult(System.Net.HttpStatusCode.Forbidden, false, "Acesso negado.")));
+        }
+        return Task.CompletedTask;
+    };
+});
 
 //Versionamento das APIs
 builder.Services.AddApiVersioning(p =>
@@ -146,7 +147,7 @@ using (var scope = app.Services.GetRequiredService<IServiceScopeFactory>().Creat
     }
 }
 
-app.UseCors("AllowAllOrigins");
+app.UseCors("AllowCredentials");
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();

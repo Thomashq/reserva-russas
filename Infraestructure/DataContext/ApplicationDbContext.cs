@@ -1,12 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using RR.Core.Entities.Base;
 using System.Reflection;
 using RR.Core.Entities;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 namespace RR.Infraestructure.DataContext
 {
-    public class ApplicationDbContext : DbContext
+    public class ApplicationDbContext : IdentityDbContext<AppUser>
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
@@ -20,7 +20,6 @@ namespace RR.Infraestructure.DataContext
         public DbSet<Student> Student { get; set; }
         public DbSet<StudentAdvisor> StudentAdvisor { get; set; } 
         public DbSet<StudentPermission> StudentPermission { get; set; } 
-        public DbSet<AppUser> AppUser { get; set; }
         public DbSet<ReservationException> ReservationException { get; set; }
         public DbSet<ReservationSeries> ReservationSeries { get; set; }
 

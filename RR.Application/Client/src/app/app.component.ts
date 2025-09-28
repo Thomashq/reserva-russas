@@ -15,7 +15,7 @@ export class AppComponent {
   showLayout = true;
 
   constructor(private router: Router) {
-    this.router.events.subscribe(event => {
+    this.router.events.subscribe((event: any )=> {
       if (event instanceof NavigationEnd) {
         this.showLayout = !['/auth', '/auth/login', '/login', '/auth/register'].includes(event.url);
       }

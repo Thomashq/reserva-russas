@@ -1,16 +1,15 @@
 ﻿using Core.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using ReservaRussasAPI.Controllers.Base;
 using RR.Core.DTOs.Requests;
 using RR.Core.Entities;
 using RR.Core.Requests.Account;
 using RR.Core.Services;
-using System.IdentityModel.Tokens.Jwt;
+using System.Globalization;
 using System.Security.Claims;
-using System.Text;
 
 namespace ReservaRussasAPI.Controllers
 {
@@ -18,13 +17,19 @@ namespace ReservaRussasAPI.Controllers
     {
         private readonly IAuthService _authService;
         private readonly IAccountService _accountService;
-        private readonly IConfiguration _configuration;
+        private readonly SignInManager<AppUser> _signInManager;
+        private readonly UserManager<AppUser> _userManager;
 
-        public AuthController(IAuthService authService, IAccountService accountService, IConfiguration configuration)
+        public AuthController(
+            IAuthService authService,
+            IAccountService accountService,
+            SignInManager<AppUser> signInManager,
+            UserManager<AppUser> userManager)
         {
             _authService = authService;
             _accountService = accountService;
-            _configuration = configuration;
+            _signInManager = signInManager;
+            _userManager = userManager;
         }
 
         [HttpPost("login")]
@@ -32,31 +37,19 @@ namespace ReservaRussasAPI.Controllers
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
             var account = await _authService.Login(request.UserName, request.Password);
-            if (account is null)
-                return ResponseUnauthorized("Usuário ou senha inválidos");
-            var now = DateTime.UtcNow;
+            if (account is null) return ResponseUnauthorized("Usuário ou senha inválidos");
+
+            var user = await _userManager.FindByIdAsync(account.UserId.ToString());
+            if (user is null) return ResponseUnauthorized("Usuário não encontrado");
 
             var claims = new List<Claim>
             {
-                new Claim("account", JsonConvert.SerializeObject(account)),
-                new Claim(ClaimTypes.NameIdentifier, account.UserId.ToString()),
-                new Claim(JwtRegisteredClaimNames.Jti , Guid.NewGuid().ToString()),
-                new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString()),
+                new Claim(ClaimTypes.NameIdentifier, user.Id),
+                new Claim("accountId", account.Id.ToString(CultureInfo.InvariantCulture))
             };
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("reserva-russas-token-auth-chave-autenticacao-token-jwt-handler-auto"));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-            var token = new JwtSecurityToken(
-                issuer: "reservas-russas",
-                audience: "sistema",
-                claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(30),
-                signingCredentials: creds
-            );
-            var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
-            // retorna só o token puro (string)
-            return ResponseOk(tokenString);
+            await _signInManager.SignInWithClaimsAsync(user, isPersistent: false, claims);
+            return ResponseOk("Login realizado com sucesso");
         }
 
         [HttpPost("register")]
@@ -76,88 +69,44 @@ namespace ReservaRussasAPI.Controllers
             return ResponseCreated(resp);
         }
 
-        [HttpPost("refresh-token")]
-        [AllowAnonymous]
-        public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest? request)
+        [HttpGet("me")]
+        [Authorize]
+        public async Task<IActionResult> GetCurrentUser()
         {
-            var tokenString = request?.Token;
-            if (string.IsNullOrWhiteSpace(tokenString))
-            {
-                var authHeader = HttpContext.Request.Headers["Authorization"].ToString();
-                tokenString = authHeader.StartsWith("Bearer ") ? authHeader[7..] : authHeader;
-            }
+            var accountIdStr = User.FindFirst("accountId")?.Value;
+            if (!int.TryParse(accountIdStr, NumberStyles.Integer, CultureInfo.InvariantCulture, out var accountId))
+                return ResponseUnauthorized("Usuário não autenticado");
 
-            if (string.IsNullOrWhiteSpace(tokenString))
-                return ResponseUnauthorized("Token não informado");
+            var currentAccount = await _accountService.GetByIdAsync(accountId);
+            if (currentAccount is null)
+                return ResponseUnauthorized("Usuário não encontrado");
 
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var keyBytes = Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]);
-            var validationParameters = new TokenValidationParameters
-            {
-                ValidateIssuerSigningKey = true,
-                IssuerSigningKey = new SymmetricSecurityKey(keyBytes),
-                ValidateIssuer = true,
-                ValidIssuer = _configuration["Jwt:Issuer"],
-                ValidateAudience = true,
-                ValidAudience = _configuration["Jwt:Audience"],
-                ValidateLifetime = false,
-                ClockSkew = TimeSpan.Zero
-            };
-
-            try
-            {
-                var principal = tokenHandler.ValidateToken(tokenString, validationParameters, out var validatedToken);
-
-                if (validatedToken is not JwtSecurityToken jwt ||
-                    !jwt.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.OrdinalIgnoreCase))
-                {
-                    return ResponseUnauthorized("Falha ao tentar renovar o token");
-                }
-
-                var userIdStr = principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value
-                             ?? principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-                if (string.IsNullOrWhiteSpace(userIdStr) || !int.TryParse(userIdStr, out var userId))
-                    return ResponseUnauthorized("Token inválido");
-
-                var account = await _accountService.GetByUserIdAsync(userId);
-                if (account is null)
-                    return ResponseUnauthorized("Usuário não encontrado");
-
-                var newToken = GenerateJwtToken(account);
-                // retorna só o token puro
-                return ResponseOk(newToken);
-            }
-            catch
-            {
-                return ResponseUnauthorized("Falha ao tentar renovar o token");
-            }
+            return ResponseOk(currentAccount);
         }
 
-        private string GenerateJwtToken(Account account)
+        [HttpPost("logout")]
+        [Authorize]
+        public async Task<IActionResult> Logout()
         {
-            var now = DateTime.UtcNow;
+            await _signInManager.SignOutAsync();
+            return ResponseOk("Logout realizado com sucesso");
+        }
 
-            var claims = new List<Claim>
+        [HttpGet("check")]
+        [AllowAnonymous]
+        public async Task<IActionResult> CheckAuthStatus()
+        {
+            if (User.Identity?.IsAuthenticated == true)
             {
-                new Claim("account", JsonConvert.SerializeObject(account)),
-                new Claim(ClaimTypes.NameIdentifier, account.UserId.ToString()),
-                new Claim(JwtRegisteredClaimNames.Jti , Guid.NewGuid().ToString()),
-                new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString()),
-            };
+                var accountIdStr = User.FindFirst("accountId")?.Value;
+                if (int.TryParse(accountIdStr, NumberStyles.Integer, CultureInfo.InvariantCulture, out var accountId))
+                {
+                    var account = await _accountService.GetByIdAsync(accountId);
+                    return ResponseOk(new { isAuthenticated = true, account });
+                }
+            }
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-            var token = new JwtSecurityToken(
-                issuer: _configuration["Jwt:Issuer"],
-                audience: _configuration["Jwt:Audience"],
-                claims: claims,
-                expires: now.AddHours(2),
-                signingCredentials: creds
-            );
-
-            return new JwtSecurityTokenHandler().WriteToken(token);
+            return ResponseOk(new { isAuthenticated = false, account = (object?)null });
         }
     }
 }

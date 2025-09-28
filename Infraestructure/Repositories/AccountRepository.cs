@@ -28,7 +28,7 @@ namespace RR.Infrastructure.Repositories
                 .FirstOrDefaultAsync();
         }
 
-        public async Task<Account?> GetByUserIdAsync(int userId)
+        public async Task<Account?> GetByUserIdAsync(string userId)
         {
             return await _context.Account
                 .Where(a => a.IsActive && a.UserId == userId)

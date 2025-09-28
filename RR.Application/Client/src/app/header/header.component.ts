@@ -17,10 +17,10 @@ export class HeaderComponent {
 
   constructor(private router: Router, private authService: AuthService) { }
 
-  // Alinhado ao AuthService atual
   get isAuth(): boolean {
     return this.authService.isLoggedIn();
   }
+
   get userName(): string {
     return this.authService.Account?.userName ?? '';
   }
