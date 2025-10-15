@@ -1,27 +1,29 @@
 import { BaseModel } from "./base-model";
 
 export interface Reservations extends BaseModel{
-  roomId: number;
-  accountId: number;
-  title: string;
-  description?: string;
-  seriesId?: number | null;
-  origin?: number; // EReservationOrigin
-  status?: number; // 0=criado 1=aprovado 2=rejeitado/cancelado
-  startTime: string; // enviar 'YYYY-MM-DDTHH:mm:ss' (sem Z)
-  endTime: string;
+  Id: number;
+  RoomId: number;
+  AccountId: number;
+  Title: string;
+  Description?: string;
+  SeriesId?: number | null;
+  Origin?: number; // EReservationOrigin
+  Status?: number; // 0=criado 1=aprovado 2=rejeitado/cancelado
+  StartTime: string; // enviar 'YYYY-MM-DDTHH:mm:ss' (sem Z)
+  EndTime: string;
 }
 
 export interface ReservationsSeries extends BaseModel {
-  roomId: number;
-  accountId: number;
-  title: string;
-  description?: string;
-  windowStart: string; // enviar 'YYYY-MM-DDTHH:mm:ss' (sem Z)
-  windowEnd: string; // enviar 'YYYY-MM-DDTHH:mm:ss' (sem Z)
-  recurrenceRule: string; // iCal RRULE
-  daysOfWeek: string; // e.g. 'MO,TU,WE,TH,FR'
-  timeStart: string; // enviar 'HH:mm:ss'
-  timeEnd: string; // enviar 'HH:mm:ss'
-  seriesStatus?: number; // 0=criado 1=aceito
+  Id: number;
+  RoomId: number;
+  AccountId: number;
+  Title: string;
+  Description?: string;
+  WindowStart: string; // enviar 'YYYY-MM-DDTHH:mm:ss' (sem Z)
+  WindowEnd: string; // enviar 'YYYY-MM-DDTHH:mm:ss' (sem Z)
+  RecurrenceRule: string; // iCal RRULE
+  DaysOfWeek: string; // e.g. 'MO,TU,WE,TH,FR'
+  TimeStart: string; // enviar 'HH:mm:ss'
+  TimeEnd: string; // enviar 'HH:mm:ss'
+  SeriesStatus?: number; // 0=criado 1=aceito
 }

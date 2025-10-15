@@ -7,13 +7,12 @@
       <form [formGroup]="frmCreateReservation" (ngSubmit)="onReservationSubmit()" class="form">
         <div class="grid">
           <mat-form-field>
-            <mat-label>Sala (ID)</mat-label>
-            <input matInput type="number" formControlName="roomId" required>
-          </mat-form-field>
-
-          <mat-form-field>
-            <mat-label>Conta (ID)</mat-label>
-            <input matInput type="number" formControlName="accountId" required>
+            <mat-label>Sala</mat-label>
+            <mat-select formControlName="roomId">
+              <mat-option *ngFor="let room of roomList" [value]="room.Id">
+                {{ room.Name }}
+              </mat-option>
+            </mat-select>
           </mat-form-field>
 
           <mat-form-field class="full">
@@ -79,13 +78,12 @@
       <form [formGroup]="frmCreateReservationSeries" (ngSubmit)="onReservationSeriesSubmit()" class="form">
         <div class="grid">
           <mat-form-field>
-            <mat-label>Conta (ID)</mat-label>
-            <input matInput type="number" formControlName="accountId" required>
-          </mat-form-field>
-
-          <mat-form-field>
-            <mat-label>Sala padrão (ID)</mat-label>
-            <input matInput type="number" formControlName="defaultRoomId" required>
+            <mat-label>Sala padrão</mat-label>
+            <mat-select formControlName="defaultRoomId">
+              <mat-option *ngFor="let room of roomList" [value]="room.Id">
+                {{ room.Name }} 
+              </mat-option>
+            </mat-select>
           </mat-form-field>
 
           <mat-form-field class="full">
@@ -124,7 +122,9 @@
           <mat-form-field>
             <mat-label>Dias da semana</mat-label>
             <mat-select formControlName="daysOfWeek" multiple>
-              <mat-option *ngFor="let d of weekdays" [value]="d.value">{{ d.label }}</mat-option>
+              <mat-option *ngFor="let d of weekdays" [value]="d.value">
+                {{ d.label }}
+              </mat-option>
             </mat-select>
           </mat-form-field>
 

@@ -6,11 +6,12 @@ import { CommonModule } from '@angular/common';
 // footer.component.ts
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
+import { MatToolbarModule } from '@angular/material/toolbar';
 
 @Component({
   selector: 'app-footer',
   templateUrl: './footer.component.html',
-  imports: [MatTooltipModule, MatButtonModule, MatIconModule, CommonModule, RouterModule],
+  imports: [MatTooltipModule, MatButtonModule, MatIconModule, CommonModule, RouterModule, MatToolbarModule],
   styleUrls: ['./footer.component.css']
 })
 export class FooterComponent {

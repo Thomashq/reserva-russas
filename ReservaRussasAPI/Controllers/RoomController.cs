@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ReservaRussasAPI.Controllers.Base;
+using RR.Core.DTOs.Requests;
 using RR.Core.Entities;
 using RR.Core.Services;
 
@@ -45,13 +46,21 @@ namespace ReservaRussasAPI.Controllers
             }
         }
         [HttpPost]
-        public async Task<IActionResult> AddAsync([FromBody] Rooms room)
+        public async Task<IActionResult> AddAsync([FromBody] CreateRoomRequest room)
         {
             try
             {
                 if (room == null)
                     return ResponseBadRequest("Room data is required");
-                var createdRoom = await _roomService.AddAsync(room);
+
+                Rooms entity = new Rooms
+                {
+                    Name = room.Name,
+                    Capacity = room.Capacity,
+                    ManagerId = room.ManagerId
+                };
+
+                var createdRoom = await _roomService.AddAsync(entity);
                 return ResponseOk(createdRoom);
             }
             catch (Exception ex)

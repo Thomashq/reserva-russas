@@ -104,16 +104,13 @@ export class AuthService {
   }
 
   logout(): Observable<any> {
-    return this.http.post(this.url_controller + "/logout", {}, {
-      withCredentials: true
-    }).pipe(
+    return this.http.post(this.url_controller + "/logout", {}).pipe(
       tap(() => {
         this.currentUserSubject.next(null);
         this.account = {};
         this.router.navigate(['/auth/login']);
       }),
       catchError(() => {
-        // Mesmo se der erro na API, limpa localmente
         this.currentUserSubject.next(null);
         this.account = {};
         this.router.navigate(['/auth/login']);

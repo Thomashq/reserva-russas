@@ -1,0 +1,20 @@
+.app-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+main {
+  flex: 1;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+/* Para telas menores */
+@media (max-width: 768px) {
+  main {
+    padding: 1rem;
+  }
+}

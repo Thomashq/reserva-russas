@@ -14,6 +14,7 @@ import { PeriodRequest } from '../../../domain/dto/request/ReservationRequest';
 import { DateOffset } from '../../../domain/shared/utils/date-offset.util';
 import { ReservationNewDialogComponent } from '../reservation-new-dialog/reservation-new-dialog.component';
 import { AuthService } from '../../../auth/auth.service'
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-reservation-list',
@@ -34,12 +35,13 @@ import { AuthService } from '../../../auth/auth.service'
 export class ReservationListComponent implements OnInit {
   isLoading = false;
   reservations: Reservations[] = [];
-  displayedColumns = ['title', 'room', 'start', 'end', 'actions'];
-
+  displayedColumns: string[] = ['title', 'room', 'start', 'end', 'actions'];
+ 
   constructor(
     private reservationService: ReservationService,
     private dialog: MatDialog,
-    private authService: AuthService
+    private authService: AuthService,
+    private snackBar: MatSnackBar
   ) { }
 
   ngOnInit(): void {
@@ -75,17 +77,21 @@ export class ReservationListComponent implements OnInit {
   }
 
   openNewReservationDialog(): void {
-    const dialogRef = this.dialog.open(ReservationNewDialogComponent, {
-      width: '800px',
-      maxHeight: '90vh',
-      disableClose: true
-    });
+    const isLoggedIn = this.authService.isLoggedIn();
+    if (isLoggedIn) {
+      const dialogRef = this.dialog.open(ReservationNewDialogComponent, {
+        width: '800px',
+        maxHeight: '90vh',
+        disableClose: true
+      });
 
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        // Refresh the list if a reservation was created
-        this.loadCurrentWeek();
-      }
-    });
+      dialogRef.afterClosed().subscribe(result => {
+        if (result) {
+          this.loadCurrentWeek();
+        }
+      });
+    } else {
+      this.snackBar.open('O usuário precisa estar autenticado','Fechar', { duration: 5000 });
+    }
   }
 }

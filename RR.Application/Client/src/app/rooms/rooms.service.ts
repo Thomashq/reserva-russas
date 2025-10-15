@@ -2,6 +2,7 @@ import { HttpClient } from "@angular/common/http";
 import { Inject, Injectable } from "@angular/core";
 import { Rooms } from "../domain/models/rooms";
 import { Reservations } from "../domain/models/reservations";
+import { CreateRoomRequest } from "../domain/dto/request/RoomsRequest";
 
 @Injectable({ providedIn: 'root' })
 
@@ -29,7 +30,7 @@ export class RoomsService {
     return this.http.get<Reservations[]>(this.baseUrl + 'period/' + id + '?start=' + start + '&end=' + end);
   }
 
-  AddAsync(room: Rooms) {
+  AddAsync(room: CreateRoomRequest) {
     return this.http.post<Rooms>(this.baseUrl, room);
   }
 
@@ -38,7 +39,7 @@ export class RoomsService {
   }
 
   UpdateAsync(room: Rooms) {
-    return this.http.put<Rooms>(this.baseUrl + room.Id, room);
+    return this.http.put<Rooms>(this.baseUrl + room.id, room);
   }
   
 }

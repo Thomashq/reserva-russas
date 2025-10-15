@@ -2,9 +2,12 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../auth/auth.service';
+import { Subject, takeUntil } from 'rxjs';
+import { Account } from '../domain/models/account';
+import { HeaderService } from './header.service';
 
 @Component({
   selector: 'app-header',
@@ -13,25 +16,74 @@ import { AuthService } from '../auth/auth.service';
   imports: [MatButtonModule, MatToolbarModule, CommonModule, RouterModule],
   styleUrls: ['./header.component.css']
 })
-export class HeaderComponent {
-
-  constructor(private router: Router, private authService: AuthService) { }
-
-  get isAuth(): boolean {
-    return this.authService.isLoggedIn();
-  }
+export class HeaderComponent implements OnInit, OnDestroy {
+  account: Account | null = null;
+  isAuth: boolean = false;
+  private destroy$ = new Subject<void>();
 
   get userName(): string {
-    return this.authService.Account?.userName ?? '';
+    return this.account?.UserName || this.account?.Mail || 'Usuário';
+  }
+
+  constructor(
+    private router: Router,
+    private headerService: HeaderService,
+    private authService: AuthService,
+  ) { }
+
+  ngOnInit(): void {
+    this.authService.currentUser$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (account) => {
+          this.account = account;
+          this.isAuth = !!account && Object.keys(account).length > 0;
+        },
+        error: (error) => {
+          this.account = null;
+          this.isAuth = false;
+        }
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   // Navegação
-  navigateToInfo(): void { this.router.navigate(['/']); }
-  navigateToAbout(): void { /* placeholder */ console.log('Navegando para Sobre'); }
-  navigateToRooms(): void { this.router.navigate(['/room/list']); }
-  navigateToContact(): void { /* placeholder */ console.log('Navegando para Contato'); }
+  navigateToInfo(): void {
+    this.router.navigate(['/']);
+  }
 
-  register(): void { this.router.navigate(['/auth/register']); }
-  login(): void { this.router.navigate(['/auth/login']); }
-  logout(): void { this.authService.logout(); }
+  navigateToAbout(): void {
+    console.log('Navegando para Sobre');
+  }
+
+  navigateToRooms(): void {
+    this.router.navigate(['/room/list']);
+  }
+
+  navigateToContact(): void {
+    console.log('Navegando para Contato');
+  }
+
+  register(): void {
+    this.router.navigate(['/auth/register']);
+  }
+
+  login(): void {
+    this.router.navigate(['/auth/login']);
+  }
+
+  logout(): void {
+    this.authService.logout().subscribe({
+      next: () => {
+        this.router.navigate(['/auth/login']);
+      },
+      error: (error) => {
+        this.router.navigate(['/auth/login']);
+      }
+    });
+  }
 }
