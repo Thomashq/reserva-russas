@@ -6,7 +6,7 @@ public class Account : BaseEntity
 {
     public int Id { get; set; }
 
-    public int UserId { get; set; } // conexão com o appuser para aspnet identity
+    public string UserId { get; set; } // conexão com o appuser para aspnet identity
 
     public string UserName {get; set;}
 
@@ -17,6 +17,7 @@ public class Account : BaseEntity
     public int AccountPermission { get; set; }
 
     //propriedade de navegação
+    public AppUser AppUser { get; set; }
     public virtual Manager? Manager { get; set; }
     public virtual Servant? Servant { get; set; }
     public virtual Student? Student { get; set; }

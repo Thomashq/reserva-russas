@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, FormsModule } from '@angular/forms';
 import { MatDialogRef } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { CommonModule } from '@angular/common';
@@ -14,11 +14,13 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthService } from '../../../auth/auth.service';
 import { CreateReservationRequest } from '../../../domain/dto/request/ReservationRequest';
 import { ReservationService } from '../reservation.service';
-import { finalize } from 'rxjs';
+import { finalize, Subject, takeUntil } from 'rxjs';
 import { CreateSeriesRequest } from '../../../domain/dto/request/CreateSeriesRequest';
 import { ReservationSeriesService } from '../reservation-series.service';
 import { DateOffset } from '../../../domain/shared/utils/date-offset.util';
-
+import { Account } from '../../../domain/models/account';
+import { RoomsService } from '../../../rooms/rooms.service';
+import { Rooms } from '../../../domain/models/rooms'; 
 @Component({
   selector: 'app-reservation-new-dialog',
   standalone: true,
@@ -32,7 +34,8 @@ import { DateOffset } from '../../../domain/shared/utils/date-offset.util';
     MatButtonModule,
     MatDatepickerModule,
     MatSelectModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    FormsModule
   ],
   templateUrl: './reservation-new-dialog.component.html',
   styleUrls: ['./reservation-new-dialog.component.css']
@@ -56,6 +59,10 @@ export class ReservationNewDialogComponent implements OnInit {
   private _endDate: Date | null = null;
   startTimeDisplay = '';
   endTimeDisplay = '';
+  account: Account | null = null;
+  accountId: number = 0;
+  roomList: Rooms[] = [];
+  private destroy$ = new Subject<void>();
 
   constructor(
     private dialogRef: MatDialogRef<ReservationNewDialogComponent>,
@@ -63,13 +70,14 @@ export class ReservationNewDialogComponent implements OnInit {
     private reservationSeriesService: ReservationSeriesService,
     private fb: FormBuilder,
     private authService: AuthService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private roomService: RoomsService
   ) { }
 
   ngOnInit(): void {
     this.frmCreateReservation = this.fb.group({
       roomId: [null, Validators.required],
-      accountId: [null, Validators.required],
+      //accountId: [null, Validators.required],
       title: ['', Validators.required],
       description: [''],
       startTime: ['', Validators.required],
@@ -77,7 +85,7 @@ export class ReservationNewDialogComponent implements OnInit {
     });
 
     this.frmCreateReservationSeries = this.fb.group({
-      accountId: [null, Validators.required],
+      //accountId: [null, Validators.required],
       defaultRoomId: [null, Validators.required],
       title: ['', Validators.required],
       description: [''],
@@ -89,6 +97,19 @@ export class ReservationNewDialogComponent implements OnInit {
       timeEnd: ['', Validators.required],
       interval: [1]
     });
+
+    this.authService.currentUser$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (account) => {
+          this.account = account;
+        },
+        error: (error) => {
+          this.account = null;
+        }
+      });
+
+    this.loadRooms();
   }
 
   onDateChange(which: 'start' | 'end', date: Date | null): void {
@@ -123,12 +144,17 @@ export class ReservationNewDialogComponent implements OnInit {
 
     this.isLoading = true;
     const reservation: CreateReservationRequest = this.frmCreateReservation.value;
+    console.log(this.account?.Id)
+    this.accountId = this.account?.Id || 0;
+
+    reservation.accountId = this.accountId;
+
     this.reservationService.CreateReservation(reservation).pipe(
       finalize(() => this.isLoading = false)
     ).subscribe({
       next: () => {
         this.snackBar.open('Reserva criada com sucesso!', 'Fechar', { duration: 3000 });
-        this.dialogRef.close(true); // Return true to indicate success
+        this.dialogRef.close(true); 
       },
       error: (err) => {
         this.snackBar.open('Erro ao criar reserva: ' + err.message, 'Fechar', { duration: 5000 });
@@ -157,6 +183,10 @@ export class ReservationNewDialogComponent implements OnInit {
 
     this.isLoading = true;
     const reservationSeries: CreateSeriesRequest = this.frmCreateReservationSeries.value;
+    this.accountId = this.account?.id || 0;
+
+    reservationSeries.accountId = this.accountId;
+
     this.reservationSeriesService.CreateSeries(reservationSeries).pipe(
       finalize(() => this.isLoading = false)
     ).subscribe({
@@ -172,5 +202,20 @@ export class ReservationNewDialogComponent implements OnInit {
 
   onCancel(): void {
     this.dialogRef.close(false);
+  }
+
+  private loadRooms(): void {
+    this.roomService.GetAll()
+      .subscribe({
+        next: (rooms) => {
+          rooms.forEach(room => {
+            this.roomList.push(room);
+            console.log(this.roomList)
+          })
+        },
+        error: (err) => {
+          this.snackBar.open('Erro ao carregar salas: ' + err.message, 'Fechar', { duration: 5000 });
+        }
+    })
   }
 }

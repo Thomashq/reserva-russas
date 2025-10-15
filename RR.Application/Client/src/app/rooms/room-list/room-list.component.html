@@ -1,17 +1,45 @@
 <mat-card>
-  <mat-card-title>Salas</mat-card-title>
+  <mat-card-title>
+    Salas
+    <button mat-raised-button color="primary" (click)="openNewRoomDialog()" style="float: right;">
+      Nova Sala
+    </button>
+  </mat-card-title>
+
   <mat-card-content>
     <ng-container *ngIf="!isLoading; else loading">
-      <mat-nav-list *ngIf="rooms?.length; else empty">
-        <a mat-list-item *ngFor="let r of rooms" (click)="openRoom(r)">
-          <div matLine>{{ r.name }}</div>
-          <div matLine>Capacidade: {{ r.capacity }}</div>
-          <button mat-stroked-button (click)="$event.stopPropagation(); newReservation(r)">
-            Reservar nesta sala
-          </button>
-        </a>
-      </mat-nav-list>
+      <table mat-table [dataSource]="rooms" *ngIf="rooms?.length; else empty">
+
+        <!-- name -->
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef>Nome</th>
+          <td mat-cell *matCellDef="let room">
+            {{ (room.name ?? room.Name) || '—' }}
+          </td>
+        </ng-container>
+
+        <!-- capacity -->
+        <ng-container matColumnDef="capacity">
+          <th mat-header-cell *matHeaderCellDef>Capacidade</th>
+          <td mat-cell *matCellDef="let room">
+            {{ (room.capacity ?? room.Capacity) ?? 0 }}
+          </td>
+        </ng-container>
+
+        <!-- actions -->
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef>Ações</th>
+          <td mat-cell *matCellDef="let room">
+            <button mat-button color="primary" (click)="openRoom(room)">Ver</button>
+            <button mat-stroked-button (click)="newReservation(room)">Reservar</button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
     </ng-container>
+
     <ng-template #loading>Carregando...</ng-template>
     <ng-template #empty>Nenhuma sala encontrada.</ng-template>
   </mat-card-content>

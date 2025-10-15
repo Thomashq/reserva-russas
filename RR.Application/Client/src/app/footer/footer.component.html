@@ -1,56 +1,81 @@
-<footer class="footer-container">
-  <div class="footer-content">
-    <div class="footer-section">
-      <mat-icon>place</mat-icon>
-      <div>
-        <p>Endereço Aqui, 465,78</p>
-        <button mat-button (click)="openMaps()">Ver no mapa</button>
-      </div>
-    </div>
-
-    <div class="footer-section">
-      <mat-icon>phone</mat-icon>
-      <div>
-        <button mat-button (click)="callPhone('123345456')">123345456</button>
-        <button mat-button (click)="callPhone('123345456')">123345456</button>
-      </div>
-    </div>
-
-    <div class="footer-section">
-      <mat-icon>chat</mat-icon>
-      <div>
-        <button mat-button (click)="openWhatsApp('123345456')">123345456</button>
-      </div>
-    </div>
-
-    <div class="footer-section">
-      <mat-icon>link</mat-icon>
-      <ul>
-        <li><button mat-button (click)="navigateToInfo()">Início</button></li>
-        <li><button mat-button (click)="navigateToAbout()">Sobre</button></li>
-        <li><button mat-button (click)="navigateToRooms()">Salas</button></li>
-        <li><button mat-button (click)="navigateToContact()">Contato</button></li>
-      </ul>
-    </div>
-
-    <div class="footer-section">
-      <mat-icon>thumb_up</mat-icon>
-      <div class="social-links">
-        <button mat-icon-button (click)="openInstagram()" matTooltip="Instagram">
-          <mat-icon>camera_alt</mat-icon>
+<footer>
+  <mat-toolbar color="primary" class="footer-toolbar">
+    <div class="footer-content">
+      <div class="footer-section">
+        <div class="section-header">
+          <mat-icon>place</mat-icon>
+          <h3>Localização</h3>
+        </div>
+        <p>Endereço Aqui, 465, 78</p>
+        <button mat-button (click)="openMaps()">
+          <mat-icon>map</mat-icon>
+          Ver no mapa
         </button>
-        <button mat-icon-button (click)="openWhatsApp('123345456')" matTooltip="WhatsApp">
+      </div>
+
+      <div class="footer-section">
+        <div class="section-header">
+          <mat-icon>phone</mat-icon>
+          <h3>Telefones</h3>
+        </div>
+        <button mat-button (click)="callPhone('123345456')">
+          <mat-icon>call</mat-icon>
+          123345456
+        </button>
+        <button mat-button (click)="callPhone('123345456')">
+          <mat-icon>call</mat-icon>
+          123345456
+        </button>
+      </div>
+
+      <div class="footer-section">
+        <div class="section-header">
           <mat-icon>chat</mat-icon>
-        </button>
-        <button mat-icon-button (click)="openTwitter()" matTooltip="Twitter">
-          <mat-icon>alternate_email</mat-icon>
+          <h3>WhatsApp</h3>
+        </div>
+        <button mat-button (click)="openWhatsApp('123345456')">
+          <mat-icon>WhatsApp</mat-icon>
+          123345456
         </button>
       </div>
-    </div>
 
-    <div class="footer-bottom">
-      <mat-icon class="me-1">copyright</mat-icon>
-      <p>{{ currentYear }} - Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore.</p>
+      <div class="footer-section">
+        <div class="section-header">
+          <mat-icon>link</mat-icon>
+          <h3>Links</h3>
+        </div>
+        <nav class="footer-links">
+          <button mat-button (click)="navigateToInfo()">Início</button>
+          <button mat-button (click)="navigateToAbout()">Sobre</button>
+          <button mat-button (click)="navigateToRooms()">Salas</button>
+          <button mat-button (click)="navigateToContact()">Contato</button>
+        </nav>
+      </div>
+
+      <div class="footer-section">
+        <div class="section-header">
+          <mat-icon>share</mat-icon>
+          <h3>Redes Sociais</h3>
+        </div>
+        <div class="social-links">
+          <button mat-icon-button (click)="openInstagram()" matTooltip="Instagram">
+            <mat-icon>camera_alt</mat-icon>
+          </button>
+          <button mat-icon-button (click)="openWhatsApp('123345456')" matTooltip="WhatsApp">
+            <mat-icon>chat</mat-icon>
+          </button>
+          <button mat-icon-button (click)="openTwitter()" matTooltip="Twitter">
+            <mat-icon>alternate_email</mat-icon>
+          </button>
+        </div>
+      </div>
     </div>
+  </mat-toolbar>
+
+  <div class="footer-bottom">
+    <span class="copyright-text">
+      <mat-icon>copyright</mat-icon>
+      <span>{{ currentYear }} - Lorem ipsum dolor sit amet, consectetur adipiscing elit.</span>
+    </span>
   </div>
 </footer>

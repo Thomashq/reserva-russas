@@ -17,10 +17,164 @@ namespace RR.Infraestructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.8")
+                .HasAnnotation("ProductVersion", "9.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("text")
+                        .HasColumnName("id");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .HasColumnType("text")
+                        .HasColumnName("concurrency_stamp");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("NormalizedName")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("normalized_name");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedName")
+                        .IsUnique()
+                        .HasDatabaseName("RoleNameIndex");
+
+                    b.ToTable("asp_net_roles", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ClaimType")
+                        .HasColumnType("text")
+                        .HasColumnName("claim_type");
+
+                    b.Property<string>("ClaimValue")
+                        .HasColumnType("text")
+                        .HasColumnName("claim_value");
+
+                    b.Property<string>("RoleId")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("role_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RoleId");
+
+                    b.ToTable("asp_net_role_claims", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ClaimType")
+                        .HasColumnType("text")
+                        .HasColumnName("claim_type");
+
+                    b.Property<string>("ClaimValue")
+                        .HasColumnType("text")
+                        .HasColumnName("claim_value");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("asp_net_user_claims", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
+                {
+                    b.Property<string>("LoginProvider")
+                        .HasColumnType("text")
+                        .HasColumnName("login_provider");
+
+                    b.Property<string>("ProviderKey")
+                        .HasColumnType("text")
+                        .HasColumnName("provider_key");
+
+                    b.Property<string>("ProviderDisplayName")
+                        .HasColumnType("text")
+                        .HasColumnName("provider_display_name");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("LoginProvider", "ProviderKey");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("asp_net_user_logins", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("text")
+                        .HasColumnName("user_id");
+
+                    b.Property<string>("RoleId")
+                        .HasColumnType("text")
+                        .HasColumnName("role_id");
+
+                    b.HasKey("UserId", "RoleId");
+
+                    b.HasIndex("RoleId");
+
+                    b.ToTable("asp_net_user_roles", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("text")
+                        .HasColumnName("user_id");
+
+                    b.Property<string>("LoginProvider")
+                        .HasColumnType("text")
+                        .HasColumnName("login_provider");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("text")
+                        .HasColumnName("name");
+
+                    b.Property<string>("Value")
+                        .HasColumnType("text")
+                        .HasColumnName("value");
+
+                    b.HasKey("UserId", "LoginProvider", "Name");
+
+                    b.ToTable("asp_net_user_tokens", (string)null);
+                });
 
             modelBuilder.Entity("RR.Core.Entities.Account", b =>
                 {
@@ -66,8 +220,10 @@ namespace RR.Infraestructure.Migrations
                         .HasColumnName("updated_at")
                         .HasDefaultValueSql("NOW()");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer")
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
                         .HasColumnName("user_id");
 
                     b.Property<string>("UserName")
@@ -92,6 +248,10 @@ namespace RR.Infraestructure.Migrations
                         .HasDatabaseName("ix_account_phone")
                         .HasFilter("phone IS NOT NULL");
 
+                    b.HasIndex("UserId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_account_user_id_unique");
+
                     b.HasIndex("UserName")
                         .IsUnique()
                         .HasDatabaseName("ix_account_user_name");
@@ -101,22 +261,17 @@ namespace RR.Infraestructure.Migrations
 
             modelBuilder.Entity("RR.Core.Entities.AppUser", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
+                    b.Property<string>("Id")
+                        .HasColumnType("text")
                         .HasColumnName("id");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
                     b.Property<int>("AccessFailedCount")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasDefaultValue(0)
                         .HasColumnName("access_failed_count");
 
                     b.Property<string>("ConcurrencyStamp")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
+                        .IsConcurrencyToken()
+                        .HasColumnType("text")
                         .HasColumnName("concurrency_stamp");
 
                     b.Property<DateTime>("CreatedAt")
@@ -131,14 +286,11 @@ namespace RR.Infraestructure.Migrations
                         .HasColumnName("email");
 
                     b.Property<bool>("EmailConfirmed")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
-                        .HasDefaultValue(false)
                         .HasColumnName("email_confirmed");
 
                     b.Property<string>("FullName")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
+                        .HasColumnType("text")
                         .HasColumnName("full_name");
 
                     b.Property<bool>("IsActive")
@@ -148,9 +300,7 @@ namespace RR.Infraestructure.Migrations
                         .HasColumnName("is_active");
 
                     b.Property<bool>("LockoutEnabled")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
-                        .HasDefaultValue(false)
                         .HasColumnName("lockout_enabled");
 
                     b.Property<DateTimeOffset?>("LockoutEnd")
@@ -172,25 +322,19 @@ namespace RR.Infraestructure.Migrations
                         .HasColumnName("password_hash");
 
                     b.Property<string>("PhoneNumber")
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)")
+                        .HasColumnType("text")
                         .HasColumnName("phone_number");
 
                     b.Property<bool>("PhoneNumberConfirmed")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
-                        .HasDefaultValue(false)
                         .HasColumnName("phone_number_confirmed");
 
                     b.Property<string>("SecurityStamp")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
+                        .HasColumnType("text")
                         .HasColumnName("security_stamp");
 
                     b.Property<bool>("TwoFactorEnabled")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
-                        .HasDefaultValue(false)
                         .HasColumnName("two_factor_enabled");
 
                     b.Property<DateTime>("UpdatedAt")
@@ -207,19 +351,19 @@ namespace RR.Infraestructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CreatedAt")
-                        .HasDatabaseName("ix_rr_users_created_at");
+                        .HasDatabaseName("ix_asp_net_users_created_at");
 
                     b.HasIndex("IsActive")
-                        .HasDatabaseName("ix_rr_users_is_active");
+                        .HasDatabaseName("ix_asp_net_users_is_active");
 
                     b.HasIndex("NormalizedEmail")
-                        .HasDatabaseName("ix_rr_users_normalized_email");
+                        .HasDatabaseName("EmailIndex");
 
                     b.HasIndex("NormalizedUserName")
                         .IsUnique()
-                        .HasDatabaseName("ux_rr_users_normalized_user_name");
+                        .HasDatabaseName("UserNameIndex");
 
-                    b.ToTable("rr_users", (string)null);
+                    b.ToTable("asp_net_users", (string)null);
                 });
 
             modelBuilder.Entity("RR.Core.Entities.Manager", b =>
@@ -814,6 +958,68 @@ namespace RR.Infraestructure.Migrations
                     b.ToTable("student_permission");
                 });
 
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
+                {
+                    b.HasOne("RR.Core.Entities.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
+                {
+                    b.HasOne("RR.Core.Entities.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("RR.Core.Entities.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
+                {
+                    b.HasOne("RR.Core.Entities.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("RR.Core.Entities.Account", b =>
+                {
+                    b.HasOne("RR.Core.Entities.AppUser", "AppUser")
+                        .WithOne("Account")
+                        .HasForeignKey("RR.Core.Entities.Account", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AppUser");
+                });
+
             modelBuilder.Entity("RR.Core.Entities.Manager", b =>
                 {
                     b.HasOne("RR.Core.Entities.Account", "Account")
@@ -978,6 +1184,12 @@ namespace RR.Infraestructure.Migrations
                     b.Navigation("Servant");
 
                     b.Navigation("Student");
+                });
+
+            modelBuilder.Entity("RR.Core.Entities.AppUser", b =>
+                {
+                    b.Navigation("Account")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("RR.Core.Entities.Manager", b =>

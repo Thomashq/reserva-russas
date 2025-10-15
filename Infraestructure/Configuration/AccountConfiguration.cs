@@ -24,6 +24,11 @@ namespace RR.Infrastructure.Configurations
                 .HasMaxLength(100)
                 .IsRequired();
 
+            builder.Property(x => x.UserId)
+                .HasColumnName("user_id")
+                .HasMaxLength(300)
+                .IsRequired(); // <- tornar obrigatório para 1:1
+
             // Mail configuration
             builder.Property(x => x.Mail)
                 .HasColumnName("mail")
@@ -55,8 +60,19 @@ namespace RR.Infrastructure.Configurations
                 .HasDatabaseName("ix_account_phone")
                 .HasFilter("phone IS NOT NULL"); // Índice parcial apenas para valores não nulos
 
+            builder.HasIndex(x => x.UserId)
+                .IsUnique()
+                .HasDatabaseName("ix_account_user_id_unique");
+
             // Constraints personalizadas podem ser adicionadas via migrations se necessário
             // Para validar o tamanho mínimo da senha, é melhor fazer isso na camada de domínio/aplicação
+
+            builder.HasOne(a => a.AppUser)
+                .WithOne(u => u.Account)
+                .HasForeignKey<Account>(a => a.UserId)       // FK está em Account.user_id
+                .HasPrincipalKey<AppUser>(u => u.Id)         // PK principal é AppUser.Id (padrão do Identity)
+                .OnDelete(DeleteBehavior.Cascade);
+
             builder.HasOne(a => a.Manager)
                    .WithOne(m => m.Account)
                    .HasForeignKey<Manager>(m => m.AccountId)

@@ -1,69 +1,101 @@
 <mat-card>
   <mat-card-header>
-    <mat-card-title>Próximas reservas</mat-card-title>
+    <mat-card-title>
+      Próximas reservas
+    </mat-card-title>
     <mat-card-subtitle>Esta semana</mat-card-subtitle>
+
+    <!-- Ações no topo (opcional, mantém também no rodapé) -->
+    <div style="margin-left:auto; display:flex; gap:8px;">
+      <button mat-button (click)="refresh()">
+        <mat-icon>refresh</mat-icon>
+        Atualizar
+      </button>
+      <button mat-raised-button color="primary" (click)="openNewReservationDialog()">
+        <mat-icon>add</mat-icon>
+        Nova reserva
+      </button>
+    </div>
   </mat-card-header>
 
   <mat-card-content>
-    <div *ngIf="isLoading" class="loading">
-      <mat-spinner diameter="40"></mat-spinner>
-    </div>
+    <ng-template #loadingTpl>
+      <div class="loading">
+        <mat-spinner diameter="40"></mat-spinner>
+      </div>
+    </ng-template>
 
-    <mat-table [dataSource]="reservations" *ngIf="!isLoading">
-      <ng-container matColumnDef="title">
-        <mat-header-cell *matHeaderCellDef>Título</mat-header-cell>
-        <mat-cell *matCellDef="let reservation">{{ reservation.title }}</mat-cell>
+    <ng-container *ngIf="!isLoading; else loadingTpl">
+      <ng-container *ngIf="reservations?.length; else emptyTpl">
+
+        <table mat-table [dataSource]="reservations" [attr.aria-busy]="isLoading">
+
+          <!-- Título -->
+          <ng-container matColumnDef="title">
+            <th mat-header-cell *matHeaderCellDef>Título</th>
+            <td mat-cell *matCellDef="let r">{{ r.Title || r.title }}</td>
+          </ng-container>
+
+          <!-- Sala -->
+          <ng-container matColumnDef="room">
+            <th mat-header-cell *matHeaderCellDef>Sala</th>
+            <td mat-cell *matCellDef="let r">
+              {{ (r.Room?.Name || r.room?.name) || ('#' + (r.RoomId ?? r.roomId)) }}
+            </td>
+          </ng-container>
+
+          <!-- Início -->
+          <ng-container matColumnDef="start">
+            <th mat-header-cell *matHeaderCellDef>Início</th>
+            <td mat-cell *matCellDef="let r">
+              {{ formatDateTime(r.StartTime || r.startTime) }}
+            </td>
+          </ng-container>
+
+          <!-- Fim -->
+          <ng-container matColumnDef="end">
+            <th mat-header-cell *matHeaderCellDef>Fim</th>
+            <td mat-cell *matCellDef="let r">
+              {{ formatDateTime(r.EndTime || r.endTime) }}
+            </td>
+          </ng-container>
+
+          <!-- Ações -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef></th>
+            <td mat-cell *matCellDef="let r">
+              <button mat-icon-button [matMenuTriggerFor]="menu">
+                <mat-icon>more_vert</mat-icon>
+              </button>
+              <mat-menu #menu="matMenu">
+                <button mat-menu-item>
+                  <mat-icon>edit</mat-icon>
+                  Editar
+                </button>
+                <button mat-menu-item>
+                  <mat-icon>delete</mat-icon>
+                  Cancelar
+                </button>
+              </mat-menu>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+
       </ng-container>
 
-      <ng-container matColumnDef="room">
-        <mat-header-cell *matHeaderCellDef>Sala</mat-header-cell>
-        <mat-cell *matCellDef="let reservation">{{ reservation.room?.name || 'N/A' }}</mat-cell>
-      </ng-container>
-
-      <ng-container matColumnDef="start">
-        <mat-header-cell *matHeaderCellDef>Início</mat-header-cell>
-        <mat-cell *matCellDef="let reservation">
-          {{ formatDateTime(reservation.startTime) }}
-        </mat-cell>
-      </ng-container>
-
-      <ng-container matColumnDef="end">
-        <mat-header-cell *matHeaderCellDef>Fim</mat-header-cell>
-        <mat-cell *matCellDef="let reservation">
-          {{ formatDateTime(reservation.endTime) }}
-        </mat-cell>
-      </ng-container>
-
-      <ng-container matColumnDef="actions">
-        <mat-header-cell *matHeaderCellDef></mat-header-cell>
-        <mat-cell *matCellDef="let reservation">
-          <button mat-icon-button [matMenuTriggerFor]="menu">
-            <mat-icon>more_vert</mat-icon>
+      <ng-template #emptyTpl>
+        <div class="no-data">
+          <mat-icon>event_busy</mat-icon>
+          <p>Nenhuma reserva encontrada para esta semana.</p>
+          <button mat-raised-button color="primary" (click)="openNewReservationDialog()">
+            Criar primeira reserva
           </button>
-          <mat-menu #menu="matMenu">
-            <button mat-menu-item>
-              <mat-icon>edit</mat-icon>
-              Editar
-            </button>
-            <button mat-menu-item>
-              <mat-icon>delete</mat-icon>
-              Cancelar
-            </button>
-          </mat-menu>
-        </mat-cell>
-      </ng-container>
-
-      <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-      <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
-    </mat-table>
-
-    <div *ngIf="!isLoading && reservations.length === 0" class="no-data">
-      <mat-icon>event_busy</mat-icon>
-      <p>Nenhuma reserva encontrada para esta semana.</p>
-      <button mat-raised-button color="primary" (click)="openNewReservationDialog()">
-        Criar primeira reserva
-      </button>
-    </div>
+        </div>
+      </ng-template>
+    </ng-container>
   </mat-card-content>
 
   <mat-card-actions align="end">
@@ -72,6 +104,7 @@
       Atualizar
     </button>
     <button mat-raised-button color="primary" (click)="openNewReservationDialog()">
+      <mat-icon>add</mat-icon>
       Nova reserva
     </button>
   </mat-card-actions>

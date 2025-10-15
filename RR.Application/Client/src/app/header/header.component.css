@@ -1,31 +1,38 @@
-.header-toolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background-color: #0d2c40; 
+.header-container {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
 }
 
-.auth-buttons button.register-btn {
-  color: #0d2c40;
-  font-weight: bold;
+.header-toolbar {
+  padding: 0 16px;
 }
 
 .logo {
-  font-weight: bold;
-  font-size: 1.5rem;
-  color: white;
+  font-size: 20px;
+  font-weight: 500;
+  cursor: pointer;
 }
 
 .spacer {
-  flex: 1;
+  flex: 1 1 auto;
 }
 
-.nav-buttons button,
-.auth-buttons button {
+.nav-buttons button {
+  margin: 0 4px;
+}
+
+.auth-buttons {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.user-greeting {
   color: white;
-  margin-left: 0.5rem;
+  font-size: 14px;
 }
 
-.auth-buttons button:first-child {
-  margin-left: 0;
-}
+  .user-greeting strong {
+    font-weight: 500;
+  }

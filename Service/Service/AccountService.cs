@@ -13,7 +13,7 @@ namespace RR.Service
             _accountRepository = accountRepository;
         }
 
-        public async Task<Account?> GetByUserIdAsync(int userId) => await _accountRepository.GetByUserIdAsync(userId);
+        public async Task<Account?> GetByUserIdAsync(string userId) => await _accountRepository.GetByUserIdAsync(userId);
 
         public async Task<bool> SetActiveStatusAsync(int id, bool isActive)
         {

@@ -12,18 +12,172 @@ using RR.Infraestructure.DataContext;
 namespace RR.Infraestructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250905205957_aspidentity")]
-    partial class aspidentity
+    [Migration("20250928173058_20250928_InitialMigration")]
+    partial class _20250928_InitialMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.2")
+                .HasAnnotation("ProductVersion", "9.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("text")
+                        .HasColumnName("id");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .HasColumnType("text")
+                        .HasColumnName("concurrency_stamp");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("NormalizedName")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("normalized_name");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedName")
+                        .IsUnique()
+                        .HasDatabaseName("RoleNameIndex");
+
+                    b.ToTable("asp_net_roles", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ClaimType")
+                        .HasColumnType("text")
+                        .HasColumnName("claim_type");
+
+                    b.Property<string>("ClaimValue")
+                        .HasColumnType("text")
+                        .HasColumnName("claim_value");
+
+                    b.Property<string>("RoleId")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("role_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RoleId");
+
+                    b.ToTable("asp_net_role_claims", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ClaimType")
+                        .HasColumnType("text")
+                        .HasColumnName("claim_type");
+
+                    b.Property<string>("ClaimValue")
+                        .HasColumnType("text")
+                        .HasColumnName("claim_value");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("asp_net_user_claims", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
+                {
+                    b.Property<string>("LoginProvider")
+                        .HasColumnType("text")
+                        .HasColumnName("login_provider");
+
+                    b.Property<string>("ProviderKey")
+                        .HasColumnType("text")
+                        .HasColumnName("provider_key");
+
+                    b.Property<string>("ProviderDisplayName")
+                        .HasColumnType("text")
+                        .HasColumnName("provider_display_name");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("LoginProvider", "ProviderKey");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("asp_net_user_logins", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("text")
+                        .HasColumnName("user_id");
+
+                    b.Property<string>("RoleId")
+                        .HasColumnType("text")
+                        .HasColumnName("role_id");
+
+                    b.HasKey("UserId", "RoleId");
+
+                    b.HasIndex("RoleId");
+
+                    b.ToTable("asp_net_user_roles", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("text")
+                        .HasColumnName("user_id");
+
+                    b.Property<string>("LoginProvider")
+                        .HasColumnType("text")
+                        .HasColumnName("login_provider");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("text")
+                        .HasColumnName("name");
+
+                    b.Property<string>("Value")
+                        .HasColumnType("text")
+                        .HasColumnName("value");
+
+                    b.HasKey("UserId", "LoginProvider", "Name");
+
+                    b.ToTable("asp_net_user_tokens", (string)null);
+                });
 
             modelBuilder.Entity("RR.Core.Entities.Account", b =>
                 {
@@ -58,12 +212,6 @@ namespace RR.Infraestructure.Migrations
                         .HasColumnType("character varying(255)")
                         .HasColumnName("mail");
 
-                    b.Property<string>("PasswordHash")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)")
-                        .HasColumnName("password_hash");
-
                     b.Property<string>("Phone")
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)")
@@ -75,8 +223,10 @@ namespace RR.Infraestructure.Migrations
                         .HasColumnName("updated_at")
                         .HasDefaultValueSql("NOW()");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer")
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
                         .HasColumnName("user_id");
 
                     b.Property<string>("UserName")
@@ -101,6 +251,10 @@ namespace RR.Infraestructure.Migrations
                         .HasDatabaseName("ix_account_phone")
                         .HasFilter("phone IS NOT NULL");
 
+                    b.HasIndex("UserId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_account_user_id_unique");
+
                     b.HasIndex("UserName")
                         .IsUnique()
                         .HasDatabaseName("ix_account_user_name");
@@ -110,22 +264,17 @@ namespace RR.Infraestructure.Migrations
 
             modelBuilder.Entity("RR.Core.Entities.AppUser", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
+                    b.Property<string>("Id")
+                        .HasColumnType("text")
                         .HasColumnName("id");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
                     b.Property<int>("AccessFailedCount")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasDefaultValue(0)
                         .HasColumnName("access_failed_count");
 
                     b.Property<string>("ConcurrencyStamp")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
+                        .IsConcurrencyToken()
+                        .HasColumnType("text")
                         .HasColumnName("concurrency_stamp");
 
                     b.Property<DateTime>("CreatedAt")
@@ -140,14 +289,11 @@ namespace RR.Infraestructure.Migrations
                         .HasColumnName("email");
 
                     b.Property<bool>("EmailConfirmed")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
-                        .HasDefaultValue(false)
                         .HasColumnName("email_confirmed");
 
                     b.Property<string>("FullName")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
+                        .HasColumnType("text")
                         .HasColumnName("full_name");
 
                     b.Property<bool>("IsActive")
@@ -157,9 +303,7 @@ namespace RR.Infraestructure.Migrations
                         .HasColumnName("is_active");
 
                     b.Property<bool>("LockoutEnabled")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
-                        .HasDefaultValue(false)
                         .HasColumnName("lockout_enabled");
 
                     b.Property<DateTimeOffset?>("LockoutEnd")
@@ -181,25 +325,19 @@ namespace RR.Infraestructure.Migrations
                         .HasColumnName("password_hash");
 
                     b.Property<string>("PhoneNumber")
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)")
+                        .HasColumnType("text")
                         .HasColumnName("phone_number");
 
                     b.Property<bool>("PhoneNumberConfirmed")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
-                        .HasDefaultValue(false)
                         .HasColumnName("phone_number_confirmed");
 
                     b.Property<string>("SecurityStamp")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
+                        .HasColumnType("text")
                         .HasColumnName("security_stamp");
 
                     b.Property<bool>("TwoFactorEnabled")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
-                        .HasDefaultValue(false)
                         .HasColumnName("two_factor_enabled");
 
                     b.Property<DateTime>("UpdatedAt")
@@ -216,19 +354,19 @@ namespace RR.Infraestructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CreatedAt")
-                        .HasDatabaseName("ix_rr_users_created_at");
+                        .HasDatabaseName("ix_asp_net_users_created_at");
 
                     b.HasIndex("IsActive")
-                        .HasDatabaseName("ix_rr_users_is_active");
+                        .HasDatabaseName("ix_asp_net_users_is_active");
 
                     b.HasIndex("NormalizedEmail")
-                        .HasDatabaseName("ix_rr_users_normalized_email");
+                        .HasDatabaseName("EmailIndex");
 
                     b.HasIndex("NormalizedUserName")
                         .IsUnique()
-                        .HasDatabaseName("ux_rr_users_normalized_user_name");
+                        .HasDatabaseName("UserNameIndex");
 
-                    b.ToTable("rr_users", (string)null);
+                    b.ToTable("asp_net_users", (string)null);
                 });
 
             modelBuilder.Entity("RR.Core.Entities.Manager", b =>
@@ -295,8 +433,14 @@ namespace RR.Infraestructure.Migrations
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("NOW()");
 
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("description");
+
                     b.Property<DateTime>("EndTime")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("end_time");
 
                     b.Property<bool>("IsActive")
@@ -305,21 +449,43 @@ namespace RR.Infraestructure.Migrations
                         .HasDefaultValue(true)
                         .HasColumnName("is_active");
 
+                    b.Property<int?>("MovedFromReservationId")
+                        .HasColumnType("integer")
+                        .HasColumnName("moved_from_reservation_id");
+
+                    b.Property<int>("Origin")
+                        .HasColumnType("integer")
+                        .HasColumnName("origin");
+
                     b.Property<int>("RoomId")
                         .HasColumnType("integer")
                         .HasColumnName("room_id");
+
+                    b.Property<int?>("SeriesId")
+                        .HasColumnType("integer")
+                        .HasColumnName("series_id");
 
                     b.Property<int?>("ServantId")
                         .HasColumnType("integer")
                         .HasColumnName("servant_id");
 
                     b.Property<DateTime>("StartTime")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("start_time");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
 
                     b.Property<int?>("StudentId")
                         .HasColumnType("integer")
                         .HasColumnName("student_id");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("title");
 
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAdd()
@@ -329,21 +495,229 @@ namespace RR.Infraestructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AccountId");
+                    b.HasIndex("AccountId")
+                        .HasDatabaseName("ix_reservation_account_id");
 
                     b.HasIndex("CreatedAt")
                         .HasDatabaseName("ix_reservation_created_at");
 
+                    b.HasIndex("EndTime")
+                        .HasDatabaseName("ix_reservation_end_time");
+
                     b.HasIndex("IsActive")
                         .HasDatabaseName("ix_reservation_is_active");
 
-                    b.HasIndex("RoomId");
+                    b.HasIndex("MovedFromReservationId");
+
+                    b.HasIndex("RoomId")
+                        .HasDatabaseName("ix_reservation_room_id");
 
                     b.HasIndex("ServantId");
 
+                    b.HasIndex("StartTime")
+                        .HasDatabaseName("ix_reservation_start_time");
+
                     b.HasIndex("StudentId");
 
-                    b.ToTable("reservation");
+                    b.HasIndex("SeriesId", "StartTime")
+                        .HasDatabaseName("ix_reservation_series_start");
+
+                    b.HasIndex("RoomId", "StartTime", "EndTime")
+                        .HasDatabaseName("ix_reservation_room_time_range");
+
+                    b.HasIndex("SeriesId", "StartTime", "RoomId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_reservation_series_start_room");
+
+                    b.ToTable("reservation", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_reservation_end_after_start", "end_time > start_time");
+                        });
+                });
+
+            modelBuilder.Entity("RR.Core.Entities.ReservationException", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Action")
+                        .HasColumnType("integer")
+                        .HasColumnName("action");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<DateTime>("ExceptionDate")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("exception_date");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
+
+                    b.Property<DateTime?>("NewEndTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("new_end_time");
+
+                    b.Property<int?>("NewRoomId")
+                        .HasColumnType("integer")
+                        .HasColumnName("new_room_id");
+
+                    b.Property<DateTime?>("NewStartTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("new_start_time");
+
+                    b.Property<DateTime>("OriginalDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("original_date");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("reason");
+
+                    b.Property<int>("ReservationId")
+                        .HasColumnType("integer")
+                        .HasColumnName("reservation_id");
+
+                    b.Property<int>("SeriesId")
+                        .HasColumnType("integer")
+                        .HasColumnName("series_id");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("ix_reservation_exception_created_at");
+
+                    b.HasIndex("IsActive")
+                        .HasDatabaseName("ix_reservation_exception_is_active");
+
+                    b.HasIndex("NewRoomId");
+
+                    b.HasIndex("SeriesId");
+
+                    b.HasIndex("ReservationId", "ExceptionDate")
+                        .HasDatabaseName("ix_reservation_exception_reservation_date");
+
+                    b.ToTable("reservation_exception", (string)null);
+                });
+
+            modelBuilder.Entity("RR.Core.Entities.ReservationSeries", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AccountId")
+                        .HasColumnType("integer")
+                        .HasColumnName("account_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<string>("DaysOfWeek")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("days_of_week");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("description");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
+
+                    b.Property<string>("RecurrenceRule")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("recurrence_rule");
+
+                    b.Property<int>("RoomId")
+                        .HasColumnType("integer")
+                        .HasColumnName("default_room_id");
+
+                    b.Property<int>("SeriesStatus")
+                        .HasColumnType("integer")
+                        .HasColumnName("series_status");
+
+                    b.Property<TimeSpan>("TimeEnd")
+                        .HasColumnType("time without time zone")
+                        .HasColumnName("time_end");
+
+                    b.Property<TimeSpan>("TimeStart")
+                        .HasColumnType("time without time zone")
+                        .HasColumnName("time_start");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("title");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<DateTime>("WindowEnd")
+                        .HasColumnType("date")
+                        .HasColumnName("window_end");
+
+                    b.Property<DateTime>("WindowStart")
+                        .HasColumnType("date")
+                        .HasColumnName("window_start");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId")
+                        .HasDatabaseName("ix_reservation_series_account_id");
+
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("ix_reservation_series_created_at");
+
+                    b.HasIndex("IsActive")
+                        .HasDatabaseName("ix_reservation_series_is_active");
+
+                    b.HasIndex("RoomId")
+                        .HasDatabaseName("ix_reservation_series_default_room_id");
+
+                    b.HasIndex("WindowStart")
+                        .HasDatabaseName("ix_reservation_series_window_start");
+
+                    b.ToTable("reservation_series", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_reservation_series_window_end_after_start", "window_end >= window_start");
+                        });
                 });
 
             modelBuilder.Entity("RR.Core.Entities.Rooms", b =>
@@ -587,6 +961,68 @@ namespace RR.Infraestructure.Migrations
                     b.ToTable("student_permission");
                 });
 
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
+                {
+                    b.HasOne("RR.Core.Entities.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
+                {
+                    b.HasOne("RR.Core.Entities.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("RR.Core.Entities.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
+                {
+                    b.HasOne("RR.Core.Entities.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("RR.Core.Entities.Account", b =>
+                {
+                    b.HasOne("RR.Core.Entities.AppUser", "AppUser")
+                        .WithOne("Account")
+                        .HasForeignKey("RR.Core.Entities.Account", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AppUser");
+                });
+
             modelBuilder.Entity("RR.Core.Entities.Manager", b =>
                 {
                     b.HasOne("RR.Core.Entities.Account", "Account")
@@ -606,11 +1042,23 @@ namespace RR.Infraestructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("RR.Core.Entities.Reservation", "MovedFromReservation")
+                        .WithMany()
+                        .HasForeignKey("MovedFromReservationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_reservation_moved_from_id");
+
                     b.HasOne("RR.Core.Entities.Rooms", "Room")
                         .WithMany("Reservations")
                         .HasForeignKey("RoomId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("RR.Core.Entities.ReservationSeries", "Series")
+                        .WithMany("Reservations")
+                        .HasForeignKey("SeriesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasConstraintName("fk_reservation_series_id");
 
                     b.HasOne("RR.Core.Entities.Servant", null)
                         .WithMany("Reservations")
@@ -622,7 +1070,49 @@ namespace RR.Infraestructure.Migrations
 
                     b.Navigation("Account");
 
+                    b.Navigation("MovedFromReservation");
+
                     b.Navigation("Room");
+
+                    b.Navigation("Series");
+                });
+
+            modelBuilder.Entity("RR.Core.Entities.ReservationException", b =>
+                {
+                    b.HasOne("RR.Core.Entities.Rooms", "NewRoom")
+                        .WithMany()
+                        .HasForeignKey("NewRoomId");
+
+                    b.HasOne("RR.Core.Entities.Reservation", "Reservation")
+                        .WithMany("Exceptions")
+                        .HasForeignKey("ReservationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_reservation_exception_reservation_id");
+
+                    b.HasOne("RR.Core.Entities.ReservationSeries", "Series")
+                        .WithMany()
+                        .HasForeignKey("SeriesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("NewRoom");
+
+                    b.Navigation("Reservation");
+
+                    b.Navigation("Series");
+                });
+
+            modelBuilder.Entity("RR.Core.Entities.ReservationSeries", b =>
+                {
+                    b.HasOne("RR.Core.Entities.Account", "Account")
+                        .WithMany()
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_reservation_series_account_id");
+
+                    b.Navigation("Account");
                 });
 
             modelBuilder.Entity("RR.Core.Entities.Rooms", b =>
@@ -699,9 +1189,25 @@ namespace RR.Infraestructure.Migrations
                     b.Navigation("Student");
                 });
 
+            modelBuilder.Entity("RR.Core.Entities.AppUser", b =>
+                {
+                    b.Navigation("Account")
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("RR.Core.Entities.Manager", b =>
                 {
                     b.Navigation("ManagedRooms");
+                });
+
+            modelBuilder.Entity("RR.Core.Entities.Reservation", b =>
+                {
+                    b.Navigation("Exceptions");
+                });
+
+            modelBuilder.Entity("RR.Core.Entities.ReservationSeries", b =>
+                {
+                    b.Navigation("Reservations");
                 });
 
             modelBuilder.Entity("RR.Core.Entities.Rooms", b =>
