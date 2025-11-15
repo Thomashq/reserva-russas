@@ -16,15 +16,30 @@
       </mat-list>
     </ng-container>
     <ng-template #empty>Nenhuma reserva no período.</ng-template>
-  </mat-card-content>
+    <h3>Equipamentos</h3>
+  <ng-container *ngIf="room?.EquipmentList?.length; else noeq">
+    <mat-list>
+      <mat-list-item *ngFor="let eq of room.EquipmentList">{{eq.Name}}</mat-list-item>
+    </mat-list>
+  </ng-container>
+  <ng-template #noeq>Nenhum equipamento cadastrado para esta sala.</ng-template>
+</mat-card-content>
 
   <mat-card-actions>
-    <button mat-raised-button color="primary" (click)="newReservation()">
+    <button mat-raised-button color="primary" (click)="newReservation()" *ngIf="!isStudent">
       Reservar nesta sala
     </button>
   </mat-card-actions>
+  <div *ngIf="isStudent" class="mt-2">Alunos não podem reservar salas.</div>
 </mat-card>
 
 <ng-template #loading>
-  <mat-card><mat-card-content>Carregando...</mat-card-content></mat-card>
+  <mat-card><mat-card-content>Carregando...  <h3>Equipamentos</h3>
+  <ng-container *ngIf="room?.EquipmentList?.length; else noeq">
+    <mat-list>
+      <mat-list-item *ngFor="let eq of room.EquipmentList">{{eq.Name}}</mat-list-item>
+    </mat-list>
+  </ng-container>
+  <ng-template #noeq>Nenhum equipamento cadastrado para esta sala.</ng-template>
+</mat-card-content></mat-card>
 </ng-template>

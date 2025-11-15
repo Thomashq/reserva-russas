@@ -1,5 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
+import { AuthService } from '../../auth/auth.service';
+import { EAccountPermission } from '../../domain/enum/EAccountPermission';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatListModule } from '@angular/material/list';
@@ -15,6 +17,7 @@ import { DateOffset } from '../../domain/shared/utils/date-offset.util';
   styleUrls: ['./room-details.component.css']
 })
 export class RoomDetailsComponent implements OnInit {
+  isStudent = false;
   constructor(
     private roomService: RoomsService,
     private router: Router,

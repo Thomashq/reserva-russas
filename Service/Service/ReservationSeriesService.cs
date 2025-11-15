@@ -2,6 +2,7 @@
 using RR.Core.Entities;
 using RR.Core.Enums;
 using RR.Core.Repositories;
+using RR.Core.Enums;
 using RR.Core.Services;
 using RR.Util.ReservationRules;
 
@@ -11,10 +12,12 @@ namespace RR.Service.Service
     {
         private readonly IReservationSeriesRepository _reservationSeriesRepository;
         private readonly IReservationService _reservationService;
+        private readonly IAccountRepository _accounts;
 
-        public ReservationSeriesService(IReservationSeriesRepository reservationSeriesRepository, IReservationService reservationService)
+        public ReservationSeriesService(IReservationSeriesRepository reservationSeriesRepository, IReservationService reservationService, IAccountRepository accounts)
         {
             _reservationSeriesRepository = reservationSeriesRepository;
+            _accounts = accounts;
             _reservationService = reservationService;
         }
 

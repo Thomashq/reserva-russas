@@ -13,6 +13,9 @@ public class Rooms:BaseEntity
     public int ManagerId { get; set; }
 
     //lazy loading
-    public virtual Manager Manager { get; set; }
-    public virtual ICollection<Reservation> Reservations { get; set; } = new List<Reservation>();
+    public Manager Manager { get; set; }
+
+    public RoomDetails RoomDetails { get; set; }
+
+    public ICollection<Reservation> Reservations { get; set; } = new List<Reservation>();
 }

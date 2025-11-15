@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using RR.Core.Entities;
 using RR.Core.Repositories;
+using RR.Core.Enums;
 using RR.Core.Services;
 
 namespace RR.Service.Service
@@ -9,11 +10,13 @@ namespace RR.Service.Service
     public class ReservationService : IReservationService
     {
         private readonly IReservationRepository _reservations;
+        private readonly IAccountRepository _accounts;
         private readonly ILogger<ReservationService>? _logger;
 
-        public ReservationService(IReservationRepository reservations, ILogger<ReservationService>? logger = null)
+        public ReservationService(IReservationRepository reservations, IAccountRepository accounts, ILogger<ReservationService>? logger = null)
         {
             _reservations = reservations;
+            _accounts = accounts;
             _logger = logger;
         }
 
@@ -27,6 +30,11 @@ namespace RR.Service.Service
             if (reservation.AccountId <= 0) throw new ArgumentOutOfRangeException(nameof(reservation.AccountId));
             if (reservation.StartTime >= reservation.EndTime) throw new ArgumentException("StartTime must be before EndTime.");
 
+            
+            var acc = await _accounts.GetByIdAsync(reservation.AccountId);
+            if (acc is not null && acc.AccountPermission == (int)EAccountPermission.Student)
+                throw new UnauthorizedAccessException("Alunos não podem reservar salas.");
+    
             var available = await _reservations.IsRoomAvailable(reservation.RoomId, reservation.StartTime, reservation.EndTime);
             
             if (!available)
