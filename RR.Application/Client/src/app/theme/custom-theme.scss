@@ -1,0 +1,67 @@
+@use '@angular/material' as mat;
+
+@include mat.core();
+
+// ===========================
+//  CORES BASE (FIGMA STYLE)
+// ===========================
+$color-gelo: #f4f4f4; // fundo da tela
+$color-card: #e2e2e2; // blocos / cards
+$color-border-soft: #d4d4d4; // bordas suaves
+$color-black-20: #141414; // 20,20,20
+$color-text-soft: #666666; // texto secundário
+
+// ===========================
+//  PALETAS (API M2 - ANGULAR 18+)
+// ===========================
+
+// usa a paleta cinza padrão do Material como base
+$custom-primary: mat.m2-define-palette(mat.$m2-grey-palette, 900); // preto 20/20/20
+$custom-accent: mat.m2-define-palette(mat.$m2-grey-palette, 200); // cinza claro
+$custom-warn: mat.m2-define-palette(mat.$m2-red-palette);
+
+// Tipografia com Poppins (API nova m2-define-*)
+$custom-typography: mat.m2-define-typography-config( $font-family: 'Poppins, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' );
+
+// Tema CLARO
+$custom-theme-light-config: mat.m2-define-light-theme(( color: ( primary: $custom-primary, accent: $custom-accent, warn: $custom-warn, ), typography: $custom-typography, density: 0, ));
+
+// Tema ESCURO
+$custom-theme-dark-config: mat.m2-define-dark-theme(( color: ( primary: $custom-primary, accent: $custom-accent, warn: $custom-warn, ), typography: $custom-typography, density: 0, ));
+
+// ===========================
+//  APLICAÇÃO DOS TEMAS
+// ===========================
+
+.custom-theme-light {
+  @include mat.all-component-themes($custom-theme-light-config);
+  background-color: $color-gelo;
+  color: $color-black-20;
+}
+
+.custom-theme-dark {
+  @include mat.all-component-themes($custom-theme-dark-config);
+  background-color: $color-black-20;
+  color: #f5f5f5;
+}
+
+// ===========================
+//  AJUSTES FINOS (Figma-like)
+// ===========================
+
+// Cards mais arredondados (mat-card, expansion etc.)
+.custom-theme-light .mat-mdc-card,
+.custom-theme-light .mat-expansion-panel,
+.custom-theme-light .rr-surface {
+  background-color: $color-card;
+  border-radius: 24px;
+  border: 1px solid $color-border-soft;
+  box-shadow: none;
+}
+
+// Texto secundário em cinza
+.custom-theme-light .mat-mdc-form-field-subscript-wrapper,
+.custom-theme-light .mat-mdc-hint,
+.custom-theme-light .text-muted {
+  color: $color-text-soft;
+}
