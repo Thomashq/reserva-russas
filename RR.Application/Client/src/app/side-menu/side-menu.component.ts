@@ -40,21 +40,33 @@ export class SideMenuComponent implements OnInit {
   ngOnInit(): void {
     this.authService.getCurrentUser().subscribe({
       next: (result) => {
-        this.account = result;
-        this.accountId = result?.id ?? 0;
-      },
-      error: (error) => {
-        console.error('Erro ao obter o usuário atual:', error);
+        if (result) {
+          this.account = result;
+          this.accountId = result?.id ?? 0;
+        }
+        else
+          return;
       }
     });
   }
 
+  navigateToRooms(): void {
+    this.router.navigate(['/room/list']);
+  }
+
   logout() {
-    this.authService.logout();
-    this.router.navigate(['/login']);
+    this.authService.logout().subscribe({
+      next: () => {
+        this.router.navigate(['/auth/login']);
+      },
+      error: (error) => {
+        this.router.navigate(['/auth/login']);
+      }
+    });
   }
 
   onSearchEnter() {
+
     if (!this.searchText?.trim()) return;
 
     this.router.navigate(['/busca'], {
@@ -74,6 +86,8 @@ export class SideMenuComponent implements OnInit {
         return 'Servidor';
       case 2: // EAccountPermission.Student
         return 'Aluno';
+      case 3:
+        return 'Admin';
       default:
         return 'Conta';
     }

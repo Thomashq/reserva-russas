@@ -53,13 +53,10 @@
         <mat-panel-title>Salas</mat-panel-title>
       </mat-expansion-panel-header>
 
-      <a mat-list-item routerLink="/salas" routerLinkActive="active-link">
+      <a mat-list-item (click)="navigateToRooms()">
         <span>Listar salas</span>
       </a>
 
-      <a mat-list-item routerLink="/salas/nova" routerLinkActive="active-link">
-        <span>Nova sala</span>
-      </a>
     </mat-expansion-panel>
 
     <!-- RESERVAS -->
