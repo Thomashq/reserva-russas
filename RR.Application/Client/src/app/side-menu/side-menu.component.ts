@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { MatListModule } from '@angular/material/list';
@@ -9,6 +9,7 @@ import { MatInputModule } from '@angular/material/input';
 import { AuthService } from '../auth/auth.service';
 import { Account } from '../domain/models/account';
 import { FormsModule } from '@angular/forms';
+import { Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-side-menu',
@@ -26,11 +27,13 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './side-menu.component.html',
   styleUrls: ['./side-menu.component.css']
 })
-export class SideMenuComponent implements OnInit {
+export class SideMenuComponent implements OnInit, OnDestroy {
   account: Account | null = null;
   accountId = 0;
 
   searchText = '';
+
+  private destroy$ = new Subject<void>();
 
   constructor(
     private authService: AuthService,
@@ -38,35 +41,42 @@ export class SideMenuComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    this.authService.getCurrentUser().subscribe({
-      next: (result) => {
-        if (result) {
+    this.authService.currentUser$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (result) => {
           this.account = result;
           this.accountId = result?.id ?? 0;
+        },
+        error: () => {
+          this.account = null;
+          this.accountId = 0;
         }
-        else
-          return;
-      }
-    });
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   navigateToRooms(): void {
     this.router.navigate(['/room/list']);
   }
 
-  logout() {
+  logout(): void {
     this.authService.logout().subscribe({
       next: () => {
-        this.router.navigate(['/auth/login']);
+        // nada aqui: o AuthService já limpou o estado e o menu
+        // troca automaticamente para o modo "sem usuário"
       },
       error: (error) => {
-        this.router.navigate(['/auth/login']);
+        console.error('Erro ao fazer logout no side-menu', error);
       }
     });
   }
 
-  onSearchEnter() {
-
+  onSearchEnter(): void {
     if (!this.searchText?.trim()) return;
 
     this.router.navigate(['/busca'], {
@@ -93,3 +103,4 @@ export class SideMenuComponent implements OnInit {
     }
   }
 }
+

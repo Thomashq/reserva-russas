@@ -57,7 +57,6 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.LogTo(Console.WriteLine, LogLevel.Information);
 });
 
-// >>> Identity Core com Cookie Authentication
 // Configuração Identity completa com Entity Framework - IDs string
 builder.Services
     .AddIdentity<AppUser, Microsoft.AspNetCore.Identity.IdentityRole>(o =>
@@ -128,6 +127,12 @@ builder.Services.AddApiVersioning(p =>
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var sp = scope.ServiceProvider;
+    await RR.Infraestructure.Seeding.AdminSeeder.SeedAdminAsync(sp);
+}
 
 if (app.Environment.IsDevelopment())
 {

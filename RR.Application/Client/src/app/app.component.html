@@ -2,7 +2,7 @@
   <app-header></app-header>
 
   <div class="app-body">
-    <aside class="side-menu">
+    <aside *ngIf="account" class="side-menu">
       <app-side-menu></app-side-menu>
     </aside>
 
