@@ -14,6 +14,7 @@ namespace RR.Service.Service
         private readonly IStudentRepository _studentRepository;
         private readonly IAccountRepository _accountRepository;
         private readonly HashPass _hash = new();
+        private static readonly string[] RR_Roles = { "Admin", "Manager", "Servant", "Student" };
 
         public AuthService(
             UserManager<AppUser> userManager,
@@ -43,6 +44,7 @@ namespace RR.Service.Service
 
         public async Task<bool> Register(CreateAccountRequest dto)
         {
+          try{
             if (await _userManager.FindByNameAsync(dto.UserName) is not null) return false;
             if (await _userManager.FindByEmailAsync(dto.Mail) is not null) return false;
 
@@ -79,36 +81,45 @@ namespace RR.Service.Service
             var ok = await _accountRepository.AddAsync(account);
             if (!ok) return false;
 
-            return await CreateAccountProfile(account); // cria Servant/Student
+            return await CreateAccountProfile(account, user); // cria Servant/Student
+          }
+          catch(Exception ex)
+          {
+            throw new Exception("Erro: ", ex);
+          }
         }
 
-        public async Task<bool> CreateAccountProfile(Account account)
+        public async Task<bool> CreateAccountProfile(Account account, AppUser user)
         {
             switch (account.AccountPermission)
             {
                 case 1: // Servant
-                    return await _servantRepository.AddAsync(new Servant { AccountId = account.Id });
+                  if(!await _userManager.IsInRoleAsync(user, "Servant"))
+                    await _userManager.AddToRoleAsync(user, "Servant");
+                  return await _servantRepository.AddAsync(new Servant { AccountId = account.Id });
                 case 2: // Student
-                    return await _studentRepository.AddAsync(new Student { AccountId = account.Id });
+                  if(!await _userManager.IsInRoleAsync(user, "Student"))
+                   await _userManager.AddToRoleAsync(user, "Student");
+                  return await _studentRepository.AddAsync(new Student { AccountId = account.Id });
                 default:
-                    return true;
-            }
-        }
+                  return true;
+          }
+      }
 
-        // helpers de domínio
-        private static bool IsUfcEmail(string mail)
-        {
-            if (string.IsNullOrWhiteSpace(mail)) return false;
-            var m = mail.Trim().ToLowerInvariant();
-            return m.EndsWith("@ufc.br") || m.EndsWith("@alu.ufc.br");
-        }
+      // helpers de domínio
+      private static bool IsUfcEmail(string mail)
+      {
+          if (string.IsNullOrWhiteSpace(mail)) return false;
+          var m = mail.Trim().ToLowerInvariant();
+          return m.EndsWith("@ufc.br") || m.EndsWith("@alu.ufc.br");
+      }
 
-        private static int ResolvePermissionFromEmail(string mail)
-        {
-            var m = (mail ?? "").Trim().ToLowerInvariant();
-            if (m.EndsWith("@alu.ufc.br")) return 2; // Student
-            if (m.EndsWith("@ufc.br")) return 1; // Servant
-            return 0;
-        }
+      private static int ResolvePermissionFromEmail(string mail)
+      {
+          var m = (mail ?? "").Trim().ToLowerInvariant();
+          if (m.EndsWith("@alu.ufc.br")) return 2; // Student
+          if (m.EndsWith("@ufc.br")) return 1; // Servant
+          return 0;
+      }
     }
 }

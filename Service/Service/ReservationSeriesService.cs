@@ -2,7 +2,6 @@
 using RR.Core.Entities;
 using RR.Core.Enums;
 using RR.Core.Repositories;
-using RR.Core.Enums;
 using RR.Core.Services;
 using RR.Util.ReservationRules;
 

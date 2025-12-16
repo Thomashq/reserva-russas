@@ -10,6 +10,7 @@ using RR.Infraestructure.DataContext;
 using RR.ReservaRussasAPI.Docs;
 using RR.Util.Criptography;
 using System.Text;
+using RR.Core.Enums;
 
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
@@ -30,7 +31,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowCredentials", policy =>
     {
-        policy.WithOrigins("http://localhost:4200") // Seu frontend Angular
+        policy.WithOrigins("http://localhost:4200") 
               .AllowCredentials()
               .AllowAnyHeader()
               .AllowAnyMethod();
@@ -124,9 +125,33 @@ builder.Services.AddApiVersioning(p =>
         p.SubstituteApiVersionInUrl = true;
     });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOnly", policy =>
+        policy.RequireRole(nameof(EAccountPermission.Admin)));
+
+    options.AddPolicy("ManagerOrAdmin", policy =>
+        policy.RequireRole(
+            nameof(EAccountPermission.Admin),
+            nameof(EAccountPermission.Manager)));
+
+    options.AddPolicy("ServantOrAbove", policy =>
+        policy.RequireRole(
+            nameof(EAccountPermission.Admin),
+            nameof(EAccountPermission.Manager),
+            nameof(EAccountPermission.Servant)));
+});
 
 var app = builder.Build();
+
+using (var scope = app.Services.GetRequiredService<IServiceScopeFactory>().CreateScope())
+{
+    using (var context = scope.ServiceProvider.GetService<ApplicationDbContext>())
+    {
+        context.Database.SetCommandTimeout((int)TimeSpan.FromMinutes(20).TotalSeconds);
+        context.Database.Migrate();
+    }
+}
 
 using (var scope = app.Services.CreateScope())
 {
@@ -143,14 +168,7 @@ else
     app.UseExceptionHandler("/Home/Error");
 }
 
-using (var scope = app.Services.GetRequiredService<IServiceScopeFactory>().CreateScope())
-{
-    using (var context = scope.ServiceProvider.GetService<ApplicationDbContext>())
-    {
-        context.Database.SetCommandTimeout((int)TimeSpan.FromMinutes(20).TotalSeconds);
-        context.Database.Migrate();
-    }
-}
+
 
 app.UseCors("AllowCredentials");
 app.UseHttpsRedirection();

@@ -46,6 +46,7 @@ namespace ReservaRussasAPI.Controllers
             }
         }
         [HttpPost]
+        [Authorize (Policy = "ManagerOrAdmin")]
         public async Task<IActionResult> AddAsync([FromBody] CreateRoomRequest room)
         {
             try
@@ -69,6 +70,7 @@ namespace ReservaRussasAPI.Controllers
             }
         }
         [HttpDelete("{id}")]
+        [Authorize (Policy = "ManagerOrAdmin")]
         public async Task<IActionResult> DeleteAsync(int id)
         {
             try

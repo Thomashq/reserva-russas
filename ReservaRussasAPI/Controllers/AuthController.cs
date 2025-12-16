@@ -56,6 +56,7 @@ namespace ReservaRussasAPI.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Register([FromBody] CreateAccountRequest request)
         {
+          try{
             var ok = await _authService.Register(request);
             if (!ok)
                 return ResponseBadRequest("Não foi possível registrar a conta");
@@ -67,6 +68,10 @@ namespace ReservaRussasAPI.Controllers
                 request.Phone
             };
             return ResponseCreated(resp);
+          }
+          catch(Exception ex){
+            throw new Exception("Não foi possível registrar conta", ex);
+          }
         }
 
         [HttpGet("me")]
