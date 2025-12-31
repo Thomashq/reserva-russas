@@ -9,6 +9,8 @@ namespace RR.Core.Enums
         [Description("Servant")]
         Servant,
         [Description("Student")]
-        Student
+        Student,
+        [Description("Admin")]
+        Admin
     }
 }

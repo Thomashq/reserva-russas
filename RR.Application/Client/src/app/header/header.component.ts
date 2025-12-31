@@ -8,12 +8,14 @@ import { AuthService } from '../auth/auth.service';
 import { Subject, takeUntil } from 'rxjs';
 import { Account } from '../domain/models/account';
 import { HeaderService } from './header.service';
+import { ThemeService } from '../theme/theme-service';
+import { MatIcon, MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-header',
   standalone: true,
   templateUrl: './header.component.html',
-  imports: [MatButtonModule, MatToolbarModule, CommonModule, RouterModule],
+  imports: [MatButtonModule, MatToolbarModule, CommonModule, RouterModule, MatIconModule],
   styleUrls: ['./header.component.css']
 })
 export class HeaderComponent implements OnInit, OnDestroy {
@@ -29,6 +31,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     private router: Router,
     private headerService: HeaderService,
     private authService: AuthService,
+    private themeService: ThemeService
   ) { }
 
   ngOnInit(): void {
@@ -49,6 +52,13 @@ export class HeaderComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  toggleTheme() {
+    this.themeService.toggle();
+  }
+  get isDark() {
+    return this.themeService.theme === 'dark';
   }
 
   // Navegação

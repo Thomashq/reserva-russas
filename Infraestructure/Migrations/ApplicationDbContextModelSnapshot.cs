@@ -366,6 +366,64 @@ namespace RR.Infraestructure.Migrations
                     b.ToTable("asp_net_users", (string)null);
                 });
 
+            modelBuilder.Entity("RR.Core.Entities.Equipment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("description");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("character varying(250)")
+                        .HasColumnName("name");
+
+                    b.Property<int?>("RoomDetailsId")
+                        .HasColumnType("integer")
+                        .HasColumnName("room_details_id");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("ix_equipment_created_at");
+
+                    b.HasIndex("IsActive")
+                        .HasDatabaseName("ix_equipment_is_active");
+
+                    b.HasIndex("Name")
+                        .HasDatabaseName("IX_Equipment_Name");
+
+                    b.HasIndex("RoomDetailsId");
+
+                    b.ToTable("equipment", (string)null);
+                });
+
             modelBuilder.Entity("RR.Core.Entities.Manager", b =>
                 {
                     b.Property<int>("Id")
@@ -717,6 +775,88 @@ namespace RR.Infraestructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("RR.Core.Entities.RoomDetails", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
+
+                    b.Property<bool>("IsReserveable")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_reserveable");
+
+                    b.Property<int>("RoomId")
+                        .HasColumnType("integer")
+                        .HasColumnName("room_id");
+
+                    b.Property<int>("RoomType")
+                        .HasColumnType("integer")
+                        .HasColumnName("room_type");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("ix_room_details_created_at");
+
+                    b.HasIndex("IsActive")
+                        .HasDatabaseName("ix_room_details_is_active");
+
+                    b.HasIndex("RoomId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_RoomDetails_RoomId");
+
+                    b.ToTable("room_details", (string)null);
+                });
+
+            modelBuilder.Entity("RR.Core.Entities.RoomEquipment", b =>
+                {
+                    b.Property<int>("RoomDetailsId")
+                        .HasColumnType("integer")
+                        .HasColumnName("room_details_id");
+
+                    b.Property<int>("EquipmentId")
+                        .HasColumnType("integer")
+                        .HasColumnName("equipment_id");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("text")
+                        .HasColumnName("notes");
+
+                    b.Property<int>("Quantity")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1)
+                        .HasColumnName("quantity");
+
+                    b.HasKey("RoomDetailsId", "EquipmentId");
+
+                    b.HasIndex("EquipmentId")
+                        .HasDatabaseName("IX_RoomEquipments_EquipmentId");
+
+                    b.ToTable("room_equipments", (string)null);
+                });
+
             modelBuilder.Entity("RR.Core.Entities.Rooms", b =>
                 {
                     b.Property<int>("Id")
@@ -1020,6 +1160,13 @@ namespace RR.Infraestructure.Migrations
                     b.Navigation("AppUser");
                 });
 
+            modelBuilder.Entity("RR.Core.Entities.Equipment", b =>
+                {
+                    b.HasOne("RR.Core.Entities.RoomDetails", null)
+                        .WithMany("EquipmentList")
+                        .HasForeignKey("RoomDetailsId");
+                });
+
             modelBuilder.Entity("RR.Core.Entities.Manager", b =>
                 {
                     b.HasOne("RR.Core.Entities.Account", "Account")
@@ -1112,6 +1259,36 @@ namespace RR.Infraestructure.Migrations
                     b.Navigation("Account");
                 });
 
+            modelBuilder.Entity("RR.Core.Entities.RoomDetails", b =>
+                {
+                    b.HasOne("RR.Core.Entities.Rooms", "Room")
+                        .WithOne("RoomDetails")
+                        .HasForeignKey("RR.Core.Entities.RoomDetails", "RoomId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Room");
+                });
+
+            modelBuilder.Entity("RR.Core.Entities.RoomEquipment", b =>
+                {
+                    b.HasOne("RR.Core.Entities.Equipment", "Equipment")
+                        .WithMany("RoomEquipments")
+                        .HasForeignKey("EquipmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("RR.Core.Entities.RoomDetails", "RoomDetails")
+                        .WithMany()
+                        .HasForeignKey("RoomDetailsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Equipment");
+
+                    b.Navigation("RoomDetails");
+                });
+
             modelBuilder.Entity("RR.Core.Entities.Rooms", b =>
                 {
                     b.HasOne("RR.Core.Entities.Manager", "Manager")
@@ -1192,6 +1369,11 @@ namespace RR.Infraestructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("RR.Core.Entities.Equipment", b =>
+                {
+                    b.Navigation("RoomEquipments");
+                });
+
             modelBuilder.Entity("RR.Core.Entities.Manager", b =>
                 {
                     b.Navigation("ManagedRooms");
@@ -1207,9 +1389,17 @@ namespace RR.Infraestructure.Migrations
                     b.Navigation("Reservations");
                 });
 
+            modelBuilder.Entity("RR.Core.Entities.RoomDetails", b =>
+                {
+                    b.Navigation("EquipmentList");
+                });
+
             modelBuilder.Entity("RR.Core.Entities.Rooms", b =>
                 {
                     b.Navigation("Reservations");
+
+                    b.Navigation("RoomDetails")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("RR.Core.Entities.Servant", b =>

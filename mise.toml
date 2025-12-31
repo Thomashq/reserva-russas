@@ -1,0 +1,8 @@
+[tools]
+dotnet = "9"
+
+
+[env]
+# Garantir que o dotnet encontra as tools
+_.path = ["{{ config_root }}/.dotnet-tools"]
+DOTNET_ROOT = "{{ env.HOME }}/.local/share/mise/installs/dotnet/9.0"

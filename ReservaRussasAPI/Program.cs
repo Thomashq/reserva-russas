@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
@@ -9,7 +9,10 @@ using RR.Core.Entities;
 using RR.Infraestructure.DataContext;
 using RR.ReservaRussasAPI.Docs;
 using RR.Util.Criptography;
-using System.Text;
+using RR.Core.Enums;
+using RR.Core.Common;
+using ReservaRussasAPI.Attributes;
+using ReservaRussasAPI.Handler;
 
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
@@ -30,7 +33,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowCredentials", policy =>
     {
-        policy.WithOrigins("http://localhost:4200") // Seu frontend Angular
+        policy.WithOrigins("http://localhost:4200") 
               .AllowCredentials()
               .AllowAnyHeader()
               .AllowAnyMethod();
@@ -57,7 +60,6 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.LogTo(Console.WriteLine, LogLevel.Information);
 });
 
-// >>> Identity Core com Cookie Authentication
 // Configuração Identity completa com Entity Framework - IDs string
 builder.Services
     .AddIdentity<AppUser, Microsoft.AspNetCore.Identity.IdentityRole>(o =>
@@ -125,9 +127,39 @@ builder.Services.AddApiVersioning(p =>
         p.SubstituteApiVersionInUrl = true;
     });
 
-builder.Services.AddAuthorization();
+builder.Services.AddScoped<IAuthorizationHandler, MinPermissionHandler>();
+
+builder.Services.AddAuthorization(options =>
+{
+  options.AddPolicy("AdminOrAbove",
+    p => p.Requirements.Add(new MinPermissionRequirement(EAccountPermission.Admin)));
+
+  options.AddPolicy("ManagerOrAbove",
+    p => p.Requirements.Add(new MinPermissionRequirement(EAccountPermission.Manager)));
+
+  options.AddPolicy("ServantOrAbove",
+    p => p.Requirements.Add(new MinPermissionRequirement(EAccountPermission.Servant)));
+
+  options.AddPolicy("StudentOrAbove",
+    p => p.Requirements.Add(new MinPermissionRequirement(EAccountPermission.Student)));
+});
 
 var app = builder.Build();
+
+using (var scope = app.Services.GetRequiredService<IServiceScopeFactory>().CreateScope())
+{
+    using (var context = scope.ServiceProvider.GetService<ApplicationDbContext>())
+    {
+        context.Database.SetCommandTimeout((int)TimeSpan.FromMinutes(20).TotalSeconds);
+        context.Database.Migrate();
+    }
+}
+
+using (var scope = app.Services.CreateScope())
+{
+    var sp = scope.ServiceProvider;
+    await RR.Infraestructure.Seeding.AdminSeeder.SeedAdminAsync(sp);
+}
 
 if (app.Environment.IsDevelopment())
 {
@@ -138,14 +170,7 @@ else
     app.UseExceptionHandler("/Home/Error");
 }
 
-using (var scope = app.Services.GetRequiredService<IServiceScopeFactory>().CreateScope())
-{
-    using (var context = scope.ServiceProvider.GetService<ApplicationDbContext>())
-    {
-        context.Database.SetCommandTimeout((int)TimeSpan.FromMinutes(20).TotalSeconds);
-        context.Database.Migrate();
-    }
-}
+
 
 app.UseCors("AllowCredentials");
 app.UseHttpsRedirection();

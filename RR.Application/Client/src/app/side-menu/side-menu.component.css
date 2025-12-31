@@ -1,0 +1,107 @@
+:host {
+  display: block;
+  height: 100%;
+  color: #fff;
+}
+
+/* blocos com respiro interno */
+.menu-section {
+  padding: 0.25rem 0;
+}
+
+/* avatar quadradinho preto */
+.avatar {
+  width: 40px;
+  height: 40px;
+  background-color: #000;
+  color: #fff;
+  font-weight: 600;
+}
+
+/* link Home */
+.menu-home {
+  color: #fff;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+  .menu-home mat-icon {
+    font-size: 18px;
+  }
+
+  .menu-home.active-link {
+    text-decoration: underline;
+  }
+
+/* ===================== */
+/*       DROPDOWNS       */
+/* ===================== */
+
+/* retângulos brancos com cantos suaves (não pílula) */
+.menu-panel {
+  border-radius: 12px !important;
+  margin-bottom: 0.5rem;
+}
+
+:host ::ng-deep .menu-panel {
+  background-color: #ffffff;
+  color: #141414;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+  :host ::ng-deep .menu-panel .mat-expansion-panel-header {
+    padding: 0 1.25rem;
+    min-height: 44px;
+  }
+
+  /* itens dentro dos panels */
+  :host ::ng-deep .menu-panel a[mat-list-item],
+  :host ::ng-deep .menu-panel button[mat-list-item] {
+    font-size: 13px;
+  }
+
+/* ===================== */
+/*      CAMPO BUSCA      */
+/* ===================== */
+
+/* campo de busca com fundo branco, texto e ícone pretos */
+/* label "Buscar" acima do campo */
+.search-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 4px;
+  padding-left: 4px;
+}
+
+/* campo de busca com fundo branco, texto e ícone pretos */
+:host ::ng-deep .search-field .mat-mdc-text-field-wrapper {
+  background-color: #ffffff;
+  border-radius: 12px;
+}
+
+:host ::ng-deep .search-field .mdc-notched-outline__leading,
+:host ::ng-deep .search-field .mdc-notched-outline__trailing,
+:host ::ng-deep .search-field .mdc-notched-outline__notch {
+  border-color: #d4d4d4;
+}
+
+:host ::ng-deep .search-field .mat-mdc-input-element {
+  color: #141414;
+}
+
+:host ::ng-deep .search-field .mat-mdc-form-field-icon-suffix {
+  color: #141414;
+}
+
+
+/* texto secundário (tipo "Servidor") em cinza claro */
+.text-muted {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+/* link ativo da lista */
+.active-link {
+  font-weight: 600;
+}

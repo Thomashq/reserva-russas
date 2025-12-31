@@ -1,169 +1,176 @@
-﻿using RR.Core.DTOs.Requests;
+using Microsoft.EntityFrameworkCore;
+using RR.Core.DTOs.Requests;
 using RR.Core.Entities;
 using RR.Core.Enums;
-using RR.Core.Repositories;
 using RR.Core.Services;
-using RR.Util.ReservationRules;
+using RR.Infraestructure.DataContext;
 
 namespace RR.Service.Service
 {
     public class ReservationSeriesService : IReservationSeriesService
     {
-        private readonly IReservationSeriesRepository _reservationSeriesRepository;
+        private readonly ApplicationDbContext _context;
         private readonly IReservationService _reservationService;
 
-        public ReservationSeriesService(IReservationSeriesRepository reservationSeriesRepository, IReservationService reservationService)
-        {
-            _reservationSeriesRepository = reservationSeriesRepository;
-            _reservationService = reservationService;
-        }
-
-        public async Task<int> CancelSeries(int seriesId, DateTime? from = null)
-        {
-            var series = await _reservationSeriesRepository.GetSeriesById(seriesId);
-            if (series == null) return 0;
-
-            var cutoff = (from?.ToUniversalTime() ?? DateTime.UtcNow);
-
-            var all = await _reservationService.GetReservationsBySeriesId(seriesId);
-            var target = all
-                .Where(r => r.IsActive && r.EndTime.ToUniversalTime() >= cutoff)
-                .ToList();
-
-            foreach (var r in target)
-            {
-                r.IsActive = false; // soft delete
-                await _reservationService.DeleteAsync(r.Id);
-            }
-
-            // (Opcional simples) marcar a série como cancelada
-            series.IsActive = true; // Cancelled
-            await _reservationSeriesRepository.UpdateSeries(series);
-
-            return target.Count;
-        }
+        public ReservationSeriesService(ApplicationDbContext context, IReservationService reservationService) { _context = context; _reservationService = reservationService; }
 
         public async Task<int> CreateSeries(CreateSeriesRequest series)
         {
-            ReservationSeries reservationSeries = new ReservationSeries
+            var acc = await _context.Account.FirstOrDefaultAsync(a => a.Id == series.AccountId);
+            if (acc is not null && acc.AccountPermission == (int)EAccountPermission.Student)
+                throw new UnauthorizedAccessException("Alunos não podem reservar salas.");
+
+            var reservationSeries = new ReservationSeries
             {
                 AccountId = series.AccountId,
                 RoomId = series.DefaultRoomId,
                 Title = series.Title,
+                Description = series.Description ?? "",
+                WindowStart = series.WindowStart,
+                WindowEnd = series.WindowEnd,
+                RecurrenceRule = series.RecurrenceRule ?? "",
+                DaysOfWeek = series.DaysOfWeek ?? "",
+                TimeStart = series.TimeStart,
+                TimeEnd = series.TimeEnd,
+                SeriesStatus = 1,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            await _context.ReservationSeries.AddAsync(reservationSeries);
+            await _context.SaveChangesAsync();
+
+            var preview = await PreviewSeries(new PreviewSeriesRequest
+            {
+                AccountId = series.AccountId,
+                DefaultRoomId = series.DefaultRoomId,
+                Title = series.Title,
                 Description = series.Description,
                 WindowStart = series.WindowStart,
                 WindowEnd = series.WindowEnd,
-                RecurrenceRule = series.RecurrenceRule,
                 DaysOfWeek = series.DaysOfWeek,
                 TimeStart = series.TimeStart,
                 TimeEnd = series.TimeEnd,
-                SeriesStatus = 1 // Active
-            };
-            await _reservationSeriesRepository.AddSeries(reservationSeries);
+                Interval = series.Interval
+            });
 
-            return await MakeReservationsAsync(reservationSeries, series.Interval);
-        }
-
-        public async Task<int> EditSeries(EditSeriesRequest req)
-        {
-            var series = await _reservationSeriesRepository.GetSeriesById(req.SeriesId);
-            if (series == null) return 0;
-
-            // Atualiza somente o que veio
-            series.Title = req.Title ?? series.Title;
-            series.Description = req.Description ?? series.Description;
-            series.WindowStart = req.WindowStart ?? series.WindowStart;
-            series.WindowEnd = req.WindowEnd ?? series.WindowEnd;
-            series.RecurrenceRule = req.RecurrenceRule ?? series.RecurrenceRule;
-            series.DaysOfWeek = req.DaysOfWeek ?? series.DaysOfWeek;
-            series.TimeStart = req.TimeStart ?? series.TimeStart;
-            series.TimeEnd = req.TimeEnd ?? series.TimeEnd;
-
-            await _reservationSeriesRepository.UpdateSeries(series);
-
-            // Abordagem simples: desativar todas as reservas atuais e recriar
-            var existing = await _reservationService.GetReservationsBySeriesId(req.SeriesId);
-            foreach (var r in existing.Where(x => x.IsActive))
+            foreach (var r in preview)
             {
-                r.IsActive = false;
-                await _reservationService.UpdateAsync(r);
+                r.SeriesId = reservationSeries.Id;
+                await _reservationService.AddAsync(r);
             }
 
-            var interval = req.Interval; // assuma que vem no request
-            var created = await MakeReservationsAsync(series, interval);
-            return created;
+            return reservationSeries.Id;
         }
 
         public Task<List<Reservation>> PreviewSeries(PreviewSeriesRequest series)
         {
-            // Somente expandir, SEM persistir
-            EReservationDay daysMask = ReservationSeriesParser.ParseMask(series.DaysOfWeek);
-            EReservationFrequency frequency = ReservationSeriesParser.ParseMaskFrequency(series.RecurrenceRule);
+            if (series.WindowStart > series.WindowEnd) throw new ArgumentException("WindowStart must be before WindowEnd.");
 
-            var dates = WeekdayHelper.GenerateDates(
-                series.WindowStart,
-                series.WindowEnd,
-                daysMask,
-                frequency,
-                series.Interval
-            );
+            var days = ParseDaysOfWeek(series.DaysOfWeek);
+            var results = new List<Reservation>();
 
-            var preview = new List<Reservation>(capacity: dates.Count);
-            foreach (var date in dates)
+            var startDate = series.WindowStart.Date;
+            var endDate = series.WindowEnd.Date;
+
+            for (var d = startDate; d <= endDate; d = d.AddDays(1))
             {
-                var startTime = date.Date + series.TimeStart;
-                var endTime = date.Date + series.TimeEnd;
+                if (!days.Contains(d.DayOfWeek)) continue;
 
-                preview.Add(new Reservation
+                // Interval semanal simples (1 = toda semana)
+                if (series.Interval > 1)
+                {
+                    var weeksFromStart = (int)((d - startDate).TotalDays / 7);
+                    if (weeksFromStart % series.Interval != 0) continue;
+                }
+
+                var start = d.Add(series.TimeStart);
+                var end = d.Add(series.TimeEnd);
+                if (start >= end) continue;
+
+                results.Add(new Reservation
                 {
                     AccountId = series.AccountId,
                     RoomId = series.DefaultRoomId,
                     Title = series.Title,
-                    Description = series.Description,
-                    StartTime = startTime,
-                    EndTime = endTime,
-                    Origin = EReservationOrigin.SeriesGenerated,
-                    IsActive = true
+                    Description = series.Description ?? "",
+                    StartTime = start,
+                    EndTime = end,
+                    Status = 0,
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
                 });
             }
 
-            return Task.FromResult(preview);
+            return Task.FromResult(results);
         }
 
-        private async Task<int> MakeReservationsAsync(ReservationSeries reservationSeries, int interval)
+        public async Task<int> EditSeries(EditSeriesRequest series)
         {
-            EReservationDay daysMask = ReservationSeriesParser.ParseMask(reservationSeries.DaysOfWeek);
-            EReservationFrequency frequency = ReservationSeriesParser.ParseMaskFrequency(reservationSeries.RecurrenceRule);
+            var entity = await _context.ReservationSeries.FirstOrDefaultAsync(x => x.Id == series.SeriesId && x.IsActive);
+            if (entity == null) throw new Exception("Série não encontrada");
 
-            var dates = WeekdayHelper.GenerateDates(
-                reservationSeries.WindowStart,
-                reservationSeries.WindowEnd,
-                daysMask,
-                frequency,
-                interval);
+            if (series.Title is not null) entity.Title = series.Title;
+            if (series.Description is not null) entity.Description = series.Description;
+            if (series.WindowStart.HasValue) entity.WindowStart = series.WindowStart.Value;
+            if (series.WindowEnd.HasValue) entity.WindowEnd = series.WindowEnd.Value;
+            if (series.RecurrenceRule is not null) entity.RecurrenceRule = series.RecurrenceRule;
+            if (series.DaysOfWeek is not null) entity.DaysOfWeek = series.DaysOfWeek;
+            if (series.TimeStart.HasValue) entity.TimeStart = series.TimeStart.Value;
+            if (series.TimeEnd.HasValue) entity.TimeEnd = series.TimeEnd.Value;
 
-            int count = 0;
-            foreach (var date in dates)
+            entity.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+            return entity.Id;
+        }
+
+        public async Task<int> CancelSeries(int seriesId, DateTime? from = null)
+        {
+            var entity = await _context.ReservationSeries.FirstOrDefaultAsync(x => x.Id == seriesId && x.IsActive);
+            if (entity == null) return 0;
+
+            entity.IsActive = false;
+            entity.UpdatedAt = DateTime.UtcNow;
+
+            var q = _context.Reservation.Where(r => r.SeriesId == seriesId && r.IsActive);
+            if (from.HasValue) q = q.Where(r => r.StartTime >= from.Value);
+
+            var reservations = await q.ToListAsync();
+            foreach (var r in reservations)
             {
-                var startTime = date.Date + reservationSeries.TimeStart;
-                var endTime = date.Date + reservationSeries.TimeEnd;
-                var reservation = new Reservation
-                {
-                    AccountId = reservationSeries.AccountId,
-                    RoomId = reservationSeries.RoomId,
-                    Title = reservationSeries.Title,
-                    Description = reservationSeries.Description,
-                    SeriesId = reservationSeries.Id,
-                    Origin = EReservationOrigin.SeriesGenerated,
-                    StartTime = startTime,
-                    EndTime = endTime,
-                    IsActive = true
-                };
-                await _reservationService.AddAsync(reservation);
-                count++;
+                r.IsActive = false;
+                r.Status = 2;
+                r.UpdatedAt = DateTime.UtcNow;
             }
 
-            return count;
+            await _context.SaveChangesAsync();
+            return entity.Id;
+        }
+
+        private static HashSet<DayOfWeek> ParseDaysOfWeek(string? daysOfWeek)
+        {
+            var set = new HashSet<DayOfWeek>();
+            if (string.IsNullOrWhiteSpace(daysOfWeek)) return set;
+
+            var parts = daysOfWeek.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            foreach (var p in parts)
+            {
+                switch (p.ToUpper())
+                {
+                    case "MO": set.Add(DayOfWeek.Monday); break;
+                    case "TU": set.Add(DayOfWeek.Tuesday); break;
+                    case "WE": set.Add(DayOfWeek.Wednesday); break;
+                    case "TH": set.Add(DayOfWeek.Thursday); break;
+                    case "FR": set.Add(DayOfWeek.Friday); break;
+                    case "SA": set.Add(DayOfWeek.Saturday); break;
+                    case "SU": set.Add(DayOfWeek.Sunday); break;
+                }
+            }
+
+            return set;
         }
     }
 }

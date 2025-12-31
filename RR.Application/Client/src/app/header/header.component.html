@@ -3,10 +3,10 @@
     <span class="logo" routerLink="/">ReservaRussas</span>
     <span class="spacer"></span>
     <nav class="nav-buttons">
-      <button mat-button (click)="navigateToInfo()">Início</button>
-      <button mat-button (click)="navigateToAbout()">Sobre</button>
-      <button mat-button (click)="navigateToRooms()">Salas</button>
-      <button mat-button (click)="navigateToContact()">Contato</button>
+      <button mat-icon-button (click)="toggleTheme()" aria-label="Trocar tema">
+        <mat-icon *ngIf="!isDark">dark_mode</mat-icon>
+        <mat-icon *ngIf="isDark">light_mode</mat-icon>
+      </button>
     </nav>
     <span class="spacer"></span>
 

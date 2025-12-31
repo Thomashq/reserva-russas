@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using ReservaRussasAPI.Controllers.Base;
 using RR.Core.DTOs.Requests;
 using RR.Core.Services;
@@ -11,6 +12,7 @@ namespace ReservaRussasAPI.Controllers
         public ReservationSeriesController(IReservationSeriesService reservationSeriesService) => _reservationSeriesService = reservationSeriesService;
 
         [HttpDelete]
+        [Authorize (Policy = "ServantOrAbove")]
         public async Task<IActionResult> CancelSeries(int seriesId, DateTime? from = null)
         {
             var cancelledCount = await _reservationSeriesService.CancelSeries(seriesId, from);
@@ -21,6 +23,7 @@ namespace ReservaRussasAPI.Controllers
         }
 
         [HttpPost]
+        [Authorize (Policy = "ServantOrAbove")]
         public async Task<IActionResult> CreateSeries([FromBody] CreateSeriesRequest req)
         {
             if (req is null) return ResponseBadRequest("O corpo da requisição é nulo.");
@@ -36,6 +39,7 @@ namespace ReservaRussasAPI.Controllers
         }
 
         [HttpPut]
+        [Authorize (Policy = "ServantOrAbove")]
         public async Task<IActionResult> EditSeries([FromBody] EditSeriesRequest req)
         {
             if (req is null) return ResponseBadRequest();
@@ -54,6 +58,7 @@ namespace ReservaRussasAPI.Controllers
         }
 
         [HttpPost("preview")]
+        [Authorize (Policy = "ServantOrAbove")]
         public async Task<IActionResult> PreviewSeries([FromBody] PreviewSeriesRequest req)
         {
             if (req is null) return ResponseBadRequest("O corpo da requisição é nulo.");

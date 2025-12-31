@@ -4,17 +4,52 @@
   flex-direction: column;
 }
 
-main {
+.app-body {
+  display: flex;
   flex: 1;
   width: 100%;
+  margin: 0;
+  padding: 2rem 2rem 2rem 0;
+  box-sizing: border-box;
+}
+
+/* Faixa do menu */
+/* Faixa do menu */
+.side-menu {
+  width: 260px;
+  padding: 2rem 1.5rem;
+  background: #141414; /* preto 20,20,20 */
+  box-sizing: border-box;
+  border-right: none;
+  border-radius: 0 24px 24px 0;
+  color: #fff;
+}
+
+/* Conteúdo principal */
+main {
+  flex: 1;
   max-width: 1400px;
   margin: 0 auto;
   padding: 2rem;
+  box-sizing: border-box;
 }
+
 
 /* Para telas menores */
 @media (max-width: 768px) {
-  main {
+  .app-body {
+    flex-direction: column;
     padding: 1rem;
+  }
+
+  .side-menu {
+    width: 100%;
+    padding: 1rem;
+    border-right: none;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  }
+
+  main {
+    padding: 1rem 0;
   }
 }

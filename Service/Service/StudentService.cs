@@ -1,42 +1,56 @@
-﻿using RR.Core.Entities;
-using RR.Core.Repositories;
+using Microsoft.EntityFrameworkCore;
+using RR.Core.Entities;
 using RR.Core.Services;
-using RR.Core.Services.Base;
+using RR.Infraestructure.DataContext;
 
 namespace RR.Service.Service
 {
     public class StudentService : IStudentService
     {
-        private readonly IStudentRepository _studentRepository;
+        private readonly ApplicationDbContext _context;
 
-        public StudentService(IStudentRepository studentRepository)
-        {
-            _studentRepository = studentRepository;
-        }
+        public StudentService(ApplicationDbContext context) { _context = context; }
 
         public async Task<bool> AddAsync(Student student)
         {
-            return await _studentRepository.AddAsync(student);
-        }
-
-        public async Task<bool> DeleteAsync(int id)
-        {
-            return await _studentRepository.DeleteAsync(id);
+            student.IsActive = true;
+            await _context.Student.AddAsync(student);
+            await _context.SaveChangesAsync();
+            return true;
         }
 
         public async Task<Student> GetServantById(int id)
         {
-            return await _studentRepository.GetStudentById(id);
+            var student = await _context.Student.FirstOrDefaultAsync(x => x.Id == id && x.IsActive);
+            return student;
         }
 
         public async Task<Student> GetStudentByAccountId(int id)
         {
-            return await _studentRepository.GetStudentByAccountId(id);
+            var entity = await _context.Student.FirstOrDefaultAsync(x => x.AccountId == id && x.IsActive);
+            return entity;
         }
 
         public async Task<Student> UpdateAsync(Student student)
         {
-            return await _studentRepository.UpdateAsync(student);
+            var existingStudent = await _context.Student.FindAsync(student.Id);
+            if (existingStudent == null) return null;
+
+            existingStudent.AccountId = student.AccountId;
+            existingStudent.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+            return existingStudent;
+        }
+
+        public async Task<bool> DeleteAsync(int id)
+        {
+            var student = await _context.Student.FindAsync(id);
+            if (student == null) return false;
+
+            student.IsActive = false;
+            await _context.SaveChangesAsync();
+            return true;
         }
     }
 }

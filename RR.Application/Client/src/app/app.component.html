@@ -1,10 +1,19 @@
 <div class="app-container" *ngIf="showLayout">
   <app-header></app-header>
-  <main>
-    <router-outlet></router-outlet>
-  </main>
+
+  <div class="app-body">
+    <aside *ngIf="account" class="side-menu">
+      <app-side-menu></app-side-menu>
+    </aside>
+
+    <main>
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+
   <app-footer></app-footer>
 </div>
+
 <div *ngIf="!showLayout">
   <router-outlet></router-outlet>
 </div>

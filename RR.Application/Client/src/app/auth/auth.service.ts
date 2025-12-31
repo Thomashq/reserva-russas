@@ -113,7 +113,6 @@ export class AuthService {
       catchError(() => {
         this.currentUserSubject.next(null);
         this.account = {};
-        this.router.navigate(['/auth/login']);
         return of(null);
       })
     );
