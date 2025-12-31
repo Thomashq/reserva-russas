@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
@@ -9,8 +9,10 @@ using RR.Core.Entities;
 using RR.Infraestructure.DataContext;
 using RR.ReservaRussasAPI.Docs;
 using RR.Util.Criptography;
-using System.Text;
 using RR.Core.Enums;
+using RR.Core.Common;
+using ReservaRussasAPI.Attributes;
+using ReservaRussasAPI.Handler;
 
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
@@ -125,21 +127,21 @@ builder.Services.AddApiVersioning(p =>
         p.SubstituteApiVersionInUrl = true;
     });
 
+builder.Services.AddScoped<IAuthorizationHandler, MinPermissionHandler>();
+
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy("AdminOnly", policy =>
-        policy.RequireRole(nameof(EAccountPermission.Admin)));
+  options.AddPolicy("AdminOrAbove",
+    p => p.Requirements.Add(new MinPermissionRequirement(EAccountPermission.Admin)));
 
-    options.AddPolicy("ManagerOrAdmin", policy =>
-        policy.RequireRole(
-            nameof(EAccountPermission.Admin),
-            nameof(EAccountPermission.Manager)));
+  options.AddPolicy("ManagerOrAbove",
+    p => p.Requirements.Add(new MinPermissionRequirement(EAccountPermission.Manager)));
 
-    options.AddPolicy("ServantOrAbove", policy =>
-        policy.RequireRole(
-            nameof(EAccountPermission.Admin),
-            nameof(EAccountPermission.Manager),
-            nameof(EAccountPermission.Servant)));
+  options.AddPolicy("ServantOrAbove",
+    p => p.Requirements.Add(new MinPermissionRequirement(EAccountPermission.Servant)));
+
+  options.AddPolicy("StudentOrAbove",
+    p => p.Requirements.Add(new MinPermissionRequirement(EAccountPermission.Student)));
 });
 
 var app = builder.Build();

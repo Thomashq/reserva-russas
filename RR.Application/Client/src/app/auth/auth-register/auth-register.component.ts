@@ -105,6 +105,7 @@ export class RegisterComponent {
       },
       error: (err) => {
         this.errorMessage = err?.message || 'Erro ao registrar. Tente novamente.';
+        console.log(err)
         this.isLoading = false;
       },
       complete: () => this.isLoading = false

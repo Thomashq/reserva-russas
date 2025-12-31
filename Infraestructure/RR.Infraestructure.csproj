@@ -24,7 +24,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Core\RR.Core.csproj" />
-    <ProjectReference Include="..\Service\RR.Service.csproj" />
   </ItemGroup>
 
   <ItemGroup>

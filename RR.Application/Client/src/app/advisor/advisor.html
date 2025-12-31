@@ -1,1 +1,77 @@
-<p>advisor works!</p>
+<div class="container py-3">
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <div>
+      <h3 class="m-0">Aluno ⇄ Orientador</h3>
+      <div class="text-muted small">StudentAdvisor</div>
+    </div>
+
+    <a class="btn btn-primary" routerLink="/advisor/new">Nova relação</a>
+  </div>
+
+  <div class="card mb-3">
+    <div class="card-body">
+      <div class="row g-2 align-items-end">
+        <div class="col-12 col-md-4">
+          <label class="form-label">StudentId</label>
+          <input class="form-control" type="number" [(ngModel)]="filtroStudentId" />
+        </div>
+
+        <div class="col-12 col-md-4">
+          <label class="form-label">ServantId</label>
+          <input class="form-control" type="number" [(ngModel)]="filtroServantId" />
+        </div>
+
+        <div class="col-12 col-md-4 d-flex gap-2">
+          <button class="btn btn-outline-primary w-100" (click)="Buscar()">Buscar</button>
+          <button class="btn btn-outline-secondary w-100" (click)="Limpar()">Limpar</button>
+        </div>
+      </div>
+
+      <div class="text-muted small mt-2">
+        Preencha <b>apenas um</b> filtro (StudentId ou ServantId). Vazio = lista tudo.
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+  <div *ngIf="loading" class="alert alert-info">Carregando...</div>
+
+  <div class="card" *ngIf="!loading">
+    <div class="table-responsive">
+      <table class="table table-striped table-hover mb-0">
+        <thead>
+          <tr>
+            <th style="width: 90px;">Id</th>
+            <th style="width: 160px;">StudentId</th>
+            <th style="width: 160px;">ServantId</th>
+            <th style="width: 120px;">Ativo</th>
+            <th style="width: 180px;"></th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let item of list">
+            <td>{{ item.id }}</td>
+            <td>{{ item.studentId }}</td>
+            <td>{{ item.servantId }}</td>
+            <td>
+              <span class="badge" [class.bg-success]="item.isActive" [class.bg-secondary]="!item.isActive">
+                {{ item.isActive ? 'Sim' : 'Não' }}
+              </span>
+            </td>
+            <td class="text-end">
+              <button class="btn btn-sm btn-outline-danger" (click)="Delete(item.id)" [disabled]="!item.isActive">
+                Desativar
+              </button>
+            </td>
+          </tr>
+
+          <tr *ngIf="list.length === 0">
+            <td colspan="5" class="text-center text-muted py-4">Sem dados</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+

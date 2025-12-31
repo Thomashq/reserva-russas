@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ReservaRussasAPI.Controllers.Base;
-using RR.Core.Common;
 using RR.Core.DTOs.Requests;
 using RR.Core.Entities;
 using RR.Core.Services;

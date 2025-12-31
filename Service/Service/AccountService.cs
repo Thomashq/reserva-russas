@@ -1,97 +1,96 @@
-﻿using Core.Services;
+using Microsoft.EntityFrameworkCore;
+using Core.Services;
 using RR.Core.Entities;
-using RR.Core.Repositories;
-
+using RR.Infraestructure.DataContext;
 
 namespace RR.Service
 {
-    public class AccountService: IAccountService
+    public class AccountService : IAccountService
     {
-        private readonly IAccountRepository _accountRepository;
-        public AccountService(IAccountRepository accountRepository) 
-        { 
-            _accountRepository = accountRepository;
+        private readonly ApplicationDbContext _context;
+
+        public AccountService(ApplicationDbContext context) { _context = context; }
+
+        public async Task<Account?> GetByUserIdAsync(string userId)
+        {
+            if (string.IsNullOrWhiteSpace(userId)) return null;
+            return await _context.Account.FirstOrDefaultAsync(a => a.UserId == userId && a.IsActive);
         }
 
-        public async Task<Account?> GetByUserIdAsync(string userId) => await _accountRepository.GetByUserIdAsync(userId);
-
-        public async Task<bool> SetActiveStatusAsync(int id, bool isActive)
+        public async Task<Account?> GetByEmailAsync(string email)
         {
-            var user = await GetByIdAsync(id);
-            if (user == null) return false;
+            if (string.IsNullOrWhiteSpace(email)) return null;
+            email = email.Trim().ToLower();
+            return await _context.Account.FirstOrDefaultAsync(a => a.Mail.ToLower() == email && a.IsActive);
+        }
 
-            user.IsActive = isActive;
-            user.UpdatedAt = DateTime.UtcNow;
+        public async Task<Account?> GetByUsernameAsync(string username)
+        {
+            if (string.IsNullOrWhiteSpace(username)) return null;
+            username = username.Trim().ToLower();
+            return await _context.Account.FirstOrDefaultAsync(a => a.UserName.ToLower() == username && a.IsActive);
+        }
 
-            var updated = await _accountRepository.UpdateAsync(user);
-            return updated is not null; 
+        public async Task<bool> EmailExistsAsync(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email)) return false;
+            email = email.Trim().ToLower();
+            return await _context.Account.AnyAsync(a => a.Mail.ToLower() == email && a.IsActive);
+        }
+
+        public async Task<Account> GetByIdAsync(int id)
+        {
+            return await _context.Account.FirstOrDefaultAsync(a => a.Id == id);
         }
 
         public async Task<bool> AddAsync(Account account)
         {
-            if (account == null)
-                return false;
-
-            // Validações básicas
-            if (string.IsNullOrWhiteSpace(account.Mail) || string.IsNullOrWhiteSpace(account.UserName))
-                return false;
-
-            // Verifica se email já existe
-            if (await EmailExistsAsync(account.Mail))
-                return false;
-
-            // Verifica se username já existe
-            if (await GetByUsernameAsync(account.UserName) != null)
-                return false;
-
-            // Normaliza dados
             account.Mail = account.Mail.ToLower();
             account.UserName = account.UserName.ToLower();
             account.CreatedAt = DateTime.UtcNow;
             account.UpdatedAt = DateTime.UtcNow;
             account.IsActive = true;
 
-            return await _accountRepository.AddAsync(account);
+            await _context.Account.AddAsync(account);
+            await _context.SaveChangesAsync();
+            return true;
         }
 
-        public async Task<Account?> GetByEmailAsync(string email)
+        public async Task<Account> UpdateAsync(Account updatedAccount)
         {
-            if (string.IsNullOrWhiteSpace(email))
-                return null;
+            var existingAccount = await _context.Account.FirstOrDefaultAsync(a => a.Id == updatedAccount.Id);
+            if (existingAccount == null) return null;
 
-            return await _accountRepository.GetByEmailAsync(email.ToLower());
+            existingAccount.UserName = updatedAccount.UserName?.ToLower();
+            existingAccount.Mail = updatedAccount.Mail?.ToLower();
+            existingAccount.Phone = updatedAccount.Phone;
+            existingAccount.AccountPermission = updatedAccount.AccountPermission;
+            existingAccount.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+            return existingAccount;
         }
 
-        public async Task<Account?> GetByUsernameAsync(string username)
+        public async Task<bool> SetActiveStatusAsync(int id, bool isActive)
         {
-            if (string.IsNullOrWhiteSpace(username))
-                return null;
+            var account = await _context.Account.FindAsync(id);
+            if (account == null) return false;
 
-            return await _accountRepository.GetByUserNameAsync(username.ToLower());
-        }
-
-        public async Task<bool> EmailExistsAsync(string email)
-        {
-            if (string.IsNullOrWhiteSpace(email))
-                return false;
-
-            var user = await GetByEmailAsync(email);
-            return user != null;
-        }
-
-        public async Task<Account> GetByIdAsync(int id)
-        {
-            return await _accountRepository.GetByIdAsync(id);
-        }
-
-        public async Task<Account> UpdateAsync(Account account)
-        {
-            return await _accountRepository.UpdateAsync(account);
+            account.IsActive = isActive;
+            account.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+            return true;
         }
 
         public async Task<bool> DeleteAsync(int id)
         {
-            return await _accountRepository.DeleteAsync(id);
+            var account = await _context.Account.FindAsync(id);
+            if (account == null) return false;
+
+            account.IsActive = false;
+            account.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+            return true;
         }
     }
 }

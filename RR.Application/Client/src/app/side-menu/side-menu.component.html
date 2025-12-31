@@ -73,6 +73,20 @@
       </a>
     </mat-expansion-panel>
 
+    <!--- ORIENTANDO ---->
+    <mat-expansion-panel class = "menu-panel" *ngIf = "this.isManagerOrAbove">
+      <mat-expansion-panel-header>
+        <mat-panel-title>Orientação</mat-panel-title>
+      </mat-expansion-panel-header>
+
+      <a mat-list-item routerLink = "/advisor" routerLinkActive= "active-link">
+        <span>Lista de orientação</span>
+      </a>
+      <a mat-list-item routerLink = "/advisor/new" routerLinkActive= "active-link">
+        <span>Nova orientação</span>
+      </a>
+    </mat-expansion-panel>
+
     <!-- INFOS DA CONTA -->
     <mat-expansion-panel class="menu-panel">
       <mat-expansion-panel-header>

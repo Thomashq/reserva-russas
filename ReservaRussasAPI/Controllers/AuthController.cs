@@ -2,10 +2,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 using ReservaRussasAPI.Controllers.Base;
 using RR.Core.DTOs.Requests;
 using RR.Core.Entities;
+using RR.Core.Enums;
 using RR.Core.Requests.Account;
 using RR.Core.Services;
 using System.Globalization;
@@ -36,6 +36,8 @@ namespace ReservaRussasAPI.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
+          try
+          {
             var account = await _authService.Login(request.UserName, request.Password);
             if (account is null) return ResponseUnauthorized("Usuário ou senha inválidos");
 
@@ -44,12 +46,22 @@ namespace ReservaRussasAPI.Controllers
 
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.NameIdentifier, user.Id),
-                new Claim("accountId", account.Id.ToString(CultureInfo.InvariantCulture))
+                new Claim("accountId", account.Id.ToString()),
+                new Claim("permission", account.AccountPermission.ToString()),
             };
+
+            if (account.AccountPermission == (int)EAccountPermission.Student && account.Student != null)
+                claims.Add(new Claim("studentId", account.Student.Id.ToString()));
+
+            claims.Add(new Claim("permissionName", ((EAccountPermission)account.AccountPermission).ToString()));
 
             await _signInManager.SignInWithClaimsAsync(user, isPersistent: false, claims);
             return ResponseOk("Login realizado com sucesso");
+          }
+          catch (Exception ex)
+          {
+            return ResponseBadRequest(ex.ToString());
+          }
         }
 
         [HttpPost("register")]
@@ -70,7 +82,7 @@ namespace ReservaRussasAPI.Controllers
             return ResponseCreated(resp);
           }
           catch(Exception ex){
-            throw new Exception("Não foi possível registrar conta", ex);
+            return ResponseBadRequest(ex.ToString());
           }
         }
 

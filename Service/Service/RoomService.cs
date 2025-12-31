@@ -1,86 +1,72 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
 using RR.Core.Entities;
-using RR.Core.Repositories;
 using RR.Core.Services;
+using RR.Infraestructure.DataContext;
 
 namespace RR.Service.Service
 {
     public class RoomService : IRoomService
     {
-        private readonly IRoomRepository _rooms;
-        private readonly ILogger<RoomService>? _logger;
+        private readonly ApplicationDbContext _context;
 
-        public RoomService(IRoomRepository rooms, ILogger<RoomService>? logger = null)
+        public RoomService(ApplicationDbContext context) { _context = context; }
+
+        public async Task<IEnumerable<Rooms>> GetAllAsync()
         {
-            _rooms = rooms;
-            _logger = logger;
+            return await _context.Rooms.Where(x => x.IsActive).ToListAsync();
+        }
+
+        public async Task<Rooms?> GetRoomById(int id)
+        {
+            var room = await _context.Rooms.FirstOrDefaultAsync(x => x.Id == id && x.IsActive);
+            return room;
+        }
+
+        public async Task<Rooms?> GetRoomByName(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name)) return null;
+            var room = await _context.Rooms.FirstOrDefaultAsync(x => x.Name == name && x.IsActive);
+            return room;
+        }
+
+        public async Task<Rooms?> GetRoomsReservationsByPeriod(int id, DateTime start, DateTime end)
+        {
+            var room = await _context.Rooms
+                .Include(r => r.Reservations.Where(res => res.StartTime >= start && res.EndTime <= end && res.IsActive))
+                .FirstOrDefaultAsync(r => r.Id == id && r.IsActive);
+
+            return room;
         }
 
         public async Task<Rooms> AddAsync(Rooms room)
         {
-            if (room is null) throw new ArgumentNullException(nameof(room));
-            if (string.IsNullOrWhiteSpace(room.Name))
-                throw new ArgumentException("Room name is required.", nameof(room));
-            if (room.Capacity <= 0)
-                throw new ArgumentException("Capacity must be greater than zero.", nameof(room));
-
-            // (Opcional) checar duplicidade de nome ativo
-            var existing = await _rooms.GetRoomByName(room.Name);
-            if (existing is not null)
-                throw new InvalidOperationException($"Room '{room.Name}' already exists.");
-
-            var created = await _rooms.AddAsync(room);
-            _logger?.LogInformation("Room created: {RoomId} - {Name}", created.Id, created.Name);
-            return created;
-        }
-
-        public Task<bool> DeleteAsync(int id)
-        {
-            if (id <= 0) throw new ArgumentOutOfRangeException(nameof(id));
-            return _rooms.DeleteAsync(id); 
-        }
-
-        public Task<IEnumerable<Rooms>> GetAllAsync()
-            => _rooms.GetAllAsync();
-
-        public Task<Rooms?> GetRoomById(int id)
-        {
-            if (id <= 0) throw new ArgumentOutOfRangeException(nameof(id));
-            return _rooms.GetRoomById(id);
-        }
-
-        public Task<Rooms?> GetRoomByName(string name)
-        {
-            if (string.IsNullOrWhiteSpace(name))
-                throw new ArgumentException("Name is required.", nameof(name));
-            return _rooms.GetRoomByName(name);
-        }
-
-        public Task<Rooms?> GetRoomsReservationsByPeriod(int id, DateTime start, DateTime end)
-        {
-            if (id <= 0) throw new ArgumentOutOfRangeException(nameof(id));
-            if (start >= end) throw new ArgumentException("Start must be before End.");
-            return _rooms.GetRoomsReservationsByPeriod(id, start, end);
+            room.IsActive = true;
+            await _context.Rooms.AddAsync(room);
+            await _context.SaveChangesAsync();
+            return room;
         }
 
         public async Task<Rooms?> UpdateAsync(Rooms room)
         {
-            if (room is null) throw new ArgumentNullException(nameof(room));
-            if (room.Id <= 0) throw new ArgumentOutOfRangeException(nameof(room.Id));
-            if (string.IsNullOrWhiteSpace(room.Name))
-                throw new ArgumentException("Room name is required.", nameof(room));
-            if (room.Capacity <= 0)
-                throw new ArgumentException("Capacity must be greater than zero.", nameof(room));
+            var existingRoom = await _context.Rooms.FindAsync(room.Id);
+            if (existingRoom == null) return null;
 
-            var updated = await _rooms.UpdateAsync(room);
-            if (updated is null)
-            {
-                _logger?.LogWarning("Attempt to update non-existent room {RoomId}", room.Id);
-                return null;
-            }
+            existingRoom.Name = room.Name;
+            existingRoom.Capacity = room.Capacity;
+            existingRoom.UpdatedAt = DateTime.UtcNow;
 
-            _logger?.LogInformation("Room updated: {RoomId} - {Name}", updated.Id, updated.Name);
-            return updated;
+            await _context.SaveChangesAsync();
+            return existingRoom;
+        }
+
+        public async Task<bool> DeleteAsync(int id)
+        {
+            var room = await _context.Rooms.FindAsync(id);
+            if (room == null) return false;
+
+            room.IsActive = false;
+            await _context.SaveChangesAsync();
+            return true;
         }
     }
 }

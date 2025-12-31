@@ -5,7 +5,6 @@
         public static IServiceCollection AddApplicationServices(this IServiceCollection services)
         {
             // Registrar todas as configurações de DI
-            services.AddRepositories();
             services.AddServices();
             //services.AddValidators();
             //services.AddMappers();

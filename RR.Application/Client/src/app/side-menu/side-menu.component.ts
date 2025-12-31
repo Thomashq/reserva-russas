@@ -32,7 +32,7 @@ export class SideMenuComponent implements OnInit, OnDestroy {
   accountId = 0;
 
   searchText = '';
-
+  public isManagerOrAbove: boolean = false;
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -47,6 +47,7 @@ export class SideMenuComponent implements OnInit, OnDestroy {
         next: (result) => {
           this.account = result;
           this.accountId = result?.id ?? 0;
+          this.isManagerOrAbove = this.getAccuntPermissionLevel(this.account);
         },
         error: () => {
           this.account = null;
@@ -101,6 +102,17 @@ export class SideMenuComponent implements OnInit, OnDestroy {
       default:
         return 'Conta';
     }
+  }
+
+  getAccuntPermissionLevel(acc: Account | null) : boolean{
+    if(!acc) return false
+
+    const permission = (acc as any).permission ?? (acc as any).AccountPermission;
+
+    if(permission ==  0 || permission == 3)
+      return true;
+
+    return false;
   }
 }
 
