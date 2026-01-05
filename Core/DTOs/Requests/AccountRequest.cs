@@ -1,8 +1,4 @@
-﻿// ====================
-// REQUESTS
-// ====================
-
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace RR.Core.Requests.Account
 {
@@ -54,4 +50,6 @@ namespace RR.Core.Requests.Account
         [Range(0, int.MaxValue, ErrorMessage = "Permissão deve ser um valor válido")]
         public int AccountPermission { get; set; }
     }
+
+
 }

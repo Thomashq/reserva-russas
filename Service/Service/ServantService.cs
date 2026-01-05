@@ -10,6 +10,11 @@ namespace RR.Service.Service
         private readonly ApplicationDbContext _context;
 
         public ServantService(ApplicationDbContext context) { _context = context; }
+        
+        public async Task<IEnumerable<Servant>> GetAllAsync()
+        {
+          return await _context.Servant.Where(x => x.IsActive == true).ToListAsync();
+        }
 
         public async Task<bool> AddAsync(Servant servant)
         {

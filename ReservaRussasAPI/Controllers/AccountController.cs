@@ -16,13 +16,28 @@ namespace ReservaRussasAPI.Controllers
     public class AccountController : BaseControllerFYP
     {
         private readonly IAccountService _accountService;
-        private readonly IPasswordService _passwordService;
-        public AccountController(IAccountService accountService, IPasswordService passwordService)
+        public AccountController(IAccountService accountService)
         {
             _accountService = accountService;
-            _passwordService = passwordService;
         }
 
+        [HttpGet("search")]
+        [Authorize]
+        public async Task<IActionResult> Search([FromQuery] string q, [FromQuery] int? permission = null, [FromQuery] int take = 20)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(q))
+                    return ResponseOk(new List<object>());
+
+                var result = await _accountService.SearchAsync(q, permission, take);
+                return ResponseOk(result);
+            }
+            catch (Exception ex)
+            {
+                return ResponseInternalServerError(ex);
+            }
+        }
         /// <summary>
         /// Obtém uma conta por ID
         /// </summary>

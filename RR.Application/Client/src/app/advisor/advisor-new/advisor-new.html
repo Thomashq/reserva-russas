@@ -2,35 +2,54 @@
   <div class="d-flex align-items-center justify-content-between mb-3">
     <div>
       <h3 class="m-0">Nova relação</h3>
-      <div class="text-muted small">StudentAdvisor</div>
+      <div class="text-muted small">Aluno ⇄ Orientador</div>
     </div>
 
     <a class="btn btn-outline-secondary" routerLink="/advisor">Voltar</a>
   </div>
 
-  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
-  <div *ngIf="ok" class="alert alert-success">{{ ok }}</div>
-  <div *ngIf="loading" class="alert alert-info">Salvando...</div>
+  <mat-card class="p-3">
+    <div *ngIf="error" class="alert alert-danger mb-3">{{ error }}</div>
 
-  <div class="card">
-    <div class="card-body">
-      <div class="row g-2">
-        <div class="col-12 col-md-6">
-          <label class="form-label">StudentId</label>
-          <input class="form-control" type="number" [(ngModel)]="studentId" />
-        </div>
-
-        <div class="col-12 col-md-6">
-          <label class="form-label">ServantId</label>
-          <input class="form-control" type="number" [(ngModel)]="servantId" />
-        </div>
+    <div class="row g-3">
+      <div class="col-12 col-lg-6">
+        <mat-form-field class="w-100" appearance="outline">
+          <mat-label>Estudante</mat-label>
+          <mat-select [(ngModel)]="selectedStudentId" [disabled]="loading">
+            <mat-option *ngFor="let s of students" [value]="s.Id">
+              {{ displayStudent(s) }}
+            </mat-option>
+            <mat-option *ngIf="students.length === 0" disabled>Sem estudantes</mat-option>
+          </mat-select>
+        </mat-form-field>
       </div>
 
-      <div class="d-flex gap-2 mt-3">
-        <button class="btn btn-primary" (click)="Save()" [disabled]="loading">Salvar</button>
-        <a class="btn btn-outline-secondary" routerLink="/advisor">Cancelar</a>
+      <div class="col-12 col-lg-6">
+        <mat-form-field class="w-100" appearance="outline">
+          <mat-label>Servidor</mat-label>
+          <mat-select [(ngModel)]="selectedServantId" [disabled]="loading">
+            <mat-option *ngFor="let s of servants" [value]="s.Id">
+              {{ displayServant(s) }}
+            </mat-option>
+            <mat-option *ngIf="servants.length === 0" disabled>Sem servidores</mat-option>
+          </mat-select>
+        </mat-form-field>
       </div>
     </div>
-  </div>
-</div>
 
+    <div class="d-flex justify-content-end gap-2 mt-3">
+      <button mat-stroked-button type="button" (click)="clearAll()" [disabled]="loading">
+        Limpar
+      </button>
+
+      <button mat-raised-button color="primary" type="button" (click)="save()" [disabled]="loading">
+        <mat-icon class="me-1">save</mat-icon>
+        Salvar
+      </button>
+    </div>
+
+    <div class="d-flex justify-content-end mt-3" *ngIf="loading">
+      <mat-progress-spinner mode="indeterminate" diameter="26"></mat-progress-spinner>
+    </div>
+  </mat-card>
+</div>

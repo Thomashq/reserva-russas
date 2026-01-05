@@ -19,7 +19,12 @@ namespace RR.Service.Service
             return true;
         }
 
-        public async Task<Student> GetServantById(int id)
+        public async Task<IEnumerable<Student>> GetAllAsync()
+        {
+          return await _context.Student.Where(x => x.IsActive == true).ToListAsync();
+        }
+
+        public async Task<Student> GetStudentById(int id)
         {
             var student = await _context.Student.FirstOrDefaultAsync(x => x.Id == id && x.IsActive);
             return student;

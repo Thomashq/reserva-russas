@@ -4,8 +4,8 @@ export interface AccountResponse {
   mail: string;
   phone?: string;
   accountPermission: number;
-  createdAt: string; 
-  updatedAt: string; 
+  createdAt: string;
+  updatedAt: string;
   isActive: boolean;
 }
 
@@ -26,4 +26,11 @@ export interface AccountCreatedResponse {
   phone?: string;
   accountPermission: number;
   createdAt: string; // ISO date string
+}
+
+export interface AccountLookup {
+  Id: number;
+  UserName?: string;
+  Mail?: string;
+  AccountPermission: number;
 }

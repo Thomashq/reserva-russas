@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Core.Services;
 using RR.Core.Entities;
 using RR.Infraestructure.DataContext;
+using RR.Core.Responses.Account;
 
 namespace RR.Service
 {
@@ -91,6 +92,39 @@ namespace RR.Service
             account.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
             return true;
+        }
+
+        public async Task<List<AccountLookupResponse>> SearchAsync(string q, int? permission, int take)
+        {
+            q = (q ?? "").Trim();
+            if (q.Length < 2) return new List<AccountLookupResponse>();
+
+            if (take <= 0) take = 20;
+            if (take > 50) take = 50;
+
+            var query = _context.Account.AsNoTracking().Where(a => a.IsActive);
+
+            if (permission.HasValue)
+                query = query.Where(a => a.AccountPermission == permission.Value);
+
+            var lowered = q.ToLower();
+
+            var list = await query
+                .Where(a =>
+                    (a.UserName != null && a.UserName.ToLower().Contains(lowered)) ||
+                    (a.Mail != null && a.Mail.ToLower().Contains(lowered)))
+                .OrderBy(a => a.UserName)
+                .Take(take)
+                .Select(a => new AccountLookupResponse
+                {
+                    Id = a.Id,
+                    UserName = a.UserName,
+                    Mail = a.Mail,
+                    AccountPermission = a.AccountPermission
+                })
+                .ToListAsync();
+
+            return list;
         }
     }
 }

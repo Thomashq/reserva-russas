@@ -1,7 +1,5 @@
-﻿
-using RR.Core.Entities;
-using RR.Core.Services.Base;
-
+﻿using RR.Core.Entities;
+using RR.Core.Responses.Account;
 namespace Core.Services
 {
     public interface IAccountService
@@ -15,6 +13,6 @@ namespace Core.Services
         Task<bool> EmailExistsAsync(string email);
         Task<bool> SetActiveStatusAsync(int id, bool isActive);
         Task<bool> DeleteAsync(int id);
-
+        Task<List<AccountLookupResponse>> SearchAsync(string q, int? permission, int take);
     }
 }
