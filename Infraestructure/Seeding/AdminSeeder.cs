@@ -86,6 +86,8 @@ public static class AdminSeeder
         {
             await userManager.AddToRoleAsync(user, "Admin");
         }
+        //garantir o seeding de managers para ter contas que obedeçam a regra de negócio de fK, sem workaround
+
     }
 
     public class SeedAdminOptions

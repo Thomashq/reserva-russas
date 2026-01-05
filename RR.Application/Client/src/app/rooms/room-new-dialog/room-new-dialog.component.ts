@@ -1,3 +1,4 @@
+
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, FormsModule } from '@angular/forms';
 import { Account } from '../../domain/models/account';
@@ -7,13 +8,10 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Rooms } from '../../domain/models/rooms';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
-import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSelectModule } from '@angular/material/select';
-import { MatTabsModule } from '@angular/material/tabs';
 import { CreateRoomRequest } from '../../domain/dto/request/RoomsRequest';
 import { RoomsService } from '../rooms.service';
 import { AuthService } from '../../auth/auth.service';
@@ -25,12 +23,9 @@ import { AuthService } from '../../auth/auth.service';
     CommonModule,
     ReactiveFormsModule,
     MatDialogModule,
-    MatTabsModule,
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
-    MatDatepickerModule,
-    MatSelectModule,
     MatProgressSpinnerModule,
     MatSnackBarModule,
     FormsModule
@@ -41,9 +36,11 @@ import { AuthService } from '../../auth/auth.service';
 export class RoomNewDialogComponent implements OnInit, OnDestroy {
   frmCreateRoom!: FormGroup;
   isLoading = false;
+
   account: Account | null = null;
   createdRoom: Rooms | null = null;
   roomRequest!: CreateRoomRequest;
+
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -65,7 +62,6 @@ export class RoomNewDialogComponent implements OnInit, OnDestroy {
     this.frmCreateRoom = this.fb.group({
       Name: [null, Validators.required],
       Capacity: [null, [Validators.required, Validators.min(1)]],
-      // não exibe no formulário; valor fixo
       ManagerId: [2]
     });
   }
@@ -75,9 +71,14 @@ export class RoomNewDialogComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  onCancel(): void {
+    this.dialogRef.close();
+  }
+
   salvarSala(): void {
-    if (this.account?.AccountPermission != 0) {
+    if (this.account?.AccountPermission != 0 && this.account?.AccountPermission != 3) {
       this.snackbar.open('Você não tem permissão para criar salas.', 'Fechar', { duration: 5000 });
+      this.dialogRef.close();
       return;
     }
 
@@ -86,29 +87,26 @@ export class RoomNewDialogComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // trava UI
     this.isLoading = true;
     this.frmCreateRoom.disable();
 
-    this.roomRequest = this.frmCreateRoom.getRawValue(); // inclui ManagerId: 2
+    this.roomRequest = this.frmCreateRoom.getRawValue();
 
     this.roomService.AddAsync(this.roomRequest)
-      .pipe(
-        finalize(() => {
-          this.isLoading = false;
-          this.frmCreateRoom.enable();
-        })
-      )
+      .pipe(finalize(() => {
+        this.isLoading = false;
+        this.frmCreateRoom.enable();
+      }))
       .subscribe({
         next: (room) => {
           this.createdRoom = room;
           this.snackbar.open('Sala criada com sucesso.', 'Fechar', { duration: 4000 });
-          // fecha retornando a sala criada
           this.dialogRef.close(room);
         },
         error: (err) => {
           console.error(err);
           this.snackbar.open('Erro ao criar sala. Tente novamente.', 'Fechar', { duration: 5000 });
+          this.dialogRef.close();
         }
       });
   }

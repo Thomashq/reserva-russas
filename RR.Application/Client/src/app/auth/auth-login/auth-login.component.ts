@@ -57,7 +57,7 @@ export class LoginComponent implements OnInit {
         this.router.navigate(['/']); // ou rota de dashboard
       },
       error: (err) => {
-        this.snackBar.open(err.message || 'Erro ao fazer login.', 'Fechar', { duration: 3000 });
+        this.snackBar.open('Usuário ou senha inválidos', 'Fechar', { duration: 3000 });
         this.isLoading = false;
       },
       complete: () => this.isLoading = false

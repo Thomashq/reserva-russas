@@ -1,0 +1,128 @@
+<mat-card class="p-3">
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <mat-card-title class="m-0">Reservas</mat-card-title>
+  </div>
+
+  <form class="row g-2 align-items-end mb-3" (ngSubmit)="onSearchEnter()">
+
+    <div class="col-12 col-md-3">
+      <mat-form-field class="w-100">
+        <mat-label>De</mat-label>
+        <input matInput [matDatepicker]="dpIni" [(ngModel)]="startDate" name="startDate">
+        <mat-datepicker-toggle matSuffix [for]="dpIni"></mat-datepicker-toggle>
+        <mat-datepicker #dpIni></mat-datepicker>
+      </mat-form-field>
+    </div>
+
+    <div class="col-12 col-md-3">
+      <mat-form-field class="w-100">
+        <mat-label>Até</mat-label>
+        <input matInput [matDatepicker]="dpFim" [(ngModel)]="endDate" name="endDate">
+        <mat-datepicker-toggle matSuffix [for]="dpFim"></mat-datepicker-toggle>
+        <mat-datepicker #dpFim></mat-datepicker>
+      </mat-form-field>
+    </div>
+
+    <div class="col-12 col-md-3">
+      <mat-form-field class="w-100">
+        <mat-label>Sala</mat-label>
+        <mat-select [(ngModel)]="filterRoomId" name="filterRoomId">
+          <mat-option [value]="null">Todas</mat-option>
+          <mat-option *ngFor="let r of rooms" [value]="r.Id">
+            {{ r.Name }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="col-12 col-md-3">
+      <mat-form-field class="w-100">
+        <mat-label>Pesquisar</mat-label>
+        <input matInput [(ngModel)]="searchText" name="searchText"
+               placeholder="Título, descrição, sala..."
+               (keyup.enter)="onSearchEnter()">
+      </mat-form-field>
+    </div>
+
+    <div class="col-12 d-flex align-items-center gap-3">
+      <mat-checkbox [(ngModel)]="filterOnlyMine" name="filterOnlyMine">
+        Somente minhas reservas
+      </mat-checkbox>
+
+      <!-- botão sempre à direita -->
+      <button class="ms-auto rr-btn-primary" mat-raised-button type="submit" [disabled]="isLoading">
+        <mat-icon>search</mat-icon>
+        Pesquisar
+      </button>
+    </div>
+  </form>
+
+  <div class="p-2">
+    <div class="table-responsive">
+      <table mat-table [dataSource]="dataSource" class="w-100">
+
+        <ng-container matColumnDef="title">
+          <th mat-header-cell *matHeaderCellDef class="py-2">Título</th>
+          <td mat-cell *matCellDef="let r" class="py-2">{{ r.Title }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="room">
+          <th mat-header-cell *matHeaderCellDef class="py-2">Sala</th>
+          <td mat-cell *matCellDef="let r" class="py-2">#{{ r.RoomId }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="start">
+          <th mat-header-cell *matHeaderCellDef class="py-2">Início</th>
+          <td mat-cell *matCellDef="let r" class="py-2">{{ formatDateTime(r.StartTime) }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="end">
+          <th mat-header-cell *matHeaderCellDef class="py-2">Fim</th>
+          <td mat-cell *matCellDef="let r" class="py-2">{{ formatDateTime(r.EndTime) }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef class="py-2">Status</th>
+          <td mat-cell *matCellDef="let r" class="py-2">{{ statusLabel(r.Status) }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef class="py-2"></th>
+          <td mat-cell *matCellDef="let r" class="py-2">
+            <div class="d-flex justify-content-end gap-2">
+              <button class="rr-btn-outline" mat-stroked-button type="button"
+                      (click)="$event.stopPropagation(); editReservation(r.Id)">
+                <mat-icon>edit</mat-icon>
+                Editar
+              </button>
+
+              <button class="rr-btn-warn" mat-stroked-button type="button"
+                      (click)="$event.stopPropagation(); cancelReservation(r.Id)">
+                <mat-icon>delete</mat-icon>
+                Cancelar
+              </button>
+            </div>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+            role="button"
+            class="rr-row"
+            (click)="openDetails(row)">
+        </tr>
+
+      </table>
+    </div>
+
+    <div class="d-flex justify-content-end mt-2">
+      <mat-paginator
+        [pageSize]="pageSize"
+        [pageSizeOptions]="[5, 10, 15, 25]"
+        showFirstLastButtons>
+      </mat-paginator>
+    </div>
+  </div>
+</mat-card>
+

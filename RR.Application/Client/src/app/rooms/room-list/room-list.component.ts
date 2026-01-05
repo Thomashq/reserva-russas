@@ -11,6 +11,8 @@ import { RoomNewDialogComponent } from '../room-new-dialog/room-new-dialog.compo
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Rooms } from '../../domain/models/rooms';
 
+import { ReservationNewDialogComponent } from '../../home-page/reservation/reservation-new-dialog/reservation-new-dialog.component';
+
 @Component({
   selector: 'app-room-list',
   standalone: true,
@@ -20,7 +22,7 @@ import { Rooms } from '../../domain/models/rooms';
 })
 export class RoomListComponent implements OnInit {
   constructor(
-    private rommService: RoomsService,
+    private roomService: RoomsService,
     private router: Router,
     private authService: AuthService,
     private dialog: MatDialog,
@@ -30,12 +32,11 @@ export class RoomListComponent implements OnInit {
   isLoading = false;
   rooms: Rooms[] = [];
 
-  // IDs DEVEM bater com os matColumnDef do template
   displayedColumns: string[] = ['name', 'capacity', 'actions'];
 
   ngOnInit(): void {
     this.isLoading = true;
-    this.rommService.GetAll().subscribe({
+    this.roomService.GetAll().subscribe({
       next: (result) => {
         this.rooms = result ?? [];
         this.isLoading = false;
@@ -49,61 +50,70 @@ export class RoomListComponent implements OnInit {
   }
 
   private getId(room: Rooms): number {
-    // tolera API retornando Id/id
     return (room as any).id ?? (room as any).Id;
   }
 
   openRoom(room: Rooms | number) {
     const id = typeof room === 'number' ? room : this.getId(room);
-    if (id == null) {
+    if (!id) {
       this.snackbar.open('ID da sala inválido.', 'Fechar', { duration: 4000 });
       return;
     }
-    this.router.navigate(['/rooms', id]);
+    this.router.navigate(['/room/detail', id]);
   }
 
   openNewRoomDialog() {
-    if (this.authService.isLoggedIn()) {
-      const dialogRef = this.dialog.open(RoomNewDialogComponent, {
-        width: '800px',
-        maxHeight: '90vh',
-        disableClose: true // impede fechar clicando fora enquanto salva
-      });
-
-      dialogRef.afterClosed().subscribe(result => {
-        if (result) {
-          // result pode ser a sala criada ou apenas o id
-          const created = result as any;
-          const newId = created?.id ?? created?.Id ?? result;
-
-          // Atualiza a lista local (se veio a entidade completa)
-          if (created?.name || created?.Name) {
-            this.rooms = [created, ...this.rooms];
-          } else if (Number.isFinite(newId)) {
-            // opcional: buscar o item criado e inserir na lista
-            this.rommService.GetById(newId).subscribe(r => {
-              if (r) this.rooms = [r, ...this.rooms];
-            });
-          }
-
-          this.snackbar.open('Sala criada com sucesso.', 'Fechar', { duration: 4000 });
-          if (Number.isFinite(newId)) {
-            this.openRoom(newId);
-          }
-        }
-      });
-    } else {
+    if (!this.authService.isLoggedIn()) {
       this.snackbar.open('Você precisa estar logado para criar uma sala.', 'Fechar', { duration: 5000 });
+      return;
     }
+
+    const dialogRef = this.dialog.open(RoomNewDialogComponent, {
+      width: '800px',
+      maxHeight: '90vh',
+      disableClose: true
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (!result) return;
+
+      const created = result as any;
+      const newId = created?.id ?? created?.Id ?? result;
+
+      if (created?.name || created?.Name) {
+        this.rooms = [created, ...this.rooms];
+      } else if (Number.isFinite(newId)) {
+        this.roomService.GetById(newId).subscribe(r => {
+          if (r) this.rooms = [r, ...this.rooms];
+        });
+      }
+
+      this.snackbar.open('Sala criada com sucesso.', 'Fechar', { duration: 4000 });
+      if (Number.isFinite(newId)) this.openRoom(newId);
+    });
   }
 
-
   newReservation(room: Rooms) {
+    if (!this.authService.isLoggedIn()) {
+      this.snackbar.open('Você precisa estar logado para reservar.', 'Fechar', { duration: 5000 });
+      return;
+    }
+
     const id = this.getId(room);
-    if (id == null) {
+    if (!id) {
       this.snackbar.open('ID da sala inválido.', 'Fechar', { duration: 4000 });
       return;
     }
-    this.router.navigate(['/reservations/new', { roomId: id }]);
+
+    const dialogRef = this.dialog.open(ReservationNewDialogComponent, {
+      width: '800px',
+      maxHeight: '90vh',
+      disableClose: true,
+      data: { roomId: id, tab: 0 }
+    });
+
+    dialogRef.afterClosed().subscribe(ok => {
+      if (ok) this.snackbar.open('Reserva criada.', 'Fechar', { duration: 3000 });
+    });
   }
 }

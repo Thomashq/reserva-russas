@@ -1,35 +1,44 @@
-<div mat-dialog-content>
-  <h2 mat-dialog-title> Nova Sala </h2>
+<div mat-dialog-content class="p-3">
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h2 class="m-0">Nova Sala</h2>
 
-  <!-- Loading visual durante a criação -->
-  <mat-progress-spinner *ngIf="isLoading"
-                        mode="indeterminate"
-                        diameter="28"
-                        style="margin: 8px 0;">
-  </mat-progress-spinner>
+    <mat-progress-spinner
+      *ngIf="isLoading"
+      mode="indeterminate"
+      diameter="22">
+    </mat-progress-spinner>
+  </div>
 
   <form [formGroup]="frmCreateRoom"
         (ngSubmit)="salvarSala()"
-        class="form"
         [attr.aria-busy]="isLoading">
-    <div class="grid">
-      <mat-form-field>
-        <mat-label> Nome </mat-label>
-        <input matInput formControlName="Name" required [disabled]="isLoading" />
-      </mat-form-field>
 
-      <mat-form-field>
-        <mat-label> Capacidade </mat-label>
-        <input matInput type="number" formControlName="Capacity" required [disabled]="isLoading" />
-      </mat-form-field>
+    <div class="row g-2">
+      <div class="col-12 col-md-8">
+        <mat-form-field class="w-100">
+          <mat-label>Nome</mat-label>
+          <input matInput formControlName="Name" required [disabled]="isLoading" />
+        </mat-form-field>
+      </div>
+
+      <div class="col-12 col-md-4">
+        <mat-form-field class="w-100">
+          <mat-label>Capacidade</mat-label>
+          <input matInput type="number" formControlName="Capacity" required [disabled]="isLoading" />
+        </mat-form-field>
+      </div>
     </div>
 
-    <div mat-dialog-actions align="end">
-      <button mat-button mat-dialog-close [disabled]="isLoading"> Cancelar </button>
-      <button mat-raised-button color="primary" type="submit"
+    <div class="d-flex justify-content-end gap-2 mt-3">
+      <button mat-stroked-button color="primary" type="button" class="rr-btn-outline" (click)="onCancel()" [disabled]="isLoading">
+        Cancelar
+      </button>
+
+      <button mat-raised-button color="primary" type="submit" class="rr-btn"
               [disabled]="isLoading || frmCreateRoom.invalid">
         Salvar
       </button>
     </div>
   </form>
 </div>
+

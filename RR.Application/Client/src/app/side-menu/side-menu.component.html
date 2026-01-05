@@ -1,6 +1,5 @@
 <div *ngIf="account as acc" class="d-flex flex-column h-100">
 
-  <!-- Busca rápida -->
   <div class="menu-section mb-3">
     <div class="search-label">Buscar</div>
 
@@ -18,8 +17,6 @@
     </mat-form-field>
   </div>
 
-
-  <!-- Bloco com info resumida da conta -->
   <div class="menu-section d-flex align-items-center mb-3">
     <div class="d-flex align-items-center justify-content-center me-2 rounded-3 avatar">
       {{ (acc.UserName ?? acc.Mail ?? '?')[0] | uppercase }}
@@ -33,7 +30,6 @@
     </div>
   </div>
 
-  <!-- HOME -->
   <div class="menu-section mb-2">
     <a class="menu-home d-flex align-items-center"
        routerLink="/home"
@@ -43,10 +39,8 @@
     </a>
   </div>
 
-  <!-- Navegação (Salas / Reservas / Infos da conta) -->
   <mat-nav-list class="flex-grow-1">
 
-    <!-- SALAS -->
     <mat-expansion-panel class="menu-panel">
       <mat-expansion-panel-header>
         <mat-panel-title>Salas</mat-panel-title>
@@ -55,39 +49,32 @@
       <a mat-list-item (click)="navigateToRooms()">
         <span>Listar salas</span>
       </a>
-
     </mat-expansion-panel>
 
-    <!-- RESERVAS -->
     <mat-expansion-panel class="menu-panel">
       <mat-expansion-panel-header>
         <mat-panel-title>Reservas</mat-panel-title>
       </mat-expansion-panel-header>
 
-      <a mat-list-item routerLink="/reservas" routerLinkActive="active-link">
+      <a mat-list-item (click)="navigateToReservations()">
         <span>Minhas reservas</span>
-      </a>
-
-      <a mat-list-item routerLink="/reservas/nova" routerLinkActive="active-link">
-        <span>Nova reserva</span>
       </a>
     </mat-expansion-panel>
 
-    <!--- ORIENTANDO ---->
-    <mat-expansion-panel class = "menu-panel" *ngIf = "this.isManagerOrAbove">
+    <mat-expansion-panel class="menu-panel" *ngIf="isManagerOrAbove">
       <mat-expansion-panel-header>
         <mat-panel-title>Orientação</mat-panel-title>
       </mat-expansion-panel-header>
 
-      <a mat-list-item routerLink = "/advisor" routerLinkActive= "active-link">
+      <a mat-list-item (click)="navigateToAdvisorList()">
         <span>Lista de orientação</span>
       </a>
-      <a mat-list-item routerLink = "/advisor/new" routerLinkActive= "active-link">
+
+      <a mat-list-item (click)="navigateToAdvisorNew()">
         <span>Nova orientação</span>
       </a>
     </mat-expansion-panel>
 
-    <!-- INFOS DA CONTA -->
     <mat-expansion-panel class="menu-panel">
       <mat-expansion-panel-header>
         <mat-panel-title>Infos da conta</mat-panel-title>

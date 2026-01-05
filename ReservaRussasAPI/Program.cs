@@ -10,7 +10,6 @@ using RR.Infraestructure.DataContext;
 using RR.ReservaRussasAPI.Docs;
 using RR.Util.Criptography;
 using RR.Core.Enums;
-using RR.Core.Common;
 using ReservaRussasAPI.Attributes;
 using ReservaRussasAPI.Handler;
 
@@ -33,10 +32,17 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowCredentials", policy =>
     {
-        policy.WithOrigins("http://localhost:4200") 
+        policy.WithOrigins(
+#if DEBUG
+            "http://localhost:4200", "https://localhost:4200"
+#else 
+            "https://*.ufc.br", "http://*.ufc.br"
+#endif
+            )
               .AllowCredentials()
               .AllowAnyHeader()
-              .AllowAnyMethod();
+              .AllowAnyMethod()
+              .SetIsOriginAllowedToAllowWildcardSubdomains();
     });
 });
 
@@ -159,6 +165,8 @@ using (var scope = app.Services.CreateScope())
 {
     var sp = scope.ServiceProvider;
     await RR.Infraestructure.Seeding.AdminSeeder.SeedAdminAsync(sp);
+    await RR.Infraestructure.Seeding.ManagerSeeder.SeedManagersAsync(sp);
+    await RR.Infraestructure.Seeding.RoomSeeder.SeedRoomsAsync(sp);
 }
 
 if (app.Environment.IsDevelopment())

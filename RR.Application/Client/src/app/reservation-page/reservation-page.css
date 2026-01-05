@@ -1,0 +1,33 @@
+.rr-btn-primary {
+  background: #141414 !important;
+  color: #f5f5f5 !important;
+}
+
+.rr-btn-primary:hover {
+  filter: brightness(1.1);
+}
+
+.rr-btn-outline {
+  border-color: #141414 !important;
+  color: #141414 !important;
+}
+
+.rr-btn-outline:hover {
+  background: #141414 !important;
+  color: #f5f5f5 !important;
+}
+
+.rr-btn-warn {
+  border-color: #666666 !important;
+  color: #141414 !important;
+}
+
+.rr-btn-warn:hover {
+  background: #666666 !important;
+  color: #f5f5f5 !important;
+}
+
+.rr-row:hover td {
+  background: rgba(20, 20, 20, 0.06);
+}
+

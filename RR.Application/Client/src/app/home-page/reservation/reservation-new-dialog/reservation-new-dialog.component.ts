@@ -1,9 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+
+import { Component, OnInit, Inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, FormsModule } from '@angular/forms';
-import { MatDialogRef } from '@angular/material/dialog';
+import { MatDialogRef, MatDialogModule, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { CommonModule } from '@angular/common';
-import { MatDialogModule } from '@angular/material/dialog';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -20,7 +20,8 @@ import { ReservationSeriesService } from '../reservation-series.service';
 import { DateOffset } from '../../../domain/shared/utils/date-offset.util';
 import { Account } from '../../../domain/models/account';
 import { RoomsService } from '../../../rooms/rooms.service';
-import { Rooms } from '../../../domain/models/rooms'; 
+import { Rooms } from '../../../domain/models/rooms';
+
 @Component({
   selector: 'app-reservation-new-dialog',
   standalone: true,
@@ -45,6 +46,8 @@ export class ReservationNewDialogComponent implements OnInit {
   frmCreateReservationSeries!: FormGroup;
   isLoading = false;
 
+  selectedTabIndex = 0;
+
   weekdays = [
     { label: 'Segunda-feira', value: 'MO' },
     { label: 'Terça-feira', value: 'TU' },
@@ -57,15 +60,19 @@ export class ReservationNewDialogComponent implements OnInit {
 
   private _startDate: Date | null = null;
   private _endDate: Date | null = null;
+
   startTimeDisplay = '';
   endTimeDisplay = '';
+  private _endTimeTouched = false;
+
   account: Account | null = null;
-  accountId: number = 0;
+  accountId = 0;
   roomList: Rooms[] = [];
   private destroy$ = new Subject<void>();
 
   constructor(
     private dialogRef: MatDialogRef<ReservationNewDialogComponent>,
+    @Inject(MAT_DIALOG_DATA) public data: { roomId?: number; tab?: number } | null,
     private reservationService: ReservationService,
     private reservationSeriesService: ReservationSeriesService,
     private fb: FormBuilder,
@@ -75,9 +82,10 @@ export class ReservationNewDialogComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
+    this.selectedTabIndex = Number(this.data?.tab ?? 0);
+
     this.frmCreateReservation = this.fb.group({
       roomId: [null, Validators.required],
-      //accountId: [null, Validators.required],
       title: ['', Validators.required],
       description: [''],
       startTime: ['', Validators.required],
@@ -85,17 +93,16 @@ export class ReservationNewDialogComponent implements OnInit {
     });
 
     this.frmCreateReservationSeries = this.fb.group({
-      //accountId: [null, Validators.required],
       defaultRoomId: [null, Validators.required],
       title: ['', Validators.required],
       description: [''],
       windowStart: [null, Validators.required],
       windowEnd: [null, Validators.required],
-      recurrenceRule: ['', Validators.required],
+      recurrenceRule: [{ value: 'WEEKLY', disabled: true }, Validators.required],
       daysOfWeek: [[], Validators.required],
       timeStart: ['', Validators.required],
       timeEnd: ['', Validators.required],
-      interval: [1]
+      interval: [{ value: 1, disabled: true }]
     });
 
     this.authService.currentUser$
@@ -103,23 +110,48 @@ export class ReservationNewDialogComponent implements OnInit {
       .subscribe({
         next: (account) => {
           this.account = account;
+          this.accountId = account?.Id ?? 0;
         },
-        error: (error) => {
+        error: () => {
           this.account = null;
+          this.accountId = 0;
         }
       });
 
     this.loadRooms();
+
+    const preRoomId = Number(this.data?.roomId ?? 0);
+    if (preRoomId) {
+      this.frmCreateReservation.patchValue({ roomId: preRoomId });
+      this.frmCreateReservationSeries.patchValue({ defaultRoomId: preRoomId });
+    }
   }
 
   onDateChange(which: 'start' | 'end', date: Date | null): void {
     if (which === 'start') this._startDate = date; else this._endDate = date;
-    this.tryPatchDateTime(which);
+
+    this._endDate = this._startDate;
+
+    this.tryPatchDateTime('start');
+    this.tryPatchDateTime('end');
   }
 
   onTimeChange(which: 'start' | 'end', hhmm: string): void {
-    if (which === 'start') this.startTimeDisplay = hhmm; else this.endTimeDisplay = hhmm;
-    this.tryPatchDateTime(which);
+    if (which === 'start') {
+      this.startTimeDisplay = hhmm;
+
+      if (!this._endTimeTouched) {
+        this.endTimeDisplay = this.addOneHour(hhmm);
+      }
+
+      this.tryPatchDateTime('start');
+      if (!this._endTimeTouched) this.tryPatchDateTime('end');
+      return;
+    }
+
+    this._endTimeTouched = true;
+    this.endTimeDisplay = hhmm;
+    this.tryPatchDateTime('end');
   }
 
   private tryPatchDateTime(which: 'start' | 'end'): void {
@@ -130,6 +162,23 @@ export class ReservationNewDialogComponent implements OnInit {
     const dt = DateOffset.fromDateAndTime(date, hhmm);
     const ctrl = which === 'start' ? 'startTime' : 'endTime';
     this.frmCreateReservation.patchValue({ [ctrl]: dt });
+  }
+
+  private addOneHour(hhmm: string): string {
+    const parts = hhmm.split(':');
+    if (parts.length < 2) return hhmm;
+
+    const hh = Number(parts[0]);
+    const mm = Number(parts[1]);
+    if (Number.isNaN(hh) || Number.isNaN(mm)) return hhmm;
+
+    const total = (hh * 60 + mm + 60) % (24 * 60);
+    const nh = Math.floor(total / 60);
+    const nm = total % 60;
+
+    const sh = String(nh).padStart(2, '0');
+    const sm = String(nm).padStart(2, '0');
+    return `${sh}:${sm}`;
   }
 
   onReservationSubmit(): void {
@@ -144,20 +193,20 @@ export class ReservationNewDialogComponent implements OnInit {
 
     this.isLoading = true;
     const reservation: CreateReservationRequest = this.frmCreateReservation.value;
-    console.log(this.account?.Id)
-    this.accountId = this.account?.Id || 0;
 
-    reservation.accountId = this.accountId;
+    this.accountId = this.account?.Id || 0;
+    (reservation as any).accountId = this.accountId;
 
     this.reservationService.CreateReservation(reservation).pipe(
       finalize(() => this.isLoading = false)
     ).subscribe({
       next: () => {
         this.snackBar.open('Reserva criada com sucesso!', 'Fechar', { duration: 3000 });
-        this.dialogRef.close(true); 
+        this.dialogRef.close(true);
       },
       error: (err) => {
         this.snackBar.open('Erro ao criar reserva: ' + err.message, 'Fechar', { duration: 5000 });
+        this.dialogRef.close(false);
       }
     });
   }
@@ -165,25 +214,30 @@ export class ReservationNewDialogComponent implements OnInit {
   onReservationSeriesSubmit(): void {
     if (this.frmCreateReservationSeries.invalid) return;
 
-    const v = this.frmCreateReservationSeries.value;
-    if (Array.isArray(v.daysOfWeek)) {
-      this.frmCreateReservationSeries.patchValue({
-        daysOfWeek: (v.daysOfWeek as string[]).join(',')
-      });
+    const raw = this.frmCreateReservationSeries.getRawValue();
+
+    const days = Array.isArray(raw.daysOfWeek)
+      ? raw.daysOfWeek
+      : (typeof raw.daysOfWeek === 'string' && raw.daysOfWeek.length ? raw.daysOfWeek.split(',') : []);
+
+    const ws = raw.windowStart instanceof Date ? raw.windowStart : null;
+    const we = raw.windowEnd instanceof Date ? raw.windowEnd : null;
+
+    if (!ws || !we) {
+      this.snackBar.open('Verifique a janela de datas (início e fim).', 'Fechar', { duration: 4000 });
+      return;
     }
 
-    if (v.windowStart instanceof Date) {
-      const ws = DateOffset.format(DateOffset.startOfDay(v.windowStart));
-      this.frmCreateReservationSeries.patchValue({ windowStart: ws });
-    }
-    if (v.windowEnd instanceof Date) {
-      const we = DateOffset.format(DateOffset.endOfDay(v.windowEnd));
-      this.frmCreateReservationSeries.patchValue({ windowEnd: we });
-    }
+    const reservationSeries: CreateSeriesRequest = {
+      ...raw,
+      recurrenceRule: 'WEEKLY',
+      interval: 1,
+      daysOfWeek: days.join(','),
+      windowStart: DateOffset.format(DateOffset.startOfDay(ws)),
+      windowEnd: DateOffset.format(DateOffset.endOfDay(we))
+    };
 
     this.isLoading = true;
-    const reservationSeries: CreateSeriesRequest = this.frmCreateReservationSeries.value;
-    this.accountId = this.account?.id || 0;
 
     reservationSeries.accountId = this.accountId;
 
@@ -196,6 +250,7 @@ export class ReservationNewDialogComponent implements OnInit {
       },
       error: (err) => {
         this.snackBar.open('Erro ao criar série: ' + err.message, 'Fechar', { duration: 5000 });
+        this.dialogRef.close(false);
       }
     });
   }
@@ -205,17 +260,13 @@ export class ReservationNewDialogComponent implements OnInit {
   }
 
   private loadRooms(): void {
-    this.roomService.GetAll()
-      .subscribe({
-        next: (rooms) => {
-          rooms.forEach(room => {
-            this.roomList.push(room);
-            console.log(this.roomList)
-          })
-        },
-        error: (err) => {
-          this.snackBar.open('Erro ao carregar salas: ' + err.message, 'Fechar', { duration: 5000 });
-        }
-    })
+    this.roomService.GetAll().subscribe({
+      next: (rooms) => {
+        this.roomList = rooms ?? [];
+      },
+      error: (err) => {
+        this.snackBar.open('Erro ao carregar salas: ' + err.message, 'Fechar', { duration: 5000 });
+      }
+    });
   }
 }

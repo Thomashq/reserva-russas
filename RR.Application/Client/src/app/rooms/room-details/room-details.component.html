@@ -1,45 +1,65 @@
-<mat-card *ngIf="room; else loading">
-  <mat-card-title>{{ room.name }}</mat-card-title>
-  <mat-card-subtitle>Capacidade: {{ room.capacity }}</mat-card-subtitle>
-  <mat-card-content>
-    <p *ngIf="room.description">{{ room.description }}</p>
+<mat-card *ngIf="room; else loading" class="p-3">
+  <div class="d-flex align-items-start justify-content-between mb-2">
+    <div>
+      <mat-card-title class="m-0">{{ room?.name ?? room?.Name }}</mat-card-title>
+      <mat-card-subtitle class="mt-1">
+        Capacidade: {{ room?.capacity ?? room?.Capacity }}
+      </mat-card-subtitle>
+    </div>
 
-    <h3>Próximas reservas (7 dias)</h3>
-    <ng-container *ngIf="upcomingReservations?.length; else empty">
-      <mat-list>
-        <mat-list-item *ngFor="let r of upcomingReservations">
-          <div matLine>{{ r.title || 'Reserva' }}</div>
-          <div matLine>
-            {{ r.startTime | date:'dd/MM/yyyy HH:mm' }} — {{ r.endTime | date:'dd/MM/yyyy HH:mm' }}
-          </div>
-        </mat-list-item>
-      </mat-list>
-    </ng-container>
-    <ng-template #empty>Nenhuma reserva no período.</ng-template>
-    <h3>Equipamentos</h3>
-  <ng-container *ngIf="room?.EquipmentList?.length; else noeq">
-    <mat-list>
-      <mat-list-item *ngFor="let eq of room.EquipmentList">{{eq.Name}}</mat-list-item>
-    </mat-list>
-  </ng-container>
-  <ng-template #noeq>Nenhum equipamento cadastrado para esta sala.</ng-template>
-</mat-card-content>
-
-  <mat-card-actions>
-    <button mat-raised-button color="primary" (click)="newReservation()" *ngIf="!isStudent">
+    <button mat-raised-button color="primary" class="rr-btn" (click)="newReservation()">
       Reservar nesta sala
     </button>
-  </mat-card-actions>
-  <div *ngIf="isStudent" class="mt-2">Alunos não podem reservar salas.</div>
+  </div>
+
+  <mat-card-content class="p-0">
+    <div class="row g-3 mt-2">
+
+      <div class="col-12 col-lg-7">
+        <h6 class="mb-2">Próximas reservas (7 dias)</h6>
+
+        <ng-container *ngIf="upcomingReservations?.length; else empty">
+          <mat-list>
+            <mat-list-item *ngFor="let r of upcomingReservations">
+              <div matLine>{{ r.title ?? r.Title ?? 'Reserva' }}</div>
+              <div matLine>
+                {{ (r.startTime ?? r.StartTime) | date:'dd/MM/yyyy HH:mm' }} —
+                {{ (r.endTime ?? r.EndTime) | date:'dd/MM/yyyy HH:mm' }}
+              </div>
+            </mat-list-item>
+          </mat-list>
+        </ng-container>
+
+        <ng-template #empty>
+          <div class="py-2">Nenhuma reserva no período.</div>
+        </ng-template>
+      </div>
+
+      <div class="col-12 col-lg-5">
+        <h6 class="mb-2">Equipamentos</h6>
+
+        <ng-container *ngIf="room?.EquipmentList?.length; else noeq">
+          <mat-list>
+            <mat-list-item *ngFor="let eq of room.EquipmentList">
+              <div matLine>{{ eq.Name ?? eq.name }}</div>
+              <div matLine class="text-muted" *ngIf="eq.Description || eq.description">
+                {{ eq.Description ?? eq.description }}
+              </div>
+            </mat-list-item>
+          </mat-list>
+        </ng-container>
+
+        <ng-template #noeq>
+          <div class="py-2">Nenhum equipamento cadastrado para esta sala.</div>
+        </ng-template>
+      </div>
+
+    </div>
+  </mat-card-content>
 </mat-card>
 
 <ng-template #loading>
-  <mat-card><mat-card-content>Carregando...  <h3>Equipamentos</h3>
-  <ng-container *ngIf="room?.EquipmentList?.length; else noeq">
-    <mat-list>
-      <mat-list-item *ngFor="let eq of room.EquipmentList">{{eq.Name}}</mat-list-item>
-    </mat-list>
-  </ng-container>
-  <ng-template #noeq>Nenhum equipamento cadastrado para esta sala.</ng-template>
-</mat-card-content></mat-card>
+  <mat-card class="p-3">
+    <mat-card-content>Carregando...</mat-card-content>
+  </mat-card>
 </ng-template>

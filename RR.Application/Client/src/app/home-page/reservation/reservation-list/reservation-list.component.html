@@ -1,3 +1,4 @@
+
 <mat-card>
   <mat-card-header>
     <mat-card-title>
@@ -5,7 +6,6 @@
     </mat-card-title>
     <mat-card-subtitle>Esta semana</mat-card-subtitle>
 
-    <!-- Ações no topo (opcional, mantém também no rodapé) -->
     <div style="margin-left:auto; display:flex; gap:8px;">
       <button mat-button (click)="refresh()">
         <mat-icon>refresh</mat-icon>
@@ -28,15 +28,13 @@
     <ng-container *ngIf="!isLoading; else loadingTpl">
       <ng-container *ngIf="reservations?.length; else emptyTpl">
 
-        <table mat-table [dataSource]="reservations" [attr.aria-busy]="isLoading">
+        <table mat-table [dataSource]="dataSource" [attr.aria-busy]="isLoading">
 
-          <!-- Título -->
           <ng-container matColumnDef="title">
             <th mat-header-cell *matHeaderCellDef>Título</th>
             <td mat-cell *matCellDef="let r">{{ r.Title || r.title }}</td>
           </ng-container>
 
-          <!-- Sala -->
           <ng-container matColumnDef="room">
             <th mat-header-cell *matHeaderCellDef>Sala</th>
             <td mat-cell *matCellDef="let r">
@@ -44,7 +42,6 @@
             </td>
           </ng-container>
 
-          <!-- Início -->
           <ng-container matColumnDef="start">
             <th mat-header-cell *matHeaderCellDef>Início</th>
             <td mat-cell *matCellDef="let r">
@@ -52,7 +49,6 @@
             </td>
           </ng-container>
 
-          <!-- Fim -->
           <ng-container matColumnDef="end">
             <th mat-header-cell *matHeaderCellDef>Fim</th>
             <td mat-cell *matCellDef="let r">
@@ -60,7 +56,6 @@
             </td>
           </ng-container>
 
-          <!-- Ações -->
           <ng-container matColumnDef="actions">
             <th mat-header-cell *matHeaderCellDef></th>
             <td mat-cell *matCellDef="let r">
@@ -68,11 +63,11 @@
                 <mat-icon>more_vert</mat-icon>
               </button>
               <mat-menu #menu="matMenu">
-                <button mat-menu-item>
+                <button mat-menu-item (click)="editReservation(getId(r))">
                   <mat-icon>edit</mat-icon>
                   Editar
                 </button>
-                <button mat-menu-item>
+                <button mat-menu-item (click)="cancelReservation(getId(r))">
                   <mat-icon>delete</mat-icon>
                   Cancelar
                 </button>
@@ -83,6 +78,12 @@
           <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
           <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
         </table>
+
+        <mat-paginator
+          [pageSize]="pageSize"
+          [pageSizeOptions]="[5, 10, 20, 50]"
+          showFirstLastButtons>
+        </mat-paginator>
 
       </ng-container>
 
@@ -109,3 +110,4 @@
     </button>
   </mat-card-actions>
 </mat-card>
+

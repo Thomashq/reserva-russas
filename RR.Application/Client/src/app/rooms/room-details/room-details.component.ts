@@ -1,13 +1,16 @@
+//TODO: ajustar a lista de reservas nos próximos 7 dias, o período está bugando
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { AuthService } from '../../auth/auth.service';
-import { EAccountPermission } from '../../domain/enum/EAccountPermission';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatListModule } from '@angular/material/list';
 import { RoomsService } from '../rooms.service';
 import { Router, ActivatedRoute } from '@angular/router';
 import { DateOffset } from '../../domain/shared/utils/date-offset.util';
+import { MatDialog } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
+
+import { ReservationNewDialogComponent } from '../../home-page/reservation/reservation-new-dialog/reservation-new-dialog.component';
 
 @Component({
   selector: 'app-room-details',
@@ -17,23 +20,23 @@ import { DateOffset } from '../../domain/shared/utils/date-offset.util';
   styleUrls: ['./room-details.component.css']
 })
 export class RoomDetailsComponent implements OnInit {
-  isStudent = false;
   constructor(
     private roomService: RoomsService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private dialog: MatDialog,
+    private snackBar: MatSnackBar
   ) { }
 
   roomId: number = 0;
   room: any = null;
   isLoading = false;
 
-  // reservas que estão chegando (hoje -> +7 dias)
   upcomingReservations: any[] = [];
 
   ngOnInit(): void {
     this.route.params.subscribe(params => {
-      this.roomId = +params['id']; // Pega o id da rota
+      this.roomId = +params['id'];
       if (!this.roomId) return;
 
       this.fetchRoomDetails();
@@ -55,13 +58,11 @@ export class RoomDetailsComponent implements OnInit {
     });
   }
 
-  // Semana inteira: hoje 00:00 -> +7 dias 23:59:59, no formato DateTimeOffset do C#
   fetchUpcomingReservations(): void {
-    const { start, end } = DateOffset.weekWindow(); // já retorna "yyyy-MM-ddTHH:mm:ss±HH:mm"
+    const { start, end } = DateOffset.weekWindow();
 
     this.roomService.GetRoomsReservationsByPeriod(this.roomId, start, end).subscribe({
       next: (result) => {
-        // Interceptor já padroniza — só atribuir
         this.upcomingReservations = result ?? [];
       },
       error: (err) => {
@@ -70,7 +71,21 @@ export class RoomDetailsComponent implements OnInit {
     });
   }
 
-  newReservation() {
-    this.router.navigate(['/reservations/new'], { queryParams: { roomId: this.roomId } });
+  newReservation(): void {
+    if (!this.roomId) return;
+
+    const dialogRef = this.dialog.open(ReservationNewDialogComponent, {
+      width: '800px',
+      maxHeight: '90vh',
+      disableClose: true,
+      data: { roomId: this.roomId, tab: 0 }
+    });
+
+    dialogRef.afterClosed().subscribe(ok => {
+      if (ok) {
+        this.snackBar.open('Reserva criada.', 'Fechar', { duration: 3000 });
+        this.fetchUpcomingReservations();
+      }
+    });
   }
 }

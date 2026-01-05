@@ -1,0 +1,7 @@
+.rr-btn:hover {
+  filter: brightness(0.92);
+}
+
+.rr-btn-outline:hover {
+  background: rgba(20, 20, 20, 0.06);
+}

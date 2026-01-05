@@ -35,3 +35,182 @@ body {
   ::-webkit-scrollbar-thumb:hover {
     background: #303f9f;
   }
+  /* Fundo do form-field (inputs e selects em Angular Material MDC) */
+.mat-mdc-form-field .mdc-text-field {
+  background-color: #fff !important;
+}
+
+/* Fundo do painel do mat-select (a lista quando abre) */
+.mat-mdc-select-panel {
+  background-color: #fff !important;
+}
+.mat-datepicker-content,
+.mat-mdc-datepicker-content {
+  background: #fff !important;
+}
+
+/* Botões */
+.mat-mdc-raised-button,
+.mat-mdc-outlined-button,
+.mat-mdc-unelevated-button,
+.mat-mdc-button {
+  border-radius: 14px;
+}
+
+.mat-mdc-raised-button:hover,
+.mat-mdc-unelevated-button:hover,
+.mat-mdc-outlined-button:hover,
+.mat-mdc-button:hover {
+  filter: brightness(0.97);
+}
+
+/* Disabled */
+.mat-mdc-button.mat-mdc-button-disabled,
+.mat-mdc-raised-button.mat-mdc-button-disabled,
+.mat-mdc-unelevated-button.mat-mdc-button-disabled,
+.mat-mdc-outlined-button.mat-mdc-button-disabled {
+  opacity: 0.6;
+}
+
+/* Form-field: foco e hover no outline */
+.mat-mdc-form-field:hover .mdc-notched-outline__leading,
+.mat-mdc-form-field:hover .mdc-notched-outline__notch,
+.mat-mdc-form-field:hover .mdc-notched-outline__trailing {
+  border-color: rgba(20, 20, 20, 0.35) !important;
+}
+
+.mat-mdc-form-field.mat-focused .mdc-notched-outline__leading,
+.mat-mdc-form-field.mat-focused .mdc-notched-outline__notch,
+.mat-mdc-form-field.mat-focused .mdc-notched-outline__trailing {
+  border-color: rgba(20, 20, 20, 0.65) !important;
+}
+
+/* Label e caret */
+.mat-mdc-form-field.mat-focused .mat-mdc-floating-label {
+  color: rgba(20, 20, 20, 0.8) !important;
+}
+
+.mat-mdc-input-element {
+  caret-color: rgba(20, 20, 20, 0.85);
+}
+
+/* Select: item hover/selecionado */
+.mat-mdc-select-panel .mat-mdc-option:hover {
+  background: rgba(20, 20, 20, 0.06) !important;
+}
+
+.mat-mdc-select-panel .mat-mdc-option.mdc-list-item--selected {
+  background: rgba(20, 20, 20, 0.10) !important;
+}
+
+/* Datepicker: dias hover/selecionado */
+.mat-datepicker-content .mat-calendar-body-cell:hover .mat-calendar-body-cell-content {
+  background: rgba(20, 20, 20, 0.06) !important;
+}
+
+.mat-datepicker-content .mat-calendar-body-selected .mat-calendar-body-cell-content {
+  background: rgba(20, 20, 20, 0.15) !important;
+  color: rgba(20, 20, 20, 1) !important;
+}
+
+/* Tabs: hover e ink bar mais consistente */
+.mat-mdc-tab .mdc-tab__text-label {
+  opacity: 0.85;
+}
+
+.mat-mdc-tab:hover .mdc-tab__text-label {
+  opacity: 1;
+}
+
+.cdk-overlay-pane .mat-mdc-select-panel,
+.cdk-overlay-pane .mat-mdc-menu-panel,
+.cdk-overlay-pane .mat-datepicker-content,
+.cdk-overlay-pane .mat-mdc-datepicker-content {
+  background: #fff !important;
+  border: 1px solid rgba(20, 20, 20, 0.10);
+  border-radius: 14px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.14);
+}
+
+.mat-mdc-select-panel .mat-mdc-option:hover,
+.mat-mdc-select-panel .mat-mdc-option.mdc-list-item--activated:hover {
+  background: rgba(20, 20, 20, 0.06) !important;
+}
+
+.mat-mdc-select-panel .mat-mdc-option.mdc-list-item--selected,
+.mat-mdc-select-panel .mat-mdc-option.mdc-list-item--activated {
+  background: rgba(20, 20, 20, 0.10) !important;
+}
+
+.mat-mdc-menu-content {
+  padding: 6px !important;
+}
+
+.mat-mdc-menu-item {
+  border-radius: 10px;
+}
+
+.mat-mdc-menu-item:hover {
+  background: rgba(20, 20, 20, 0.06) !important;
+}
+
+.mat-mdc-icon-button {
+  border-radius: 12px;
+}
+
+.mat-mdc-icon-button:hover {
+  background: rgba(20, 20, 20, 0.06) !important;
+}
+
+.mat-mdc-icon-button:focus-visible {
+  outline: 2px solid rgba(20, 20, 20, 0.35);
+  outline-offset: 2px;
+}
+
+.mat-datepicker-content .mat-calendar-body-cell:hover .mat-calendar-body-cell-content,
+.mat-mdc-datepicker-content .mat-calendar-body-cell:hover .mat-calendar-body-cell-content {
+  background: rgba(20, 20, 20, 0.06) !important;
+}
+
+.mat-datepicker-content .mat-calendar-body-selected .mat-calendar-body-cell-content,
+.mat-mdc-datepicker-content .mat-calendar-body-selected .mat-calendar-body-cell-content {
+  background: rgba(20, 20, 20, 0.15) !important;
+  color: rgba(20, 20, 20, 1) !important;
+}
+
+.mat-datepicker-content .mat-calendar-body-today:not(.mat-calendar-body-selected) .mat-calendar-body-cell-content,
+.mat-mdc-datepicker-content .mat-calendar-body-today:not(.mat-calendar-body-selected) .mat-calendar-body-cell-content {
+  border-color: rgba(20, 20, 20, 0.35) !important;
+}
+
+table.mat-mdc-table .mat-mdc-row:hover,
+table.mat-table .mat-row:hover {
+  background: rgba(20, 20, 20, 0.03);
+}
+
+.mat-mdc-card-header {
+  border-bottom: 1px solid rgba(20, 20, 20, 0.08);
+  padding-bottom: 12px;
+}
+
+.mat-mdc-card-actions {
+  border-top: 1px solid rgba(20, 20, 20, 0.08);
+  padding-top: 12px;
+}
+
+.mat-mdc-card-header .mat-mdc-button:hover,
+.mat-mdc-card-actions .mat-mdc-button:hover,
+.mat-mdc-card-header .mat-mdc-outlined-button:hover,
+.mat-mdc-card-actions .mat-mdc-outlined-button:hover {
+  background: rgba(20, 20, 20, 0.04) !important;
+}
+
+.mat-mdc-form-field .mdc-text-field--filled:not(.mdc-text-field--disabled) {
+  background-color: #fff !important;
+}
+
+.mat-mdc-form-field:hover .mat-mdc-select-trigger {
+  background: rgba(20, 20, 20, 0.02);
+  border-radius: 10px;
+}
+

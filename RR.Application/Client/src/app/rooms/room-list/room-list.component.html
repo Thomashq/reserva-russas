@@ -1,16 +1,16 @@
-<mat-card>
-  <mat-card-title>
-    Salas
-    <button mat-raised-button color="primary" (click)="openNewRoomDialog()" style="float: right;">
+<mat-card class="p-3">
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <mat-card-title class="m-0">Salas</mat-card-title>
+
+    <button mat-raised-button color="primary" class="rr-btn" (click)="openNewRoomDialog()">
       Nova Sala
     </button>
-  </mat-card-title>
+  </div>
 
-  <mat-card-content>
+  <mat-card-content class="p-0">
     <ng-container *ngIf="!isLoading; else loading">
-      <table mat-table [dataSource]="rooms" *ngIf="rooms?.length; else empty">
+      <table mat-table [dataSource]="rooms" *ngIf="rooms?.length; else empty" class="w-100">
 
-        <!-- name -->
         <ng-container matColumnDef="name">
           <th mat-header-cell *matHeaderCellDef>Nome</th>
           <td mat-cell *matCellDef="let room">
@@ -18,7 +18,6 @@
           </td>
         </ng-container>
 
-        <!-- capacity -->
         <ng-container matColumnDef="capacity">
           <th mat-header-cell *matHeaderCellDef>Capacidade</th>
           <td mat-cell *matCellDef="let room">
@@ -26,12 +25,17 @@
           </td>
         </ng-container>
 
-        <!-- actions -->
         <ng-container matColumnDef="actions">
-          <th mat-header-cell *matHeaderCellDef>Ações</th>
-          <td mat-cell *matCellDef="let room">
-            <button mat-button color="primary" (click)="openRoom(room)">Ver</button>
-            <button mat-stroked-button (click)="newReservation(room)">Reservar</button>
+          <th mat-header-cell *matHeaderCellDef class="text-end">Ações</th>
+          <td mat-cell *matCellDef="let room" class="text-end">
+            <div class="d-inline-flex gap-2">
+              <button mat-stroked-button color="primary" class="rr-btn-outline" (click)="openRoom(room)">
+                Ver
+              </button>
+              <button mat-raised-button color="primary" class="rr-btn" (click)="newReservation(room)">
+                Reservar
+              </button>
+            </div>
           </td>
         </ng-container>
 
@@ -40,7 +44,12 @@
       </table>
     </ng-container>
 
-    <ng-template #loading>Carregando...</ng-template>
-    <ng-template #empty>Nenhuma sala encontrada.</ng-template>
+    <ng-template #loading>
+      <div class="py-3">Carregando...</div>
+    </ng-template>
+
+    <ng-template #empty>
+      <div class="py-3">Nenhuma sala encontrada.</div>
+    </ng-template>
   </mat-card-content>
 </mat-card>

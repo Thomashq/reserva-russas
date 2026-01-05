@@ -46,7 +46,7 @@ export class SideMenuComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (result) => {
           this.account = result;
-          this.accountId = result?.id ?? 0;
+          this.accountId = (result as any)?.Id ?? (result as any)?.id ?? 0;
           this.isManagerOrAbove = this.getAccuntPermissionLevel(this.account);
         },
         error: () => {
@@ -65,12 +65,21 @@ export class SideMenuComponent implements OnInit, OnDestroy {
     this.router.navigate(['/room/list']);
   }
 
+  navigateToReservations(): void {
+    this.router.navigate(['/reservas']);
+  }
+
+  navigateToAdvisorList(): void {
+    this.router.navigate(['/advisor/list']);
+  }
+
+  navigateToAdvisorNew(): void {
+    this.router.navigate(['/advisor/new']);
+  }
+
   logout(): void {
     this.authService.logout().subscribe({
-      next: () => {
-        // nada aqui: o AuthService já limpou o estado e o menu
-        // troca automaticamente para o modo "sem usuário"
-      },
+      next: () => {},
       error: (error) => {
         console.error('Erro ao fazer logout no side-menu', error);
       }
@@ -91,28 +100,22 @@ export class SideMenuComponent implements OnInit, OnDestroy {
     const perm = (acc as any).permission ?? (acc as any).AccountPermission;
 
     switch (perm) {
-      case 0: // EAccountPermission.Manager
-        return 'Gerente de Sala';
-      case 1: // EAccountPermission.Servant
-        return 'Servidor';
-      case 2: // EAccountPermission.Student
-        return 'Aluno';
-      case 3:
-        return 'Admin';
-      default:
-        return 'Conta';
+      case 0: return 'Gerente de Sala';
+      case 1: return 'Servidor';
+      case 2: return 'Aluno';
+      case 3: return 'Admin';
+      default: return 'Conta';
     }
   }
 
   getAccuntPermissionLevel(acc: Account | null) : boolean{
-    if(!acc) return false
+    if(!acc) return false;
 
     const permission = (acc as any).permission ?? (acc as any).AccountPermission;
 
-    if(permission ==  0 || permission == 3)
+    if(permission == 0 || permission == 3)
       return true;
 
     return false;
   }
 }
-

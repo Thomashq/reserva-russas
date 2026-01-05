@@ -9,7 +9,7 @@ import { RoomDetailsComponent } from './rooms/room-details/room-details.componen
 
 import { AdvisorComponent } from './advisor/advisor';
 import { AdvisorNewComponent } from './advisor/advisor-new/advisor-new';
-import {servantOrAboveGuard}  from './auth/permission-guard';
+import { ReservationPageComponent } from './reservation-page/reservation-page';
 
 export const routes: Routes = [
   { path: '', component: HomePageComponent, pathMatch: 'full' },
@@ -31,11 +31,18 @@ export const routes: Routes = [
 
 {
   path: 'advisor', children: [
-    { path: 'list', component: AdvisorComponent, canActivate: [authGuard, servantOrAboveGuard] },
-    { path: 'new', component: AdvisorNewComponent, canActivate: [authGuard, servantOrAboveGuard] },
+    { path: 'list', component: AdvisorComponent, canActivate: [authGuard] },
+    { path: 'new', component: AdvisorNewComponent, canActivate: [authGuard] },
     { path: '', redirectTo: 'list', pathMatch: 'full' }
   ]
 },
+
+{
+  path: 'reservas',
+  component: ReservationPageComponent,
+  canActivate: [authGuard]
+},
+
 
   { path: '**', redirectTo: '' }
 ];
