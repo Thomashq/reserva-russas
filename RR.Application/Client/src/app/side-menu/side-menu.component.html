@@ -1,93 +1,67 @@
-<div *ngIf="account as acc" class="d-flex flex-column h-100">
-
-  <div class="menu-section mb-3">
-    <div class="search-label">Buscar</div>
-
-    <mat-form-field appearance="outline" class="w-100 search-field">
-      <input matInput
-             [(ngModel)]="searchText"
-             (keyup.enter)="onSearchEnter()"
-             placeholder="Salas, reservas..." />
-      <button mat-icon-button
-              matSuffix
-              type="button"
-              (click)="onSearchEnter()">
-        <mat-icon>search</mat-icon>
-      </button>
-    </mat-form-field>
-  </div>
-
-  <div class="menu-section d-flex align-items-center mb-3">
-    <div class="d-flex align-items-center justify-content-center me-2 rounded-3 avatar">
-      {{ (acc.UserName ?? acc.Mail ?? '?')[0] | uppercase }}
-    </div>
-
-    <div class="d-flex flex-column">
-      <span class="fw-semibold">{{ acc.UserName || acc.Mail }}</span>
-      <small class="text-muted">
+<div *ngIf="account as acc"
+     class="d-flex flex-column h-100 p-3 text-light side-menu-container">
+  <!-- Conta -->
+  <div class="d-flex align-items-center mb-4">
+    <mat-icon class="me-2 text-light user-icon">account_circle</mat-icon>
+    <div class="user-info">
+      <div class="fw-semibold text-light user-name">
+        {{ acc.UserName || acc.Mail }}
+      </div>
+      <small class="text-secondary user-role">
         {{ getPermissionLabel(acc) }}
       </small>
     </div>
   </div>
 
-  <div class="menu-section mb-2">
-    <a class="menu-home d-flex align-items-center"
-       routerLink="/home"
-       routerLinkActive="active-link">
-      <mat-icon class="me-1">home</mat-icon>
-      <span>Home</span>
+  <!-- Navegação -->
+  <mat-nav-list class="flex-grow-1 nav-list-compact">
+    <a mat-list-item routerLink="/home" class="text-light menu-item">
+      <mat-icon matListItemIcon class="text-light menu-icon">home</mat-icon>
+      <span matListItemTitle class="text-light menu-text">Home</span>
     </a>
-  </div>
 
-  <mat-nav-list class="flex-grow-1">
+    <a mat-list-item (click)="navigateToRooms()" class="text-light menu-item">
+      <mat-icon matListItemIcon class="text-light menu-icon">meeting_room</mat-icon>
+      <span matListItemTitle class="text-light menu-text">Salas</span>
+    </a>
 
-    <mat-expansion-panel class="menu-panel">
-      <mat-expansion-panel-header>
-        <mat-panel-title>Salas</mat-panel-title>
-      </mat-expansion-panel-header>
+    <a mat-list-item (click)="navigateToReservations()" class="text-light menu-item">
+      <mat-icon matListItemIcon class="text-light menu-icon">event</mat-icon>
+      <span matListItemTitle class="text-light menu-text">Reservas de Salas</span>
+    </a>
 
-      <a mat-list-item (click)="navigateToRooms()">
-        <span>Listar salas</span>
-      </a>
-    </mat-expansion-panel>
+    <a mat-list-item (click)="navigateToEquipmentReservations()" class="text-light menu-item">
+      <mat-icon matListItemIcon class="text-light menu-icon">devices</mat-icon>
+      <span matListItemTitle class="text-light menu-text">Reservas de Equipamentos</span>
+    </a>
 
-    <mat-expansion-panel class="menu-panel">
-      <mat-expansion-panel-header>
-        <mat-panel-title>Reservas</mat-panel-title>
-      </mat-expansion-panel-header>
+    <ng-container *ngIf="isManagerOrAbove">
+      <mat-divider class="bg-secondary my-2"></mat-divider>
 
-      <a mat-list-item (click)="navigateToReservations()">
-        <span>Minhas reservas</span>
-      </a>
-    </mat-expansion-panel>
-
-    <mat-expansion-panel class="menu-panel" *ngIf="isManagerOrAbove">
-      <mat-expansion-panel-header>
-        <mat-panel-title>Orientação</mat-panel-title>
-      </mat-expansion-panel-header>
-
-      <a mat-list-item (click)="navigateToAdvisorList()">
-        <span>Lista de orientação</span>
+      <a mat-list-item (click)="navigateToAdvisorList()" class="text-light menu-item">
+        <mat-icon matListItemIcon class="text-light menu-icon">supervisor_account</mat-icon>
+        <span matListItemTitle class="text-light menu-text">Orientações</span>
       </a>
 
-      <a mat-list-item (click)="navigateToAdvisorNew()">
-        <span>Nova orientação</span>
+      <a mat-list-item (click)="navigateToAdvisorNew()" class="text-light menu-item">
+        <mat-icon matListItemIcon class="text-light menu-icon">add</mat-icon>
+        <span matListItemTitle class="text-light menu-text">Nova Orientação</span>
       </a>
-    </mat-expansion-panel>
-
-    <mat-expansion-panel class="menu-panel">
-      <mat-expansion-panel-header>
-        <mat-panel-title>Infos da conta</mat-panel-title>
-      </mat-expansion-panel-header>
-
-      <a mat-list-item routerLink="/conta" routerLinkActive="active-link">
-        <span>Dados da conta</span>
-      </a>
-
-      <button mat-list-item type="button" (click)="logout()">
-        <span>Sair</span>
-      </button>
-    </mat-expansion-panel>
-
+    </ng-container>
   </mat-nav-list>
+
+  <mat-divider class="bg-secondary my-2"></mat-divider>
+
+  <!-- Conta -->
+  <div class="mt-2">
+    <a mat-list-item routerLink="/conta" class="text-light menu-item">
+      <mat-icon matListItemIcon class="text-light menu-icon">settings</mat-icon>
+      <span matListItemTitle class="text-light menu-text">Conta</span>
+    </a>
+
+    <button mat-list-item (click)="logout()" class="text-light menu-item">
+      <mat-icon matListItemIcon class="text-light menu-icon">logout</mat-icon>
+      <span matListItemTitle class="text-light menu-text">Sair</span>
+    </button>
+  </div>
 </div>

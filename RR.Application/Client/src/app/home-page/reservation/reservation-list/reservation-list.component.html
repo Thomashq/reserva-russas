@@ -1,113 +1,106 @@
-
-<mat-card>
-  <mat-card-header>
-    <mat-card-title>
-      Próximas reservas
-    </mat-card-title>
-    <mat-card-subtitle>Esta semana</mat-card-subtitle>
-
-    <div style="margin-left:auto; display:flex; gap:8px;">
-      <button mat-button (click)="refresh()">
-        <mat-icon>refresh</mat-icon>
-        Atualizar
+<mat-card class="mb-3">
+  <mat-card-header class="d-flex align-items-center">
+    <div>
+      <mat-card-title>Reservas de Hoje</mat-card-title>
+      <mat-card-subtitle>{{ formatDateLabel() }}</mat-card-subtitle>
+    </div>
+    <div class="ms-auto d-flex gap-2">
+      <button mat-icon-button (click)="previousDay()">
+        <mat-icon>chevron_left</mat-icon>
       </button>
-      <button mat-raised-button color="primary" (click)="openNewReservationDialog()">
+      <button mat-button (click)="today()">Hoje</button>
+      <button mat-icon-button (click)="nextDay()">
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+      <button *ngIf="isLoggedIn"
+              mat-raised-button
+              color="primary"
+              (click)="openNewReservationDialog()">
         <mat-icon>add</mat-icon>
-        Nova reserva
+        Nova
       </button>
     </div>
   </mat-card-header>
 
   <mat-card-content>
-    <ng-template #loadingTpl>
-      <div class="loading">
-        <mat-spinner diameter="40"></mat-spinner>
-      </div>
-    </ng-template>
+    <!-- Loading -->
+    <div *ngIf="isLoading" class="d-flex justify-content-center p-4">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
 
-    <ng-container *ngIf="!isLoading; else loadingTpl">
-      <ng-container *ngIf="reservations?.length; else emptyTpl">
+    <!-- Empty State -->
+    <div *ngIf="!isLoading && !reservations.length"
+         class="text-center text-muted p-4">
+      Nenhuma reserva para este dia
+    </div>
 
-        <table mat-table [dataSource]="dataSource" [attr.aria-busy]="isLoading">
+    <!-- Lista de Reservas -->
+    <div *ngIf="!isLoading && reservations.length">
 
-          <ng-container matColumnDef="title">
-            <th mat-header-cell *matHeaderCellDef>Título</th>
-            <td mat-cell *matCellDef="let r">{{ r.Title || r.title }}</td>
-          </ng-container>
+      <!-- Cards de Reservas -->
+      <mat-card *ngFor="let r of dataSource.filteredData" class="mb-3">
+        <mat-card-content>
+          <div class="row align-items-center">
 
-          <ng-container matColumnDef="room">
-            <th mat-header-cell *matHeaderCellDef>Sala</th>
-            <td mat-cell *matCellDef="let r">
-              {{ (r.Room?.Name || r.room?.name) || ('#' + (r.RoomId ?? r.roomId)) }}
-            </td>
-          </ng-container>
+            <!-- Horário -->
+            <div class="col-12 col-md-3">
+              <div class="d-flex align-items-center gap-2">
+                <mat-icon color="primary">schedule</mat-icon>
+                <div>
+                  <div class="fw-bold">
+                    {{ formatTime(r.StartTime ) }} – {{ formatTime(r.EndTime ) }}
+                  </div>
+                </div>
+              </div>
+            </div>
 
-          <ng-container matColumnDef="start">
-            <th mat-header-cell *matHeaderCellDef>Início</th>
-            <td mat-cell *matCellDef="let r">
-              {{ formatDateTime(r.StartTime || r.startTime) }}
-            </td>
-          </ng-container>
+            <!-- Sala -->
+            <div class="col-12 col-md-2 mt-2 mt-md-0">
+              <div class="d-flex align-items-center gap-2">
+                <mat-icon color="accent">meeting_room</mat-icon>
+                <div class="fw-bold">
+                  {{ getRoomNameById(r.RoomId ) }}
+                </div>
+              </div>
+            </div>
 
-          <ng-container matColumnDef="end">
-            <th mat-header-cell *matHeaderCellDef>Fim</th>
-            <td mat-cell *matCellDef="let r">
-              {{ formatDateTime(r.EndTime || r.endTime) }}
-            </td>
-          </ng-container>
+            <!-- Descrição -->
+            <div class="col-12 col-md-6 mt-2 mt-md-0">
+              <div class="d-flex align-items-center gap-2">
+                <mat-icon>description</mat-icon>
+                <div>
+                  {{ r.Title }}
+                </div>
+              </div>
+            </div>
 
-          <ng-container matColumnDef="actions">
-            <th mat-header-cell *matHeaderCellDef></th>
-            <td mat-cell *matCellDef="let r">
+            <!-- Ações -->
+            <div class="col-12 col-md-1 mt-2 mt-md-0 text-end" *ngIf="isLoggedIn">
               <button mat-icon-button [matMenuTriggerFor]="menu">
                 <mat-icon>more_vert</mat-icon>
               </button>
               <mat-menu #menu="matMenu">
                 <button mat-menu-item (click)="editReservation(getId(r))">
                   <mat-icon>edit</mat-icon>
-                  Editar
+                  <span>Editar</span>
                 </button>
                 <button mat-menu-item (click)="cancelReservation(getId(r))">
                   <mat-icon>delete</mat-icon>
-                  Cancelar
+                  <span>Cancelar</span>
                 </button>
               </mat-menu>
-            </td>
-          </ng-container>
+            </div>
 
-          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-        </table>
+          </div>
+        </mat-card-content>
+      </mat-card>
 
-        <mat-paginator
-          [pageSize]="pageSize"
-          [pageSizeOptions]="[5, 10, 20, 50]"
-          showFirstLastButtons>
-        </mat-paginator>
-
-      </ng-container>
-
-      <ng-template #emptyTpl>
-        <div class="no-data">
-          <mat-icon>event_busy</mat-icon>
-          <p>Nenhuma reserva encontrada para esta semana.</p>
-          <button mat-raised-button color="primary" (click)="openNewReservationDialog()">
-            Criar primeira reserva
-          </button>
-        </div>
-      </ng-template>
-    </ng-container>
+      <!-- Paginação -->
+      <mat-paginator
+        [pageSize]="pageSize"
+        [pageSizeOptions]="[5, 10, 20]"
+        showFirstLastButtons>
+      </mat-paginator>
+    </div>
   </mat-card-content>
-
-  <mat-card-actions align="end">
-    <button mat-button (click)="refresh()">
-      <mat-icon>refresh</mat-icon>
-      Atualizar
-    </button>
-    <button mat-raised-button color="primary" (click)="openNewReservationDialog()">
-      <mat-icon>add</mat-icon>
-      Nova reserva
-    </button>
-  </mat-card-actions>
 </mat-card>
-

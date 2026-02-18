@@ -10,7 +10,6 @@ namespace ReservaRussasAPI.Extensions
     {
         public static IServiceCollection AddServices(this IServiceCollection services)
         {
-            // Registrar repositórios primeiro
             //services.AddServices();
             services.AddScoped<IAccountService, AccountService>();
             services.AddScoped<IAuthService, AuthService>();
@@ -20,6 +19,9 @@ namespace ReservaRussasAPI.Extensions
             services.AddScoped<IReservationService, ReservationService>();
             services.AddScoped<IReservationSeriesService, ReservationSeriesService>();
             services.AddScoped<IStudentAdvisorService, StudentAdvisorService>();
+            services.AddScoped<IEquipmentReservationService, EquipmentReservationService>();
+            services.AddScoped<IEquipmentService, EquipmentService>();
+
 
             return services;
         }

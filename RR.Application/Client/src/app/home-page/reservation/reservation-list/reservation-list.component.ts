@@ -1,4 +1,3 @@
-
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { RouterModule } from '@angular/router';
@@ -16,12 +15,12 @@ import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { ReservationService } from '../reservation.service';
 import { Reservations } from '../../../domain/models/reservations';
 import { PeriodRequest } from '../../../domain/dto/request/ReservationRequest';
-import { DateOffset } from '../../../domain/shared/utils/date-offset.util';
 import { ReservationNewDialogComponent } from '../reservation-new-dialog/reservation-new-dialog.component';
 import { ReservationEditDialogComponent } from '../reservation-edit-dialog/reservation-edit-dialog';
 import { AuthService } from '../../../auth/auth.service';
 import { Account } from '../../../domain/models/account';
 import { Subject, takeUntil, finalize } from 'rxjs';
+import { RoomsService } from '../../../rooms/rooms.service';
 
 @Component({
   selector: 'app-reservation-list',
@@ -37,45 +36,50 @@ import { Subject, takeUntil, finalize } from 'rxjs';
     MatMenuModule,
     MatPaginatorModule
   ],
-  templateUrl: './reservation-list.component.html',
-  styleUrls: ['./reservation-list.component.css']
+  templateUrl: './reservation-list.component.html'
 })
 export class ReservationListComponent implements OnInit, OnDestroy {
+
   isLoading = false;
 
   account: Account | null = null;
-  accountId = 0;
+  isLoggedIn = false;
 
   private destroy$ = new Subject<void>();
 
   reservations: Reservations[] = [];
-  displayedColumns: string[] = ['title', 'room', 'start', 'end', 'actions'];
+  displayedColumns: string[] = ['time', 'room', 'title', 'actions'];
 
   dataSource = new MatTableDataSource<Reservations>([]);
-  pageSize = 10;
+  pageSize = 5;
+
+  selectedDate: Date = new Date();
+
+  private roomCache = new Map<number, string>();
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   constructor(
     private reservationService: ReservationService,
+    private roomsService: RoomsService,
     private dialog: MatDialog,
     private authService: AuthService,
     private snackBar: MatSnackBar
-  ) { }
+  ) {}
 
   ngOnInit(): void {
-    this.loadCurrentWeek();
+    this.loadDay();
 
     this.authService.currentUser$
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (account) => {
-          this.account = account;
-          this.accountId = account?.Id ?? 0;
+        next: (acc) => {
+          this.account = acc;
+          this.isLoggedIn = !!acc;
         },
         error: () => {
           this.account = null;
-          this.accountId = 0;
+          this.isLoggedIn = false;
         }
       });
   }
@@ -89,54 +93,80 @@ export class ReservationListComponent implements OnInit, OnDestroy {
     this.reservations = data ?? [];
     this.dataSource.data = this.reservations;
 
+    this.reservations.forEach(r => {
+      const roomId = r.RoomId ?? (r as any)?.roomId;
+      if (roomId) this.getRoomNameById(roomId);
+    });
+
     if (this.paginator) {
       this.dataSource.paginator = this.paginator;
     }
   }
 
-  loadCurrentWeek(): void {
-    const { start, end } = DateOffset.weekWindow();
-    const period: PeriodRequest = { start, end } as PeriodRequest;
+  loadDay(): void {
+    const start = new Date(this.selectedDate);
+    start.setHours(0, 0, 0, 0);
+
+    const end = new Date(this.selectedDate);
+    end.setHours(23, 59, 59, 0);
+
+    const period: PeriodRequest = {
+      start: start.toISOString().slice(0, 19),
+      end: end.toISOString().slice(0, 19)
+    };
 
     this.isLoading = true;
+
     this.reservationService.GetReservationsByPeriod(period).pipe(
       finalize(() => this.isLoading = false)
     ).subscribe({
       next: (data) => this.applyData(data ?? []),
-      error: (err) => {
-        console.error('Erro ao carregar reservas:', err);
+      error: () => {
         this.applyData([]);
         this.snackBar.open('Erro ao carregar reservas', 'Fechar', { duration: 4000 });
       }
     });
   }
 
-  refresh(): void {
-    this.loadCurrentWeek();
+  previousDay(): void {
+    this.selectedDate.setDate(this.selectedDate.getDate() - 1);
+    this.selectedDate = new Date(this.selectedDate);
+    this.loadDay();
   }
 
-  getId(r: any): number {
-    return Number(r?.Id ?? r?.id ?? 0);
+  nextDay(): void {
+    this.selectedDate.setDate(this.selectedDate.getDate() + 1);
+    this.selectedDate = new Date(this.selectedDate);
+    this.loadDay();
   }
 
-  formatDateTime(dateTime: string): string {
-    if (!dateTime) return 'N/A';
+  today(): void {
+    this.selectedDate = new Date();
+    this.loadDay();
+  }
 
-    const date = new Date(dateTime);
-    return date.toLocaleString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
+  getRoomNameById(roomId: number): string {
+    if (!roomId) return '';
+
+    if (this.roomCache.has(roomId)) {
+      return this.roomCache.get(roomId)!;
+    }
+
+    this.roomsService.GetById(roomId).subscribe({
+      next: (room) => {
+        const name = room?.Name ?? `#${roomId}`;
+        this.roomCache.set(roomId, name);
+      },
+      error: () => {
+        this.roomCache.set(roomId, `#${roomId}`);
+      }
     });
+
+    return `#${roomId}`;
   }
 
   openNewReservationDialog(): void {
-    const isLoggedIn = this.authService.isLoggedIn();
-    if (!isLoggedIn) {
-      this.snackBar.open('O usuário precisa estar autenticado', 'Fechar', { duration: 5000 });
-      return;
-    }
+    if (!this.isLoggedIn) return;
 
     const dialogRef = this.dialog.open(ReservationNewDialogComponent, {
       width: '800px',
@@ -145,40 +175,12 @@ export class ReservationListComponent implements OnInit, OnDestroy {
     });
 
     dialogRef.afterClosed().subscribe(result => {
-      if (result) this.loadCurrentWeek();
-    });
-  }
-
-  cancelReservation(reservationId: number): void {
-    if (!reservationId) return;
-
-    const ok = window.confirm('Cancelar (deletar) esta reserva?');
-    if (!ok) return;
-
-    this.isLoading = true;
-
-    this.reservationService.DeleteReservation(reservationId).pipe(
-      finalize(() => this.isLoading = false)
-    ).subscribe({
-      next: () => {
-        this.snackBar.open('Reserva cancelada com sucesso!', 'Fechar', { duration: 3000 });
-        this.loadCurrentWeek();
-      },
-      error: (err) => {
-        console.error(err);
-        this.snackBar.open('Não foi possível deletar a reserva', 'Fechar', { duration: 5000 });
-      }
+      if (result) this.loadDay();
     });
   }
 
   editReservation(reservationId: number): void {
-    if (!reservationId) return;
-
-    const isLoggedIn = this.authService.isLoggedIn();
-    if (!isLoggedIn) {
-      this.snackBar.open('O usuário precisa estar autenticado', 'Fechar', { duration: 5000 });
-      return;
-    }
+    if (!this.isLoggedIn || !reservationId) return;
 
     const dialogRef = this.dialog.open(ReservationEditDialogComponent, {
       width: '800px',
@@ -188,8 +190,48 @@ export class ReservationListComponent implements OnInit, OnDestroy {
     });
 
     dialogRef.afterClosed().subscribe(result => {
-      if (result) this.loadCurrentWeek();
+      if (result) this.loadDay();
+    });
+  }
+
+  cancelReservation(reservationId: number): void {
+    if (!this.isLoggedIn || !reservationId) return;
+
+    const ok = window.confirm('Cancelar esta reserva?');
+    if (!ok) return;
+
+    this.isLoading = true;
+
+    this.reservationService.DeleteReservation(reservationId).pipe(
+      finalize(() => this.isLoading = false)
+    ).subscribe({
+      next: () => {
+        this.snackBar.open('Reserva cancelada', 'Fechar', { duration: 3000 });
+        this.loadDay();
+      },
+      error: () => {
+        this.snackBar.open('Erro ao cancelar reserva', 'Fechar', { duration: 4000 });
+      }
+    });
+  }
+
+  getId(r: any): number {
+    return Number(r?.Id ?? r?.id ?? 0);
+  }
+
+  formatTime(dateTime: string): string {
+    if (!dateTime) return '';
+    return new Date(dateTime).toLocaleTimeString('pt-BR', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+
+  formatDateLabel(): string {
+    return this.selectedDate.toLocaleDateString('pt-BR', {
+      weekday: 'long',
+      day: '2-digit',
+      month: '2-digit'
     });
   }
 }
-

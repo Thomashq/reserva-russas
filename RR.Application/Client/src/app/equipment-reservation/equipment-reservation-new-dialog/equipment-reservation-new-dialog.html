@@ -1,0 +1,69 @@
+<h2 mat-dialog-title>Nova Reserva de Equipamento</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="reservationForm">
+    <mat-form-field appearance="fill" class="full-width">
+      <mat-label>Equipamento</mat-label>
+      <mat-select formControlName="equipmentId" required>
+        <mat-option *ngFor="let equipment of equipmentList" [value]="equipment.id">
+          {{ equipment.Name }}
+        </mat-option>
+      </mat-select>
+      <mat-error *ngIf="reservationForm.get('equipmentId')?.hasError('required')">
+        Equipamento é obrigatório
+      </mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill" class="full-width">
+      <mat-label>Título</mat-label>
+      <input matInput formControlName="title" required maxlength="250">
+      <mat-error *ngIf="reservationForm.get('title')?.hasError('required')">
+        Título é obrigatório
+      </mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill" class="full-width">
+      <mat-label>Descrição</mat-label>
+      <textarea matInput formControlName="description" rows="3" maxlength="1000"></textarea>
+    </mat-form-field>
+
+    <div class="date-time-row">
+      <mat-form-field appearance="fill" class="date-field">
+        <mat-label>Data Início</mat-label>
+        <input matInput [matDatepicker]="startPicker" formControlName="startDate" required>
+        <mat-datepicker-toggle matSuffix [for]="startPicker"></mat-datepicker-toggle>
+        <mat-datepicker #startPicker></mat-datepicker>
+      </mat-form-field>
+
+      <mat-form-field appearance="fill" class="time-field">
+        <mat-label>Hora Início</mat-label>
+        <input matInput type="time" formControlName="startTime" required>
+      </mat-form-field>
+    </div>
+
+    <div class="date-time-row">
+      <mat-form-field appearance="fill" class="date-field">
+        <mat-label>Data Término</mat-label>
+        <input matInput [matDatepicker]="endPicker" formControlName="endDate" required>
+        <mat-datepicker-toggle matSuffix [for]="endPicker"></mat-datepicker-toggle>
+        <mat-datepicker #endPicker></mat-datepicker>
+      </mat-form-field>
+
+      <mat-form-field appearance="fill" class="time-field">
+        <mat-label>Hora Término</mat-label>
+        <input matInput type="time" formControlName="endTime" required>
+      </mat-form-field>
+    </div>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()" [disabled]="isSubmitting">Cancelar</button>
+  <button
+    mat-raised-button
+    color="primary"
+    (click)="onSubmit()"
+    [disabled]="reservationForm.invalid || isSubmitting">
+    {{ isSubmitting ? 'Salvando...' : 'Criar Reserva' }}
+  </button>
+</mat-dialog-actions>

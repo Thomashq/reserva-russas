@@ -25,6 +25,7 @@ namespace RR.Infraestructure.DataContext
         public DbSet<RoomDetails> RoomDetails { get; set; }
         public DbSet<Equipment> Equipment { get; set; }
         public DbSet<RoomEquipment> RoomEquipment { get; set; }
+        public DbSet<EquipmentReservation> EquipmentReservation { get; set;}
 
 
 

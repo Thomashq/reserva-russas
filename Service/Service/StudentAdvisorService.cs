@@ -2,7 +2,6 @@ using RR.Core.Entities;
 using RR.Core.Services;
 using RR.Infraestructure.DataContext;
 using Microsoft.EntityFrameworkCore;
-using System.Data.Entity;
 
 namespace RR.Service.Service
 {

@@ -1,4 +1,3 @@
-
 import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -27,6 +26,7 @@ import { Account } from '../domain/models/account';
 import { RoomsService } from '../rooms/rooms.service';
 import { Rooms } from '../domain/models/rooms';
 import { ReservationEditDialogComponent } from '../home-page/reservation/reservation-edit-dialog/reservation-edit-dialog';
+import { ReservationNewDialogComponent } from '../home-page/reservation/reservation-new-dialog/reservation-new-dialog.component';
 
 @Component({
   selector: 'app-reservation-page',
@@ -72,6 +72,8 @@ export class ReservationPageComponent implements OnInit, OnDestroy {
   dataSource = new MatTableDataSource<Reservations>([]);
   pageSize = 10;
 
+  private roomCache = new Map<number, string>();
+
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   constructor(
@@ -112,10 +114,37 @@ export class ReservationPageComponent implements OnInit, OnDestroy {
 
   private applyData(list: Reservations[]): void {
     this.dataSource.data = list ?? [];
+
+    // Buscar nomes das salas
+    list.forEach(r => {
+      const roomId = r.RoomId;
+      if (roomId) this.getRoomNameById(roomId);
+    });
+
     if (this.paginator) {
       this.dataSource.paginator = this.paginator;
       this.paginator.firstPage();
     }
+  }
+
+  getRoomNameById(roomId: number): string {
+    if (!roomId) return '';
+
+    if (this.roomCache.has(roomId)) {
+      return this.roomCache.get(roomId)!;
+    }
+
+    this.roomService.GetById(roomId).subscribe({
+      next: (room) => {
+        const name = room?.Name ?? `#${roomId}`;
+        this.roomCache.set(roomId, name);
+      },
+      error: () => {
+        this.roomCache.set(roomId, `#${roomId}`);
+      }
+    });
+
+    return `#${roomId}`;
   }
 
   loadRooms(): void {
@@ -229,5 +258,16 @@ export class ReservationPageComponent implements OnInit, OnDestroy {
       minute: '2-digit'
     });
   }
-}
 
+  openNewReservation(): void {
+    const ref = this.dialog.open(ReservationNewDialogComponent, {
+      width: '900px',
+      maxHeight: '90vh',
+      disableClose: true
+    });
+
+    ref.afterClosed().subscribe(ok => {
+      if (ok) this.search();
+    });
+  }
+}

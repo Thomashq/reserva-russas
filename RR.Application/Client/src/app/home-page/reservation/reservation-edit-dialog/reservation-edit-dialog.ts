@@ -255,7 +255,7 @@ export class ReservationEditDialogComponent implements OnInit {
         this.dialogRef.close(true);
       },
       error: (err) => {
-        this.snackBar.open('Erro ao atualizar reserva: ' + err.message, 'Fechar', { duration: 5000 });
+        this.snackBar.open('Erro ao atualizar reserva: ' , 'Fechar', { duration: 5000 });
         this.dialogRef.close(false);
       }
     });

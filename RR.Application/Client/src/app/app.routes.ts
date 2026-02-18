@@ -10,6 +10,7 @@ import { RoomDetailsComponent } from './rooms/room-details/room-details.componen
 import { AdvisorComponent } from './advisor/advisor';
 import { AdvisorNewComponent } from './advisor/advisor-new/advisor-new';
 import { ReservationPageComponent } from './reservation-page/reservation-page';
+import { EquipmentReservationListComponent } from './equipment-reservation/equipment-reservation-list.component/equipment-reservation-list.component';
 
 export const routes: Routes = [
   { path: '', component: HomePageComponent, pathMatch: 'full' },
@@ -40,6 +41,11 @@ export const routes: Routes = [
 {
   path: 'reservas',
   component: ReservationPageComponent,
+  canActivate: [authGuard]
+},
+{
+  path: 'equipment-reservations',
+  component: EquipmentReservationListComponent,
   canActivate: [authGuard]
 },
 

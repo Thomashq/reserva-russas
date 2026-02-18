@@ -104,6 +104,7 @@ export class AdvisorNewComponent implements OnInit, OnDestroy {
     if (a) {
       const name = (a.UserName ?? '').trim();
       const mail = (a.Mail ?? '').trim();
+      console.log(name, mail)
       if (name && mail) return `${name} (${mail})`;
       return name || mail || `#${a.Id}`;
     }

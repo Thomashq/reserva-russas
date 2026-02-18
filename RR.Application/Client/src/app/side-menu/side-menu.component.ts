@@ -10,7 +10,6 @@ import { AuthService } from '../auth/auth.service';
 import { Account } from '../domain/models/account';
 import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
-
 @Component({
   selector: 'app-side-menu',
   standalone: true,
@@ -30,16 +29,14 @@ import { Subject, takeUntil } from 'rxjs';
 export class SideMenuComponent implements OnInit, OnDestroy {
   account: Account | null = null;
   accountId = 0;
-
   searchText = '';
   public isManagerOrAbove: boolean = false;
+  public isServantOrAbove: boolean = false;
   private destroy$ = new Subject<void>();
-
   constructor(
     private authService: AuthService,
     private router: Router
   ) { }
-
   ngOnInit(): void {
     this.authService.currentUser$
       .pipe(takeUntil(this.destroy$))
@@ -55,28 +52,25 @@ export class SideMenuComponent implements OnInit, OnDestroy {
         }
       });
   }
-
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
   }
-
   navigateToRooms(): void {
     this.router.navigate(['/room/list']);
   }
-
   navigateToReservations(): void {
     this.router.navigate(['/reservas']);
   }
-
   navigateToAdvisorList(): void {
     this.router.navigate(['/advisor/list']);
   }
-
   navigateToAdvisorNew(): void {
     this.router.navigate(['/advisor/new']);
   }
-
+  navigateToEquipmentReservations(): void {
+    this.router.navigate(['/equipment-reservations']);
+  }
   logout(): void {
     this.authService.logout().subscribe({
       next: () => {},
@@ -85,20 +79,15 @@ export class SideMenuComponent implements OnInit, OnDestroy {
       }
     });
   }
-
   onSearchEnter(): void {
     if (!this.searchText?.trim()) return;
-
     this.router.navigate(['/busca'], {
       queryParams: { q: this.searchText.trim() }
     });
   }
-
   getPermissionLabel(acc: Account | null): string {
     if (!acc) return 'Conta';
-
     const perm = (acc as any).permission ?? (acc as any).AccountPermission;
-
     switch (perm) {
       case 0: return 'Gerente de Sala';
       case 1: return 'Servidor';
@@ -107,15 +96,13 @@ export class SideMenuComponent implements OnInit, OnDestroy {
       default: return 'Conta';
     }
   }
-
   getAccuntPermissionLevel(acc: Account | null) : boolean{
     if(!acc) return false;
-
     const permission = (acc as any).permission ?? (acc as any).AccountPermission;
-
     if(permission == 0 || permission == 3)
       return true;
-
+    else if(permission == 1)
+      return true;
     return false;
   }
 }

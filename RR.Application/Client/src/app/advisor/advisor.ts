@@ -1,9 +1,7 @@
-//TODO: testar isso aqui
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -12,15 +10,14 @@ import { MatInputModule } from '@angular/material/input';
 import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MatTableModule } from '@angular/material/table';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-
 import { Subject, finalize, takeUntil } from 'rxjs';
 
 import { AdvisorService } from '../advisor/advisor.service';
 import { IStudentAdvisor } from '../domain/models/studentadvisor';
 import { AccountLookup } from '../domain/dto/response/AccountResponse';
 import { AccountLookupService } from '../domain/shared/services/accountLookUp.service';
-import { StudentService } from '../domain/shared/services/student.service';
-import { ServantService } from '../domain/shared/services/servant.service';
+import { StudentService, StudentDto } from '../domain/shared/services/student.service';
+import { ServantService, ServantDto } from '../domain/shared/services/servant.service';
 import { EAccountPermission } from '../domain/enum/EAccountPermission';
 
 @Component({
@@ -47,21 +44,23 @@ export class AdvisorComponent implements OnInit, OnDestroy {
 
   loading = false;
   error = '';
-
   list: IStudentAdvisor[] = [];
-  displayedColumns: string[] = ['id', 'studentId', 'servantId', 'active', 'actions'];
+
+  // ALTERADO: Removida coluna 'id', mantém apenas student, servant, active e actions
+  displayedColumns: string[] = ['student', 'servant', 'active', 'actions'];
 
   studentText = '';
   servantText = '';
-
   studentOptions: AccountLookup[] = [];
   servantOptions: AccountLookup[] = [];
-
   selectedStudentAccountId: number | null = null;
   selectedServantAccountId: number | null = null;
-
   resolvedStudentId: number | null = null;
   resolvedServantId: number | null = null;
+
+  // Cache de nomes usando AccountLookup
+  private studentCache = new Map<number, string>();
+  private servantCache = new Map<number, string>();
 
   constructor(
     private advisorService: AdvisorService,
@@ -89,11 +88,9 @@ export class AdvisorComponent implements OnInit, OnDestroy {
 
   onStudentType(): void {
     const q = (this.studentText ?? '').trim();
-
     this.studentOptions = [];
     this.selectedStudentAccountId = null;
     this.resolvedStudentId = null;
-
     if (!q || q.length < 2) return;
 
     this.accountLookup.Search(q, EAccountPermission.Student, 20)
@@ -106,11 +103,9 @@ export class AdvisorComponent implements OnInit, OnDestroy {
 
   onServantType(): void {
     const q = (this.servantText ?? '').trim();
-
     this.servantOptions = [];
     this.selectedServantAccountId = null;
     this.resolvedServantId = null;
-
     if (!q || q.length < 2) return;
 
     this.accountLookup.Search(q, EAccountPermission.Servant, 20)
@@ -153,6 +148,92 @@ export class AdvisorComponent implements OnInit, OnDestroy {
       });
   }
 
+  getStudentNameById(studentId: number): string {
+    if (!studentId) return '';
+
+    if (this.studentCache.has(studentId)) {
+      return this.studentCache.get(studentId)!;
+    }
+
+    // Valor temporário enquanto carrega
+    this.studentCache.set(studentId, `Carregando...`);
+
+    this.studentApi.GetById(studentId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (student: StudentDto) => {
+          // Tenta pegar Account ou account (case insensitive)
+          const account = student?.Account ?? student?.account;
+
+          if (account) {
+            const name = (account.UserName ?? '').trim();
+            const mail = (account.Mail ?? '').trim();
+
+            // Prioriza nome, depois email
+            const displayName = name || mail || `#${studentId}`;
+            this.studentCache.set(studentId, displayName);
+          } else {
+            this.studentCache.set(studentId, `#${studentId}`);
+          }
+        },
+        error: () => {
+          this.studentCache.set(studentId, `#${studentId}`);
+        }
+      });
+
+    return `Carregando...`;
+  }
+
+  /**
+   * Busca e cacheia o nome do servidor pelo ID
+   * Usa ServantDto.Account para pegar UserName ou Mail
+   */
+  getServantNameById(servantId: number): string {
+    if (!servantId) return '';
+
+    if (this.servantCache.has(servantId)) {
+      return this.servantCache.get(servantId)!;
+    }
+
+    // Valor temporário enquanto carrega
+    this.servantCache.set(servantId, `Carregando...`);
+
+    this.servantApi.GetById(servantId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (servant: ServantDto) => {
+          // Tenta pegar Account ou account (case insensitive)
+          const account = servant?.Account ?? servant?.account;
+
+          if (account) {
+            const name = (account.UserName ?? '').trim();
+            const mail = (account.Mail ?? '').trim();
+
+            // Prioriza nome, depois email
+            const displayName = name || mail || `#${servantId}`;
+            this.servantCache.set(servantId, displayName);
+          } else {
+            this.servantCache.set(servantId, `#${servantId}`);
+          }
+        },
+        error: () => {
+          this.servantCache.set(servantId, `#${servantId}`);
+        }
+      });
+
+    return `Carregando...`;
+  }
+
+  private populateCache(data: IStudentAdvisor[]): void {
+    data.forEach(item => {
+      const studentId = this.getStudentId(item);
+      const servantId = this.getServantId(item);
+
+      if (studentId) this.getStudentNameById(studentId);
+      if (servantId) this.getServantNameById(servantId);
+    });
+  }
+
   search(): void {
     this.error = '';
     this.list = [];
@@ -163,7 +244,10 @@ export class AdvisorComponent implements OnInit, OnDestroy {
         finalize(() => this.loading = false),
         takeUntil(this.destroy$)
       ).subscribe({
-        next: (res) => this.list = res ?? [],
+        next: (res) => {
+          this.list = res ?? [];
+          this.populateCache(this.list);
+        },
         error: (err) => this.error = (err?.error ?? err?.message ?? 'Erro ao buscar por aluno')
       });
       return;
@@ -174,7 +258,10 @@ export class AdvisorComponent implements OnInit, OnDestroy {
         finalize(() => this.loading = false),
         takeUntil(this.destroy$)
       ).subscribe({
-        next: (res) => this.list = res ?? [],
+        next: (res) => {
+          this.list = res ?? [];
+          this.populateCache(this.list);
+        },
         error: (err) => this.error = (err?.error ?? err?.message ?? 'Erro ao buscar por servidor')
       });
       return;
@@ -203,7 +290,10 @@ export class AdvisorComponent implements OnInit, OnDestroy {
       finalize(() => this.loading = false),
       takeUntil(this.destroy$)
     ).subscribe({
-      next: (res) => this.list = res ?? [],
+      next: (res) => {
+        this.list = res ?? [];
+        this.populateCache(this.list);
+      },
       error: (err) => this.error = (err?.error ?? err?.message ?? 'Erro ao carregar')
     });
   }
@@ -226,5 +316,17 @@ export class AdvisorComponent implements OnInit, OnDestroy {
 
   isActive(item: any): boolean {
     return !!(item?.isActive ?? item?.IsActive ?? item?.active);
+  }
+
+  getStudentId(item: any): number {
+    return Number(item?.studentId ?? item?.StudentId ?? 0);
+  }
+
+  getServantId(item: any): number {
+    return Number(item?.servantId ?? item?.ServantId ?? 0);
+  }
+
+  getRelationId(item: any): number {
+    return Number(item?.id ?? item?.Id ?? 0);
   }
 }
